@@ -1,8 +1,24 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from '@next/font/local'
 
-const inter = Inter({ subsets: ['latin'] })
+const roboto = localFont({
+  src: [
+    {
+      path: '../../public/fonts/Roboto-Regular.ttf',
+      weight: '400',
+    },
+    {
+      path: '../../public/fonts/Roboto-Medium.ttf',
+      weight: '500',
+    },
+    {
+      path: '../../public/fonts/Roboto-Bold.ttf',
+      weight: '700',
+    },
+  ],
+  variable: '--font-roboto',
+})
 
 export const metadata: Metadata = {
   title: 'PharosIT OS System',
@@ -15,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${roboto.variable} font-sans`}>{children}</body>
     </html>
   )
 }

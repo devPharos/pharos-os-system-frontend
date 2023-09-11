@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-roboto)'],
+      },
       colors: {
         red: {
           50: '#FFEAE6',
