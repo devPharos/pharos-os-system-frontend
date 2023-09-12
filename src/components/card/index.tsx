@@ -7,7 +7,12 @@ interface CardProps {
   quantity: number
 }
 
-export function Card({ icon: Icon, label, color, quantity }: CardProps) {
+export default function Card({
+  icon: Icon,
+  label,
+  color,
+  quantity,
+}: CardProps) {
   return (
     <div className="w-full flex flex-col gap-4 rounded-lg bg-gray-700 p-6">
       <header className="flex items-center justify-between">
