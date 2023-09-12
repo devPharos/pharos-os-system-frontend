@@ -20,7 +20,7 @@ export default function Login() {
 
   return (
     <div className="grid grid-cols-2 w-full">
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen py-8">
         <section className="max-w-lg flex flex-col gap-10">
           <span className="text-3xl text-white font-semibold">
             <span className="text-yellow-500">Soluções</span> em tecnologia para
@@ -47,8 +47,8 @@ export default function Login() {
       </div>
 
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <section className="flex flex-col max-w-[500px] w-full gap-10">
-          <Image src={logo} alt="" quality={100} loading="lazy" />
+        <section className="flex items-center flex-col max-w-[500px] w-full gap-10">
+          <Image src={logo} alt="" quality={100} loading="lazy" height={40} />
 
           <div className="flex flex-col gap-4 w-full">
             <Input
@@ -94,7 +94,7 @@ export default function Login() {
             endContent={<LogIn size={20} />}
             radius="full"
             size="lg"
-            className="bg-yellow-500 text-normal outline-none font-bold text-gray-700 hover:bg-yellow-600 uppercase"
+            className="bg-yellow-500 w-full text-normal outline-none font-bold text-gray-700 hover:bg-yellow-600 uppercase"
           >
             Acessar
           </Button>

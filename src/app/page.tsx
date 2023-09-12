@@ -1,3 +1,9 @@
+import Header from '@/layouts/header'
+
 export default function Home() {
-  return <h1>teste</h1>
+  return (
+    <div className="min-h-screen">
+      <Header />
+    </div>
+  )
 }
