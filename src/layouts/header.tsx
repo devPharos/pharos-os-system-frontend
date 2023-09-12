@@ -88,6 +88,7 @@ export default function Header() {
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
+            href="/support"
           >
             Suporte
           </Link>
