@@ -11,6 +11,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
+
       <main className="flex gap-6 max-w-7xl w-full px-6 py-14">
         <Card
           color="gray-100"
