@@ -21,6 +21,7 @@ export default function Header() {
     <Navbar
       classNames={{
         base: 'bg-gray-950',
+        content: 'gap-6',
       }}
       maxWidth="xl"
     >
@@ -34,7 +35,7 @@ export default function Header() {
         />
       </NavbarBrand>
 
-      <NavbarContent className="gap-8">
+      <NavbarContent>
         <NavbarItem isActive={path === '/'}>
           <Link
             className={
