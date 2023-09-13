@@ -1,5 +1,6 @@
 import { Button } from '@nextui-org/react'
 import { PlusCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface PageHeaderProps {
   title: string
@@ -12,6 +13,8 @@ export default function PageHeader({
   title,
   subtitle = undefined,
 }: PageHeaderProps) {
+  const router = useRouter()
+
   return (
     <header className="flex items-center justify-between">
       <section className="flex flex-col">
@@ -19,7 +22,10 @@ export default function PageHeader({
         {subtitle && <span className="text-gray-300">{subtitle}</span>}
       </section>
 
-      <Button className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600">
+      <Button
+        className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+        onClick={() => router.push('/service-orders/create')}
+      >
         <PlusCircle size={18} className="text-gray-700" />
         {label}
       </Button>

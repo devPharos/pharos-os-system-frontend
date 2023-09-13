@@ -71,7 +71,7 @@ export default function Header() {
         <NavbarItem isActive={path === '/service-orders'}>
           <Link
             className={
-              path === '/service-orders'
+              path === ('/service-orders' || '/service-orders/create')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
