@@ -21,8 +21,11 @@ import {
   User,
   XCircle,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function SupportTable() {
+  const router = useRouter()
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
@@ -117,7 +120,10 @@ export default function SupportTable() {
         </thead>
 
         <tbody className="w-full flex flex-col gap-2">
-          <tr className="flex items-center">
+          <tr
+            className="flex items-center"
+            onClick={() => router.push('/support/ticket')}
+          >
             <td className="px-4 py-2">
               <Square size={18} className="text-gray-100" />
             </td>
