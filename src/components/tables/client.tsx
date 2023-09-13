@@ -26,7 +26,7 @@ export default function ClientTable() {
           />
 
           <Button
-            className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+            className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:font-bold"
             startContent={<PlusCircle size={40} />}
           >
             Status
@@ -48,7 +48,7 @@ export default function ClientTable() {
 
       <table className="bg-gray-700 rounded-lg">
         <thead>
-          <tr className="flex items-center">
+          <tr className="flex items-center border-b-1 border-b-gray-500">
             <th className="px-4 py-2">
               <Square size={18} className="text-gray-200" />
             </th>
@@ -83,52 +83,52 @@ export default function ClientTable() {
         <tbody className="w-full">
           <tr className="flex items-center">
             <td className="px-4 py-2">
-              <Square size={18} className="text-gray-100" />
+              <Square size={18} className="text-gray-300" />
             </td>
 
-            <td className="px-4 py-2 w-3/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2 w-3/12 text-gray-300 font-normal text-sm">
               Pharos IT Solutions LTDA
             </td>
 
-            <td className="px-4 py-2 w-3/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2 w-3/12 text-gray-300 font-normal text-sm">
               Pharos IT Solutions
             </td>
 
-            <td className="px-4 py-2  w-2/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2  w-2/12 text-gray-300 font-normal text-sm">
               00110000222
             </td>
 
-            <td className="px-4 py-2  w-2/12 text-gray-100 font-normal text-sm flex gap-2 items-center">
+            <td className="px-4 py-2  w-2/12 text-gray-300 font-normal text-sm flex gap-2 items-center">
               <div className="h-2 w-2 rounded-full bg-green-500"></div>
               Ativo
             </td>
 
-            <td className="px-4 py-2 text-gray-100 font-normal text-sm">24</td>
+            <td className="px-4 py-2 text-gray-300 font-normal text-sm">24</td>
           </tr>
 
-          <tr className="flex items-center">
-            <td className="px-4 py-2">
-              <Square size={18} className="text-gray-100" />
+          <tr className="flex items-center bg-gray-500 rounded-ee-lg rounded-es-lg">
+            <td className="px-4 py-2 ">
+              <Square size={18} className="text-gray-300" />
             </td>
 
-            <td className="px-4 py-2 w-3/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2 w-3/12 text-gray-300 font-normal text-sm">
               Pharos IT Solutions LTDA
             </td>
 
-            <td className="px-4 py-2 w-3/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2 w-3/12 text-gray-300 font-normal text-sm">
               Pharos IT Solutions
             </td>
 
-            <td className="px-4 py-2  w-2/12 text-gray-100 font-normal text-sm">
+            <td className="px-4 py-2  w-2/12 text-gray-300 font-normal text-sm">
               00110000222
             </td>
 
-            <td className="px-4 py-2  w-2/12 text-gray-100 font-normal text-sm flex gap-2 items-center">
+            <td className="px-4 py-2  w-2/12 text-gray-300 font-normal text-sm flex gap-2 items-center">
               <div className="h-2 w-2 rounded-full bg-red-500"></div>
               Inativo
             </td>
 
-            <td className="px-4 py-2 text-gray-100 font-normal text-sm">24</td>
+            <td className="px-4 py-2 text-gray-300 font-normal text-sm">24</td>
           </tr>
         </tbody>
       </table>

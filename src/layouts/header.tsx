@@ -11,7 +11,7 @@ import {
   NavbarItem,
 } from '@nextui-org/react'
 
-import logo from '../../public/assets/logo-negative-yellow.png'
+import logo from '../../public/assets/logo-negative-yellow.svg'
 import { usePathname } from 'next/navigation'
 
 export default function Header() {
@@ -25,10 +25,16 @@ export default function Header() {
       maxWidth="xl"
     >
       <NavbarBrand>
-        <Image src={logo.src} alt="" className="rounded-none" />
+        <Image
+          src={logo.src}
+          alt=""
+          className="rounded-none h-5"
+          loading="eager"
+          height={20}
+        />
       </NavbarBrand>
 
-      <NavbarContent>
+      <NavbarContent className="gap-8">
         <NavbarItem isActive={path === '/'}>
           <Link
             className={
@@ -98,7 +104,12 @@ export default function Header() {
       <NavbarContent data-justify="end">
         <NavbarItem>
           <Button className="bg-transparent p-0 text-gray-100">
-            <Avatar src="https://www.github.com/gitirana.png" />
+            <Avatar
+              src="https://www.github.com/gitirana.png"
+              imgProps={{
+                loading: 'eager',
+              }}
+            />
             <span>
               Olá, <span className="font-medium text-yellow-500">Thayná</span>!
             </span>

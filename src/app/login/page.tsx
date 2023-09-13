@@ -5,7 +5,8 @@ import Image from 'next/image'
 import img1 from '../../../public/assets/img/auth-1.png'
 import img2 from '../../../public/assets/img/auth-2.png'
 import img3 from '../../../public/assets/img/auth-3.png'
-import logo from '../../../public/assets/logo-negative-yellow.png'
+import logo from '../../../public/assets/logo-negative-yellow.svg'
+import blur from '../../../public/assets/img/blur_effect.svg'
 
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button, Input } from '@nextui-org/react'
@@ -47,8 +48,8 @@ export default function Login() {
       </div>
 
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <section className="flex items-center flex-col max-w-[500px] w-full gap-10">
-          <Image src={logo} alt="" quality={100} loading="lazy" height={40} />
+        <section className="relative flex items-center flex-col max-w-[500px] w-full gap-10">
+          <Image src={logo} alt="" quality={100} loading="eager" height={40} />
 
           <div className="flex flex-col gap-4 w-full">
             <Input
@@ -89,6 +90,8 @@ export default function Login() {
               }
             />
           </div>
+
+          <Image alt="" src={blur} className="absolute top-0" />
 
           <Button
             endContent={<LogIn size={20} />}
