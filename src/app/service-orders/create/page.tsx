@@ -83,7 +83,7 @@ export default function CreateOS() {
           <section className="flex items-center gap-6">
             <Button className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold bg-transparent border-2 border-dashed border-yellow-500 hover:bg-yellow-500">
               <Save size={16} />
-              Adicionar OS
+              Adicionar Detalhamento
             </Button>
           </section>
         </header>

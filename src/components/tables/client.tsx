@@ -106,7 +106,7 @@ export default function ClientTable() {
             <td className="px-4 py-2 text-gray-300 font-normal text-sm">24</td>
           </tr>
 
-          <tr className="flex items-center bg-gray-500 rounded-ee-lg rounded-es-lg">
+          <tr className="flex items-center bg-gray-500/30 rounded-ee-lg rounded-es-lg">
             <td className="px-4 py-2 ">
               <Square size={18} className="text-gray-300" />
             </td>
