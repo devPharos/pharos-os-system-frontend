@@ -22,26 +22,43 @@ export default function Home() {
 
         <section className="flex gap-6 max-lg:flex-wrap">
           <Card.Root>
-            <Card.Header icon={GaugeCircle} label="Tickets em aberto" />
-            <Card.Content color="gray-100" quantity={32} />
+            <Card.Header>
+              <Card.Title label="Tickets em aberto" />
+              <Card.Icon icon={GaugeCircle} />
+            </Card.Header>
+            <Card.Content>
+              <Card.Quantity color="gray-100" quantity={12} />
+            </Card.Content>
           </Card.Root>
 
           <Card.Root>
-            <Card.Header icon={AlertCircle} label="Tickets em atraso" />
-            <Card.Content color="red-500" quantity={2} />
+            <Card.Header>
+              <Card.Title label="Tickets em atraso" />
+              <Card.Icon icon={AlertCircle} />
+            </Card.Header>
+            <Card.Content>
+              <Card.Quantity color="red-500" quantity={12} />
+            </Card.Content>
           </Card.Root>
 
           <Card.Root>
-            <Card.Header icon={ArrowRightCircle} label="Tickets em andamento" />
-            <Card.Content color="yellow-500" quantity={12} />
+            <Card.Header>
+              <Card.Title label="Tickets em andamento" />
+              <Card.Icon icon={ArrowRightCircle} />
+            </Card.Header>
+            <Card.Content>
+              <Card.Quantity color="yellow-500" quantity={12} />
+            </Card.Content>
           </Card.Root>
 
           <Card.Root>
-            <Card.Header
-              icon={CheckCircle2}
-              label="Tickets concluídos esse mês"
-            />
-            <Card.Content color="green-500" quantity={12} />
+            <Card.Header>
+              <Card.Title label="Tickets concluídos esse mês" />
+              <Card.Icon icon={CheckCircle2} />
+            </Card.Header>
+            <Card.Content>
+              <Card.Quantity color="green-500" quantity={12} />
+            </Card.Content>
           </Card.Root>
         </section>
       </main>

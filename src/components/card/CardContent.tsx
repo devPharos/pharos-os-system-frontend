@@ -1,7 +1,8 @@
+import { ReactNode } from 'react'
+
 interface CardContentProps {
-  color: string
-  quantity: number
+  children: ReactNode
 }
-export function CardContent({ color, quantity }: CardContentProps) {
-  return <span className={`text-2xl font-bold text-${color}`}>{quantity}</span>
+export function CardContent({ children }: CardContentProps) {
+  return <main className="flex gap-4">{children}</main>
 }
