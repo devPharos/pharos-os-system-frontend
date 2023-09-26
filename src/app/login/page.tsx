@@ -63,6 +63,8 @@ export default function Login() {
           email: userLoginData.email,
         })
 
+        localStorage.setItem('access_token', data.access_token)
+
         router.push('/')
       })
       .catch(function (error) {
