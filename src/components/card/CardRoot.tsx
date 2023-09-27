@@ -1,12 +1,13 @@
-import { ReactNode } from 'react'
+import { HTMLAttributes, ReactNode } from 'react'
+import { twMerge } from 'tailwind-merge'
 
-interface CardRootProps {
+interface CardRootProps extends HTMLAttributes<HTMLElement> {
   children: ReactNode
 }
 
-export default function CardRoot({ children }: CardRootProps) {
+export default function CardRoot({ children, ...rest }: CardRootProps) {
   return (
-    <div className="w-full cursor-pointer flex flex-col gap-4 border-2 border-transparent rounded-lg bg-gray-700 p-6 hover:bg-gray-600 hover:border-2 hover:border-gray-500">
+    <div {...rest} className={twMerge("w-full cursor-pointer flex flex-col gap-4 border-2 border-transparent rounded-lg bg-gray-700 p-6", rest.className)}>
       {children}
     </div>
   )

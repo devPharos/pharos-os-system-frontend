@@ -1,10 +1,11 @@
-import { HTMLAttributes } from 'react'
+import { ElementType, HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 interface CardHeaderBadgeProps extends HTMLAttributes<HTMLElement> {
   status: string
+  icon?: ElementType
 }
-export function CardHeaderBadge({ status, ...rest }: CardHeaderBadgeProps) {
+export function CardHeaderBadge({ status, icon: Icon ,...rest }: CardHeaderBadgeProps) {
   return (
     <section
       {...rest}
@@ -13,6 +14,9 @@ export function CardHeaderBadge({ status, ...rest }: CardHeaderBadgeProps) {
         rest.className,
       )}
     >
+      {Icon && (
+        <Icon className="h-3.5 w-3.5" />
+      )}
       {status}
     </section>
   )

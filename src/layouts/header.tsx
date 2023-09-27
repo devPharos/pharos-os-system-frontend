@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <Navbar
       classNames={{
-        base: 'bg-gray-950',
+        base: 'bg-black',
         content: 'gap-6',
       }}
       maxWidth="xl"

@@ -1,6 +1,7 @@
 {
   "extends": [
     "@rocketseat/eslint-config/next",
+    "next/babel",
     "next/core-web-vitals"
   ]
 }

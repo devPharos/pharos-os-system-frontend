@@ -81,7 +81,7 @@ export default function Clients() {
         </header>
 
         <section className="flex gap-6">
-          <Card.Root>
+          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500'>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
               <Card.Badge
@@ -95,7 +95,7 @@ export default function Clients() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root>
+          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500'>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
               <Card.Badge
@@ -109,7 +109,7 @@ export default function Clients() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root>
+          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500'>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
               <Card.Badge
@@ -123,7 +123,7 @@ export default function Clients() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root>
+          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500'>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
               <Card.Badge
