@@ -84,7 +84,10 @@ export default function Clients() {
           <Card.Root>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
-              <Card.Badge status="Ativo" />
+              <Card.Badge
+                className="text-green-500 bg-green-500/10"
+                status="Ativo"
+              />
             </Card.Header>
             <Card.Content>
               <Card.Info icon={Building2} info="36.321.105/0001-90" />
@@ -95,7 +98,10 @@ export default function Clients() {
           <Card.Root>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
-              <Card.Badge status="Inativo" />
+              <Card.Badge
+                className="text-red-500 bg-red-500/10"
+                status="Inativo"
+              />
             </Card.Header>
             <Card.Content>
               <Card.Info icon={Building2} info="36.321.105/0001-90" />
@@ -106,7 +112,10 @@ export default function Clients() {
           <Card.Root>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
-              <Card.Badge status="Ativo" />
+              <Card.Badge
+                className="text-green-500 bg-green-500/10"
+                status="Ativo"
+              />
             </Card.Header>
             <Card.Content>
               <Card.Info icon={Building2} info="36.321.105/0001-90" />
@@ -117,7 +126,10 @@ export default function Clients() {
           <Card.Root>
             <Card.Header>
               <Card.Title label="Pharos IT Solutions" />
-              <Card.Badge status="Ativo" />
+              <Card.Badge
+                className="text-green-500 bg-green-500/10"
+                status="Ativo"
+              />
             </Card.Header>
             <Card.Content>
               <Card.Info icon={Building2} info="36.321.105/0001-90" />
