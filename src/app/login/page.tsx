@@ -63,7 +63,10 @@ export default function Login() {
           email: userLoginData.email,
         })
 
-        localStorage.setItem('access_token', data.access_token)
+        if (typeof window !== undefined) {
+          const localStorage = window.localStorage
+          localStorage.setItem('access_token', data.access_token)
+        }
 
         router.push('/')
       })

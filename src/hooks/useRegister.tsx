@@ -1,5 +1,6 @@
 'use client'
-import { User } from '@/types/user'
+import { User, UserData } from '@/types/user'
+import axios from 'axios'
 import { createContext, useContext, useState } from 'react'
 
 const defaultUser: User = {
@@ -31,10 +32,29 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
+const getUserData = (access_token: string): UserData => {
+  let userData: UserData = {
+    collaboratorId: '',
+    companyId: '',
+    userId: '',
+  }
+  axios
+    .get(`http://localhost:3333/accounts/user`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    })
+    .then((response) => {
+      userData = response.data
+    })
+
+  return userData
+}
+
 const useRegister = () => {
   const context = useContext(RegisterContext)
 
   return context
 }
 
-export { RegisterProvider, useRegister }
+export { RegisterProvider, useRegister, getUserData }

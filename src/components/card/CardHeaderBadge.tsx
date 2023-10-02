@@ -5,7 +5,11 @@ interface CardHeaderBadgeProps extends HTMLAttributes<HTMLElement> {
   status: string
   icon?: ElementType
 }
-export function CardHeaderBadge({ status, icon: Icon ,...rest }: CardHeaderBadgeProps) {
+export function CardHeaderBadge({
+  status,
+  icon: Icon,
+  ...rest
+}: CardHeaderBadgeProps) {
   return (
     <section
       {...rest}
@@ -14,9 +18,7 @@ export function CardHeaderBadge({ status, icon: Icon ,...rest }: CardHeaderBadge
         rest.className,
       )}
     >
-      {Icon && (
-        <Icon className="h-3.5 w-3.5" />
-      )}
+      {Icon && <Icon className="h-3.5 w-3.5" />}
       {status}
     </section>
   )

@@ -4,7 +4,23 @@ import ServiceOrdersTable from '@/components/tables/service-orders'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { Button, Input } from '@nextui-org/react'
-import { AlertCircle, ArrowRightCircle, Building2, Calendar, CircleDashed, CircleDollarSign, Clock, Eye, Pencil, PersonStanding, PlusCircle, Search, User, Users2, XCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowRightCircle,
+  Building2,
+  Calendar,
+  CircleDashed,
+  CircleDollarSign,
+  Clock,
+  Eye,
+  Pencil,
+  PersonStanding,
+  PlusCircle,
+  Search,
+  User,
+  Users2,
+  XCircle,
+} from 'lucide-react'
 
 export default function ServiceOrders() {
   return (
@@ -52,9 +68,9 @@ export default function ServiceOrders() {
         </header>
 
         <section className="flex flex-wrap gap-6">
-          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm'>
+          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
             <Card.Header>
-              <section className='flex items-center gap-2'>
+              <section className="flex items-center gap-2">
                 <Card.Badge
                   className="text-gray-300/80  rounded-md bg-gray-500/20"
                   status="01/02/23"
@@ -73,9 +89,9 @@ export default function ServiceOrders() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm'>
+          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
             <Card.Header>
-              <section className='flex items-center gap-2'>
+              <section className="flex items-center gap-2">
                 <Card.Badge
                   className="text-gray-300/80  rounded-md bg-gray-500/20"
                   status="01/02/23"
@@ -94,9 +110,9 @@ export default function ServiceOrders() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm'>
+          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
             <Card.Header>
-              <section className='flex items-center gap-2'>
+              <section className="flex items-center gap-2">
                 <Card.Badge
                   className="text-gray-300/80  rounded-md bg-gray-500/20"
                   status="01/02/23"
@@ -115,9 +131,9 @@ export default function ServiceOrders() {
             </Card.Content>
           </Card.Root>
 
-          <Card.Root className='hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm'>
+          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
             <Card.Header>
-              <section className='flex items-center gap-2'>
+              <section className="flex items-center gap-2">
                 <Card.Badge
                   className="text-gray-300/80  rounded-md bg-gray-500/20"
                   status="01/02/23"

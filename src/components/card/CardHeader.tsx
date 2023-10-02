@@ -6,6 +6,8 @@ interface CardHeaderProps {
 
 export function CardHeader({ children }: CardHeaderProps) {
   return (
-    <header className="flex items-center justify-between gap-2">{children}</header>
+    <header className="flex items-center justify-between gap-2">
+      {children}
+    </header>
   )
 }
