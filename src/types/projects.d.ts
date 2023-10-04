@@ -11,3 +11,29 @@ export interface Projects {
   hoursBalance: string
   hourValue: string
 }
+export interface ProjectServices {
+  id: string
+  companyId: string
+  projectId: string
+  description: string
+  chargesClient: boolean
+  passCollaborator: boolean
+}
+export interface ProjectExpenses {
+  id: string
+  companyId: string
+  projectId: string
+  description: string
+  value: string
+  requireReceipt: boolean
+}
+
+export interface ProjectDetails {
+  projectName: string
+  startDate: string
+  endDate: string
+  projectId: string
+  projectServiceId: string
+  description: string
+  projectServiceType: string
+}
