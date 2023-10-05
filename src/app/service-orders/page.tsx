@@ -3,7 +3,10 @@ import { Card } from '@/components/Card'
 import ServiceOrdersTable from '@/components/tables/service-orders'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
+import { ServiceOrderCard } from '@/types/service-order'
 import { Button, Input } from '@nextui-org/react'
+import axios from 'axios'
+import { format } from 'date-fns'
 import {
   AlertCircle,
   ArrowRightCircle,
@@ -21,8 +24,29 @@ import {
   Users2,
   XCircle,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function ServiceOrders() {
+  const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
+
+  useEffect(() => {
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const userToken: string = localStorage.getItem('access_token') || ''
+
+      axios
+        .get('http://localhost:3333/service-orders', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          console.log(response.data[0].date)
+          setServiceOrders(response.data)
+        })
+    }
+  }, [])
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -68,89 +92,61 @@ export default function ServiceOrders() {
         </header>
 
         <section className="flex flex-wrap gap-6">
-          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
-            <Card.Header>
-              <section className="flex items-center gap-2">
-                <Card.Badge
-                  className="text-gray-300/80  rounded-md bg-gray-500/20"
-                  status="01/02/23"
-                />
-                <Card.Title label="Pharos IT Solutions" />
-              </section>
-              <Card.Badge
-                className="text-red-500 bg-red-500/10"
-                status="Em aberto"
-                icon={AlertCircle}
-              />
-            </Card.Header>
-            <Card.Content>
-              <Card.Info icon={User} info="Thayná Gitirana" />
-              <Card.Info icon={Clock} info="09:30 - 17:30" />
-            </Card.Content>
-          </Card.Root>
-
-          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
-            <Card.Header>
-              <section className="flex items-center gap-2">
-                <Card.Badge
-                  className="text-gray-300/80  rounded-md bg-gray-500/20"
-                  status="01/02/23"
-                />
-                <Card.Title label="Pharos IT Solutions" />
-              </section>
-              <Card.Badge
-                className="text-orange-600 bg-orange-600/10"
-                status="Enviado ao cliente"
-                icon={ArrowRightCircle}
-              />
-            </Card.Header>
-            <Card.Content>
-              <Card.Info icon={User} info="Thayná Gitirana" />
-              <Card.Info icon={Clock} info="09:30 - 17:30" />
-            </Card.Content>
-          </Card.Root>
-
-          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
-            <Card.Header>
-              <section className="flex items-center gap-2">
-                <Card.Badge
-                  className="text-gray-300/80  rounded-md bg-gray-500/20"
-                  status="01/02/23"
-                />
-                <Card.Title label="Pharos IT Solutions" />
-              </section>
-              <Card.Badge
-                className="text-green-500 bg-green-500/10"
-                status="Faturado"
-                icon={CircleDollarSign}
-              />
-            </Card.Header>
-            <Card.Content>
-              <Card.Info icon={User} info="Thayná Gitirana" />
-              <Card.Info icon={Clock} info="09:30 - 17:30" />
-            </Card.Content>
-          </Card.Root>
-
-          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
-            <Card.Header>
-              <section className="flex items-center gap-2">
-                <Card.Badge
-                  className="text-gray-300/80  rounded-md bg-gray-500/20"
-                  status="01/02/23"
-                />
-                <Card.Title label="Pharos IT Solutions" />
-              </section>
-              <Card.Badge
-                className="text-gray-300/80 bg-gray-500/10"
-                status="Cancelado"
-                icon={XCircle}
-              />
-            </Card.Header>
-            <Card.Content>
-              <Card.Info icon={User} info="Thayná Gitirana" />
-              <Card.Info icon={Clock} info="09:30 - 17:30" />
-            </Card.Content>
-          </Card.Root>
+          {serviceOrders.map((serviceOrder) => {
+            return (
+              <Card.Root
+                className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"
+                key={serviceOrder.id}
+              >
+                <Card.Header>
+                  <section className="flex items-center gap-2">
+                    <Card.Badge
+                      className="text-gray-300/80  rounded-md bg-gray-500/20"
+                      status={format(new Date(serviceOrder.date), 'dd/LL/yyyy')}
+                    />
+                    <Card.Title label="Pharos IT Solutions" />
+                  </section>
+                  <Card.Badge
+                    className={
+                      serviceOrder.status === 'Aberto'
+                        ? 'bg-red-500/10 text-red-500'
+                        : serviceOrder.status === 'Enviado'
+                        ? 'bg-orange-600/10 text-orange-600'
+                        : serviceOrder.status === 'Cancelado'
+                        ? 'text-gray-300/80 bg-gray-500/10'
+                        : 'text-green-500/80 bg-green-500/10'
+                    }
+                    status={
+                      serviceOrder.status === 'Aberto'
+                        ? 'Em aberto'
+                        : serviceOrder.status === 'Enviado'
+                        ? 'Enviado ao cliente'
+                        : serviceOrder.status
+                    }
+                    icon={
+                      serviceOrder.status === 'Aberto'
+                        ? AlertCircle
+                        : serviceOrder.status === 'Enviado'
+                        ? ArrowRightCircle
+                        : serviceOrder.status === 'Cancelado'
+                        ? XCircle
+                        : CircleDollarSign
+                    }
+                  />
+                </Card.Header>
+                <Card.Content>
+                  <Card.Info icon={User} info="Thayná Gitirana" />
+                  <Card.Info
+                    icon={Clock}
+                    info={`${format(
+                      new Date(serviceOrder.startDate),
+                      'HH:mm',
+                    )} - ${format(new Date(serviceOrder.endDate), 'HH:mm')}`}
+                  />
+                </Card.Content>
+              </Card.Root>
+            )
+          })}
         </section>
       </main>
     </div>

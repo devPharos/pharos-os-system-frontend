@@ -32,20 +32,21 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-const getUserData = (access_token: string): UserData => {
+const getUserData = (accessToken: string): UserData => {
   let userData: UserData = {
     collaboratorId: '',
     companyId: '',
     userId: '',
   }
+
   axios
     .get(`http://localhost:3333/accounts/user`, {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     })
     .then((response) => {
-      userData = response.data
+      return (userData = response.data)
     })
 
   return userData

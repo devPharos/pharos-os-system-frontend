@@ -18,6 +18,7 @@ import {
 } from '@/types/projects'
 import CreateOSExpenses from '../expenses'
 import { ServiceOrderDetails, ServiceOrderExpense } from '@/types/service-order'
+import { parseDate } from '@/functions/auxiliar'
 
 interface OSDetailsProps {
   clientId: string
@@ -76,12 +77,20 @@ export default function CreateOSDetails({
   const handleOSFormSubmit: SubmitHandler<TOsDetailsFormData> = (
     data: TOsDetailsFormData,
   ) => {
+    const endDate = parseDate(data.endDate)
+    const startDate = parseDate(data.startDate)
+
     const projectServiceName = getProjectServiceName(data.projectServiceId)
     const projectName = getProjectName(data.projectId)
+    const totalHours =
+      startDate.getTime() - endDate.getTime() / (1000 * 60 * 60)
 
     if (projectServiceName && projectName) {
       const projectDetails: ProjectDetails = {
         ...data,
+        endDate,
+        startDate,
+        totalHours,
         projectServiceType: projectServiceName,
         projectName,
       }

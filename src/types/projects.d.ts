@@ -30,10 +30,11 @@ export interface ProjectExpenses {
 
 export interface ProjectDetails {
   projectName: string
-  startDate: string
-  endDate: string
+  startDate: Date
+  endDate: Date
   projectId: string
   projectServiceId: string
   description: string
   projectServiceType: string
+  totalHours: number
 }

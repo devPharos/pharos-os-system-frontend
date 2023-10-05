@@ -23,22 +23,26 @@ import { Key, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Client } from '@/types/client'
 import CreateOSDetails from './details'
-import { ServiceOrderDetails } from '@/types/service-order'
+import {
+  ServiceOrderCreation,
+  ServiceOrderDetails,
+} from '@/types/service-order'
 import { Card } from '@/components/Card'
+import { useRouter } from 'next/navigation'
 export default function CreateOSForm() {
-  const localStorage = window.localStorage
-  const token: string = localStorage.getItem('access_token') || ''
-  const userData: UserData = getUserData(token)
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
   const [clientId, setClientId] = useState<string | null>(null)
   const [osDetails, setOsDetails] = useState<ServiceOrderDetails[]>([])
+  const [token, setToken] = useState('')
 
   const osFormSchema = z.object({
     serviceType: z.string().nonempty('Selecione uma opção'),
     date: z.coerce.date(),
     clientId: z.string().uuid(),
   })
+
+  const router = useRouter()
 
   type TOsFormData = z.infer<typeof osFormSchema>
 
@@ -53,25 +57,82 @@ export default function CreateOSForm() {
   const handleOSFormSubmit: SubmitHandler<TOsFormData> = (
     data: TOsFormData,
   ) => {
-    console.log(data)
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const userToken: string = localStorage.getItem('access_token') || ''
+      let totalHours = 0
+
+      osDetails.forEach((detail) => {
+        totalHours += detail.projectDetails.totalHours
+      })
+
+      osDetails.sort(
+        (a: any, b: any) =>
+          a.projectDetails.startDate - b.projectDetails.startDate,
+      )
+
+      const startDate: Date = osDetails[0].projectDetails.startDate
+      const endDate: Date =
+        osDetails[osDetails.length - 1].projectDetails.endDate
+
+      console.log(osDetails)
+
+      axios
+        .get(`http://localhost:3333/accounts/user`, {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          const userData = response.data
+          const body: ServiceOrderCreation = {
+            clientId: data.clientId,
+            collaboratorId: userData?.collaboratorId || '',
+            companyId: userData?.companyId,
+            date: data.date,
+            remote: data.serviceType === 'Remoto',
+            startDate,
+            endDate,
+            totalHours: totalHours.toString(),
+            serviceOrderDetails: osDetails,
+          }
+          axios
+            .post('http://localhost:3333/service-order', body, {
+              headers: {
+                Authorization: `Bearer ${userToken}`,
+              },
+            })
+            .then(() => {
+              setLoading(true)
+              router.push('/service-orders')
+            })
+            .catch((error) => {
+              console.log(error)
+            })
+        })
+    }
   }
 
   useEffect(() => {
-    setLoading(true)
-    axios
-      .get('http://localhost:3333/clients', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setLoading(false)
-        setClients(response.data)
-      })
-  }, [token])
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const userToken: string = localStorage.getItem('access_token') || ''
+
+      setToken(userToken)
+
+      axios
+        .get('http://localhost:3333/clients', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          setClients(response.data)
+        })
+    }
+  }, [])
 
   const handleClientProjects = (selectedKey: any) => {
-    setLoading(true)
     const selectedClientId = selectedKey.currentKey
     setClientId(selectedClientId)
   }
@@ -99,8 +160,9 @@ export default function CreateOSForm() {
               Cancelar
             </Button>
             <Button
+              disabled={loading || osDetails.length === 0}
               type="submit"
-              className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+              className="disabled:border-none disabled:bg-transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
             >
               <Save size={16} />
               Salvar OS
