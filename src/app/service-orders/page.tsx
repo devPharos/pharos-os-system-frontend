@@ -4,7 +4,15 @@ import ServiceOrdersTable from '@/components/tables/service-orders'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { ServiceOrderCard } from '@/types/service-order'
-import { Button, Input } from '@nextui-org/react'
+import {
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownSection,
+  DropdownTrigger,
+  Input,
+} from '@nextui-org/react'
 import axios from 'axios'
 import { format } from 'date-fns'
 import {
@@ -15,6 +23,7 @@ import {
   CircleDashed,
   CircleDollarSign,
   Clock,
+  Eraser,
   Eye,
   Pencil,
   PersonStanding,
@@ -24,10 +33,24 @@ import {
   Users2,
   XCircle,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Key, useEffect, useState } from 'react'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
+  const [filteredItems, setFilteredItems] = useState<ServiceOrderCard[]>([])
+
+  const onStatusFilter = (status: Key) => {
+    const newOsList = [...serviceOrders]
+
+    if (status !== 'Limpar') {
+      const filteredList = newOsList.filter((os) => os.status === status)
+      setFilteredItems(filteredList)
+    }
+
+    if (status === 'Limpar') {
+      setFilteredItems(newOsList)
+    }
+  }
 
   useEffect(() => {
     if (window !== undefined) {
@@ -41,8 +64,8 @@ export default function ServiceOrders() {
           },
         })
         .then((response) => {
-          console.log(response.data[0].date)
           setServiceOrders(response.data)
+          setFilteredItems(response.data)
         })
     }
   }, [])
@@ -70,12 +93,101 @@ export default function ServiceOrders() {
               }}
             />
 
-            <Button
-              className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
-              startContent={<PlusCircle size={40} />}
+            <Dropdown
+              classNames={{
+                base: 'bg-gray-700 rounded-lg',
+              }}
+              backdrop="opaque"
             >
-              Status
-            </Button>
+              <DropdownTrigger>
+                <Button
+                  className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+                  startContent={<PlusCircle size={40} />}
+                >
+                  Status
+                </Button>
+              </DropdownTrigger>
+
+              <DropdownMenu
+                onAction={(key) => onStatusFilter(key)}
+                itemClasses={{
+                  base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                }}
+              >
+                <DropdownSection
+                  showDivider
+                  classNames={{
+                    divider: 'bg-gray-500',
+                  }}
+                >
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-red-500/10 text-red-500 py-2 px-2 rounded-md"
+                        icon={AlertCircle}
+                      />
+                    }
+                    key={'Aberto'}
+                  >
+                    Em aberto
+                  </DropdownItem>
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-orange-600/10 text-orange-600 py-2 px-2 rounded-md"
+                        icon={ArrowRightCircle}
+                      />
+                    }
+                    key={'Enviado'}
+                  >
+                    Enviado ao cliente
+                  </DropdownItem>
+
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
+                        icon={CircleDollarSign}
+                      />
+                    }
+                    key={'Faturado'}
+                  >
+                    Faturado
+                  </DropdownItem>
+
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-gray-500/10 text-gray-300 py-2 px-2 rounded-md"
+                        icon={XCircle}
+                      />
+                    }
+                    key={'Cancelado'}
+                  >
+                    Cancelado
+                  </DropdownItem>
+                </DropdownSection>
+
+                <DropdownSection>
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-blue-500/10 text-blue-500 py-2 px-2 rounded-md"
+                        icon={Eraser}
+                      />
+                    }
+                    key={'Limpar'}
+                  >
+                    Limpar filtros
+                  </DropdownItem>
+                </DropdownSection>
+              </DropdownMenu>
+            </Dropdown>
           </section>
 
           <section className="space-x-6">
@@ -92,7 +204,7 @@ export default function ServiceOrders() {
         </header>
 
         <section className="flex flex-wrap gap-6">
-          {serviceOrders.map((serviceOrder) => {
+          {filteredItems.map((serviceOrder) => {
             return (
               <Card.Root
                 className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"

@@ -36,6 +36,7 @@ export default function CreateOSForm() {
   const [clientId, setClientId] = useState<string | null>(null)
   const [osDetails, setOsDetails] = useState<ServiceOrderDetails[]>([])
   const [token, setToken] = useState('')
+  const [filterItems, setFilterItems] = useState<ServiceOrderDetails[]>([])
 
   const osFormSchema = z.object({
     serviceType: z.string().nonempty('Selecione uma opção'),
