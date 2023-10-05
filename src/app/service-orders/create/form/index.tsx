@@ -29,6 +29,7 @@ import {
 } from '@/types/service-order'
 import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
 export default function CreateOSForm() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(false)
@@ -261,7 +262,13 @@ export default function CreateOSForm() {
                 <Card.Content>
                   <Card.Info
                     icon={Clock}
-                    info={`${detail.projectDetails.startDate} - ${detail.projectDetails.endDate}`}
+                    info={`${format(
+                      new Date(detail.projectDetails.startDate),
+                      'HH:mm',
+                    )} - ${format(
+                      new Date(detail.projectDetails.endDate),
+                      'HH:mm',
+                    )}`}
                   />
                   {detail.projectExpenses.length > 0 && (
                     <Card.Info
