@@ -3,6 +3,7 @@ import { Card } from '@/components/Card'
 import ServiceOrdersTable from '@/components/tables/service-orders'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
+import { Client } from '@/types/client'
 import { ServiceOrderCard } from '@/types/service-order'
 import {
   Button,
@@ -20,6 +21,7 @@ import {
   ArrowRightCircle,
   Building2,
   Calendar,
+  CheckCircle2,
   CircleDashed,
   CircleDollarSign,
   Clock,
@@ -29,15 +31,19 @@ import {
   PersonStanding,
   PlusCircle,
   Search,
+  Square,
   User,
   Users2,
   XCircle,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Key, useEffect, useState } from 'react'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
   const [filteredItems, setFilteredItems] = useState<ServiceOrderCard[]>([])
+  const [clients, setClients] = useState<Client[]>([])
 
   const onStatusFilter = (status: Key) => {
     const newOsList = [...serviceOrders]
@@ -64,8 +70,24 @@ export default function ServiceOrders() {
           },
         })
         .then((response) => {
+          const allOs: ServiceOrderCard[] = response.data
+
+          allOs.forEach((os) => {
+            os.selected = false
+          })
+
           setServiceOrders(response.data)
           setFilteredItems(response.data)
+        })
+
+      axios
+        .get('http://localhost:3333/clients', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          setClients(response.data)
         })
     }
   }, [])
@@ -124,7 +146,20 @@ export default function ServiceOrders() {
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-red-500/10 text-red-500 py-2 px-2 rounded-md"
+                        className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
+                        icon={Pencil}
+                      />
+                    }
+                    key={'Rascunho'}
+                  >
+                    Rascunho
+                  </DropdownItem>
+
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="bg-yellow-500/10 text-yellow-500 py-2 px-2 rounded-md"
                         icon={AlertCircle}
                       />
                     }
@@ -149,6 +184,19 @@ export default function ServiceOrders() {
                     startContent={
                       <Card.Badge
                         status=""
+                        className="bg-blue-500/10 text-blue-500 py-2 px-2 rounded-md"
+                        icon={CheckCircle2}
+                      />
+                    }
+                    key={'Validado'}
+                  >
+                    Validado
+                  </DropdownItem>
+
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
                         className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
                         icon={CircleDollarSign}
                       />
@@ -157,19 +205,6 @@ export default function ServiceOrders() {
                   >
                     Faturado
                   </DropdownItem>
-
-                  <DropdownItem
-                    startContent={
-                      <Card.Badge
-                        status=""
-                        className="bg-gray-500/10 text-gray-300 py-2 px-2 rounded-md"
-                        icon={XCircle}
-                      />
-                    }
-                    key={'Cancelado'}
-                  >
-                    Cancelado
-                  </DropdownItem>
                 </DropdownSection>
 
                 <DropdownSection>
@@ -177,7 +212,7 @@ export default function ServiceOrders() {
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-blue-500/10 text-blue-500 py-2 px-2 rounded-md"
+                        className="bg-red-500/10 text-red-500 py-2 px-2 rounded-md"
                         icon={Eraser}
                       />
                     }
@@ -189,74 +224,76 @@ export default function ServiceOrders() {
               </DropdownMenu>
             </Dropdown>
           </section>
-
-          <section className="space-x-6">
-            <Button className="rounded-full border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold">
-              <Pencil size={16} />
-              Alterar
-            </Button>
-
-            <Button className="rounded-full border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold">
-              <Eye size={16} />
-              Visualizar
-            </Button>
-          </section>
         </header>
 
         <section className="flex flex-wrap gap-6">
           {filteredItems.map((serviceOrder) => {
+            const client = clients.find(
+              (client) => client.id === serviceOrder.clientId,
+            )
             return (
-              <Card.Root
-                className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"
+              <Link
+                href={{
+                  pathname: '/service-orders/create',
+                  query: {
+                    id: serviceOrder.id,
+                  },
+                }}
                 key={serviceOrder.id}
               >
-                <Card.Header>
-                  <section className="flex items-center gap-2">
+                <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
+                  <Card.Header>
+                    <section className="flex items-center gap-2">
+                      <Card.Title label={client?.fantasyName || ''} />
+                    </section>
                     <Card.Badge
-                      className="text-gray-300/80  rounded-md bg-gray-500/20"
+                      className={
+                        serviceOrder.status === 'Rascunho'
+                          ? 'text-gray-300/80 bg-gray-500/10'
+                          : serviceOrder.status === 'Aberto'
+                          ? 'bg-yellow-500/10 text-yellow-500'
+                          : serviceOrder.status === 'Enviado'
+                          ? 'bg-orange-600/10 text-orange-600'
+                          : serviceOrder.status === 'Faturado'
+                          ? 'text-green-500/80 bg-green-500/10'
+                          : 'bg-blue-500/10 text-blue-400'
+                      }
+                      status={
+                        serviceOrder.status === 'Aberto'
+                          ? 'Em aberto'
+                          : serviceOrder.status === 'Enviado'
+                          ? 'Enviado ao cliente'
+                          : serviceOrder.status
+                      }
+                      icon={
+                        serviceOrder.status === 'Rascunho'
+                          ? Pencil
+                          : serviceOrder.status === 'Aberto'
+                          ? AlertCircle
+                          : serviceOrder.status === 'Enviado'
+                          ? ArrowRightCircle
+                          : serviceOrder.status === 'Faturado'
+                          ? CircleDollarSign
+                          : CheckCircle2
+                      }
+                    />
+                  </Card.Header>
+                  <Card.Content>
+                    <Card.Info icon={User} info="Thayná Gitirana" />
+                    <Card.Info
+                      icon={Clock}
+                      info={`${format(
+                        new Date(serviceOrder.startDate),
+                        'HH:mm',
+                      )} - ${format(new Date(serviceOrder.endDate), 'HH:mm')}`}
+                    />
+                    <Card.Badge
+                      className="text-gray-300/80 rounded-md bg-gray-500/20"
                       status={format(new Date(serviceOrder.date), 'dd/LL/yyyy')}
                     />
-                    <Card.Title label="Pharos IT Solutions" />
-                  </section>
-                  <Card.Badge
-                    className={
-                      serviceOrder.status === 'Aberto'
-                        ? 'bg-red-500/10 text-red-500'
-                        : serviceOrder.status === 'Enviado'
-                        ? 'bg-orange-600/10 text-orange-600'
-                        : serviceOrder.status === 'Cancelado'
-                        ? 'text-gray-300/80 bg-gray-500/10'
-                        : 'text-green-500/80 bg-green-500/10'
-                    }
-                    status={
-                      serviceOrder.status === 'Aberto'
-                        ? 'Em aberto'
-                        : serviceOrder.status === 'Enviado'
-                        ? 'Enviado ao cliente'
-                        : serviceOrder.status
-                    }
-                    icon={
-                      serviceOrder.status === 'Aberto'
-                        ? AlertCircle
-                        : serviceOrder.status === 'Enviado'
-                        ? ArrowRightCircle
-                        : serviceOrder.status === 'Cancelado'
-                        ? XCircle
-                        : CircleDollarSign
-                    }
-                  />
-                </Card.Header>
-                <Card.Content>
-                  <Card.Info icon={User} info="Thayná Gitirana" />
-                  <Card.Info
-                    icon={Clock}
-                    info={`${format(
-                      new Date(serviceOrder.startDate),
-                      'HH:mm',
-                    )} - ${format(new Date(serviceOrder.endDate), 'HH:mm')}`}
-                  />
-                </Card.Content>
-              </Card.Root>
+                  </Card.Content>
+                </Card.Root>
+              </Link>
             )
           })}
         </section>

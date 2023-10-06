@@ -60,7 +60,13 @@ export default function CreateOSExpenses({
   const handleOSExpensesFormSubmit: SubmitHandler<TOsExpensesFormData> = (
     data: TOsExpensesFormData,
   ) => {
-    handleExpenseSave(data)
+    const exp = projectExpenses.find((exp) => exp.id === data.projectExpenseId)
+
+    const expense: ServiceOrderExpense = {
+      ...data,
+      description: exp?.description,
+    }
+    handleExpenseSave(expense)
     reset()
   }
 
@@ -89,7 +95,7 @@ export default function CreateOSExpenses({
   return (
     <form
       onSubmit={handleSubmit(handleOSExpensesFormSubmit)}
-      className="max-w-7xl w-full space-y-10 px-6 py-14"
+      className="max-w-7xl w-full space-y-10 px-6"
     >
       <section className={'flex flex-col gap-6'}>
         <header className={'flex items-center justify-between'}>

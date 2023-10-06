@@ -3,6 +3,7 @@ import { ProjectDetails } from './projects'
 export interface ServiceOrderExpense {
   projectExpenseId: string
   value: string
+  description?: string
 }
 
 export interface ServiceOrderDetails {
@@ -32,5 +33,20 @@ export interface ServiceOrderCard {
   startDate: Date
   endDate: Date
   totalHours: string
+  status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho'
+  clientName?: string
+  selected?: boolean
+}
+
+export interface ServiceOrder {
+  id: string
+  client: string
+  clientId: string
+  collaborator: string
   status: 'Aberto' | 'Enviado' | 'Faturado' | 'Cancelado'
+  date: Date
+  startDate: Date
+  endDate: Date
+  remote: boolean
+  osDetails: ServiceOrderDetails[]
 }

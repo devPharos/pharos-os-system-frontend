@@ -5,7 +5,7 @@ import Header from '@/layouts/header'
 import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
-import { Clock, DollarSign, Save, Search } from 'lucide-react'
+import { Clock, DollarSign, Save, Search, Trash2 } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
@@ -17,12 +17,19 @@ import {
   ProjectDetails,
 } from '@/types/projects'
 import CreateOSExpenses from '../expenses'
-import { ServiceOrderDetails, ServiceOrderExpense } from '@/types/service-order'
+import {
+  ServiceOrder,
+  ServiceOrderDetails,
+  ServiceOrderExpense,
+} from '@/types/service-order'
 import { parseDate } from '@/functions/auxiliar'
+import { format } from 'date-fns'
+import { Card } from '@/components/Card'
 
 interface OSDetailsProps {
   clientId: string
   handleOSDetailsSave: (osDetails: ServiceOrderDetails) => void
+  osDetail?: ServiceOrderDetails
 }
 
 const osFormSchema = z.object({
@@ -38,6 +45,7 @@ export type TOsDetailsFormData = z.infer<typeof osFormSchema>
 export default function CreateOSDetails({
   clientId,
   handleOSDetailsSave,
+  osDetail,
 }: OSDetailsProps) {
   const localStorage = window.localStorage
   const token: string = localStorage.getItem('access_token') || ''
@@ -107,6 +115,11 @@ export default function CreateOSDetails({
   }
 
   useEffect(() => {
+    if (osDetail) {
+      setProjectId(osDetail.projectDetails.projectId)
+      handleProjectServices(osDetail.projectDetails.projectId)
+    }
+
     setLoading(true)
     const body = {
       clientId,
@@ -125,7 +138,7 @@ export default function CreateOSDetails({
         setLoading(false)
         setProjects(response.data.projects)
       })
-  }, [clientId, token])
+  }, [clientId, token, osDetail])
 
   const handleProjectServices = (projectId: string) => {
     setLoading(true)
@@ -143,7 +156,6 @@ export default function CreateOSDetails({
         },
       })
       .then((response) => {
-        console.log(response.data)
         setLoading(false)
         setProjectServices(response.data.projectsServices)
       })
@@ -167,7 +179,7 @@ export default function CreateOSDetails({
   }
 
   return (
-    <div className="flex flex-col items-center w-full gap-2">
+    <div className="flex flex-col items-center w-full gap-2 pb-6">
       <form
         onSubmit={handleSubmit(handleOSFormSubmit)}
         className="max-w-7xl w-full space-y-10 px-6"
@@ -215,6 +227,7 @@ export default function CreateOSDetails({
               errorMessage={errors.projectId?.message}
               validationState={errors.projectId && 'invalid'}
               onSelectionChange={(keys) => handleSelectsData(keys)}
+              selectedKeys={osDetail ? osDetail?.projectDetails.projectId : ''}
             >
               {projects?.map((project) => {
                 return <SelectItem key={project.id}>{project.name}</SelectItem>
@@ -237,11 +250,14 @@ export default function CreateOSDetails({
               {...register('projectServiceId')}
               errorMessage={errors.projectServiceId?.message}
               validationState={errors.projectServiceId && 'invalid'}
+              defaultSelectedKeys={
+                osDetail ? [osDetail?.projectDetails.projectServiceId] : []
+              }
             >
-              {projectServices?.map((project) => {
+              {projectServices?.map((service) => {
                 return (
-                  <SelectItem key={project.id}>
-                    {project.description}
+                  <SelectItem key={service.id}>
+                    {service.description}
                   </SelectItem>
                 )
               })}
@@ -261,6 +277,13 @@ export default function CreateOSDetails({
               {...register('startDate')}
               errorMessage={errors.startDate?.message}
               validationState={errors.startDate && 'invalid'}
+              value={
+                osDetail &&
+                format(
+                  new Date(osDetail?.projectDetails.startDate),
+                  'HH:mm',
+                ).toString()
+              }
             />
 
             <Input
@@ -277,6 +300,13 @@ export default function CreateOSDetails({
               {...register('endDate')}
               errorMessage={errors.endDate?.message}
               validationState={errors.endDate && 'invalid'}
+              value={
+                osDetail &&
+                format(
+                  new Date(osDetail?.projectDetails.endDate),
+                  'HH:mm',
+                ).toString()
+              }
             />
           </section>
           <Textarea
@@ -290,16 +320,60 @@ export default function CreateOSDetails({
             {...register('description')}
             errorMessage={errors.description?.message}
             validationState={errors.description && 'invalid'}
+            defaultValue={osDetail ? osDetail.projectDetails.description : ''}
           />
         </section>
       </form>
 
       {newExpense && projectId && (
-        <CreateOSExpenses
-          projectId={projectId}
-          handleExpenseSave={onExpenseSave}
-        />
+        <div className="flex flex-col gap-3 w-full items-center">
+          <CreateOSExpenses
+            projectId={projectId}
+            handleExpenseSave={onExpenseSave}
+          />
+        </div>
       )}
+
+      {
+        <section className="w-full max-w-7xl px-6 flex gap-6">
+          {osDetail &&
+            osDetail.projectExpenses.map((expense) => (
+              <main
+                key={expense.projectExpenseId}
+                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+              >
+                <span className="text-sm text-gray-300">
+                  {expense?.description}
+                </span>
+                <span>R$ {expense.value},00</span>
+
+                <Card.Badge
+                  status=""
+                  icon={Trash2}
+                  className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                />
+              </main>
+            ))}
+          {projectExpenses &&
+            projectExpenses.map((expense) => (
+              <main
+                key={expense.projectExpenseId}
+                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+              >
+                <span className="text-sm text-gray-300">
+                  {expense?.description}
+                </span>
+                <span>R$ {expense.value},00</span>
+
+                <Card.Badge
+                  status=""
+                  icon={Trash2}
+                  className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                />
+              </main>
+            ))}
+        </section>
+      }
     </div>
   )
 }
