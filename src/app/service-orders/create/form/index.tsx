@@ -65,6 +65,12 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
     formState: { errors },
   } = useForm<TOsFormData>({
     resolver: zodResolver(osFormSchema),
+    defaultValues: {
+      clientId: serviceOrder?.clientId,
+      date: new Date(),
+      serviceType:
+        serviceOrder && serviceOrder?.remote ? 'Remoto' : 'Presencial',
+    },
   })
 
   const handleOSFormSubmit: SubmitHandler<TOsFormData> = (
@@ -176,8 +182,6 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
     }
   }
 
-  console.log(date)
-
   return (
     <>
       {loading ? (
@@ -253,7 +257,7 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
                 {...register('date')}
                 errorMessage={errors.date?.message}
                 validationState={errors.date && 'invalid'}
-                defaultValue={date}
+                value={date}
               />
 
               <Select

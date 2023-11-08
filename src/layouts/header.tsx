@@ -12,10 +12,11 @@ import {
 } from '@nextui-org/react'
 
 import logo from '../../public/assets/logo-negative-yellow.svg'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export default function Header() {
   const path = usePathname()
+  const router = useRouter()
 
   return (
     <Navbar
@@ -104,7 +105,10 @@ export default function Header() {
 
       <NavbarContent data-justify="end">
         <NavbarItem>
-          <Button className="bg-transparent p-0 text-gray-100">
+          <Button
+            className="bg-transparent p-0 text-gray-100"
+            onClick={() => router.push('/profile')}
+          >
             <Avatar
               src="https://www.github.com/gitirana.png"
               imgProps={{

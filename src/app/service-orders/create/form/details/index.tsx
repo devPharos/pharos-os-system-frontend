@@ -6,7 +6,7 @@ import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Clock, DollarSign, Save, Search, Trash2 } from 'lucide-react'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
@@ -23,7 +23,7 @@ import {
   ServiceOrderExpense,
 } from '@/types/service-order'
 import { parseDate } from '@/functions/auxiliar'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
 
 interface OSDetailsProps {
@@ -63,9 +63,17 @@ export default function CreateOSDetails({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<TOsDetailsFormData>({
     resolver: zodResolver(osFormSchema),
+    defaultValues: {
+      description: osDetail?.projectDetails.description,
+      endDate: osDetail?.projectDetails.endDate.toString(),
+      startDate: osDetail?.projectDetails.startDate.toString(),
+      projectId: osDetail?.projectDetails.projectId,
+      projectServiceId: osDetail?.projectDetails.projectServiceId,
+    },
   })
 
   const getProjectServiceName = (projectServiceId: string) => {
@@ -85,8 +93,8 @@ export default function CreateOSDetails({
   const handleOSFormSubmit: SubmitHandler<TOsDetailsFormData> = (
     data: TOsDetailsFormData,
   ) => {
-    const endDate = parseDate(data.endDate)
-    const startDate = parseDate(data.startDate)
+    const endDate = parseISO(data.endDate)
+    const startDate = parseISO(data.startDate)
 
     const projectServiceName = getProjectServiceName(data.projectServiceId)
     const projectName = getProjectName(data.projectId)
@@ -227,7 +235,9 @@ export default function CreateOSDetails({
               errorMessage={errors.projectId?.message}
               validationState={errors.projectId && 'invalid'}
               onSelectionChange={(keys) => handleSelectsData(keys)}
-              selectedKeys={osDetail ? osDetail?.projectDetails.projectId : ''}
+              defaultSelectedKeys={
+                osDetail ? [osDetail?.projectDetails.projectId] : []
+              }
             >
               {projects?.map((project) => {
                 return <SelectItem key={project.id}>{project.name}</SelectItem>

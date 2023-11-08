@@ -8,3 +8,13 @@ export interface UserData {
   companyId: string
   collaboratorId: string
 }
+
+export interface Profile {
+  firstName: string
+  lastName: string
+  phone: string
+  address: string
+  number: string
+  cep: string
+  complement: string
+}

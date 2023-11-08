@@ -86,7 +86,6 @@ export default function CreateOSExpenses({
         },
       })
       .then((response) => {
-        console.log(response.data)
         setLoading(false)
         setProjectExpenses(response.data.projectExpenses)
       })

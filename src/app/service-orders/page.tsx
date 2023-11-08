@@ -19,25 +19,16 @@ import { format } from 'date-fns'
 import {
   AlertCircle,
   ArrowRightCircle,
-  Building2,
-  Calendar,
   CheckCircle2,
-  CircleDashed,
   CircleDollarSign,
   Clock,
   Eraser,
-  Eye,
   Pencil,
-  PersonStanding,
   PlusCircle,
   Search,
-  Square,
   User,
-  Users2,
-  XCircle,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Key, useEffect, useState } from 'react'
 
 export default function ServiceOrders() {
