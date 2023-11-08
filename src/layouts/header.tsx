@@ -63,6 +63,19 @@ export default function Header() {
           </Link>
         </NavbarItem>
 
+        <NavbarItem isActive={path === '/company'}>
+          <Link
+            className={
+              path === '/company'
+                ? 'text-gray-100 font-semibold cursor-pointer'
+                : 'text-gray-300 cursor-pointer'
+            }
+            href="/company"
+          >
+            Empresas
+          </Link>
+        </NavbarItem>
+
         <NavbarItem isActive={path === '/projects'}>
           <Link
             className={
