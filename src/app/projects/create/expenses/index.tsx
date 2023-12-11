@@ -1,14 +1,21 @@
+import { Card } from '@/components/Card'
+import { ProjectExpenses } from '@/types/projects'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Checkbox, Input, Select } from '@nextui-org/react'
 import axios from 'axios'
-import { Save } from 'lucide-react'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { Save, Trash2 } from 'lucide-react'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-export default function ProjectExpensesForm() {
+interface ProjectExpensesFormProps {
+  handleNewProjectExpense: (expense: Partial<ProjectExpenses>) => void
+}
+
+export default function ProjectExpensesForm({
+  handleNewProjectExpense,
+}: ProjectExpensesFormProps) {
   const projectExpensesFormSchema = z.object({
-    projectId: z.string().uuid('Selecione uma opção'),
-    expensesDescription: z.string().min(1, 'Insira a descrição da despesa'),
+    description: z.string().min(1, 'Insira a descrição da despesa'),
     value: z.string().min(1, 'Insira o valor máximo da despesa'),
     requireReceipt: z.boolean().default(false),
   })
@@ -17,7 +24,9 @@ export default function ProjectExpensesForm() {
 
   const {
     register,
+    control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ProjectExpensesFormSchema>({
     resolver: zodResolver(projectExpensesFormSchema),
@@ -42,35 +51,19 @@ export default function ProjectExpensesForm() {
   const handleProjectExpensesFormSubmit: SubmitHandler<
     ProjectExpensesFormSchema
   > = (data: ProjectExpensesFormSchema) => {
-    // setLoading(true)
-
     if (window !== undefined) {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
-      // axios
-      //   .post('http://localhost:3333/accounts/client', data, {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   })
-      //   .then(function () {
-      //     setLoading(false)
-      //     router.push('/clients')
-      //   })
-      //   .catch(function (error) {
-      //     console.error(error)
-      //   })
+      handleNewProjectExpense(data)
+      reset()
     }
   }
 
   return (
-    <div className="min-h-screen max-w-7xl flex flex-col items-center gap-14 w-full">
+    <div className="max-w-7xl flex flex-col items-center gap-14 w-full">
       <div className="flex flex-col items-center w-full gap-2 pb-6">
-        <section className="flex flex-wrap w-full items-center gap-6">
+        <section className="flex  px-6 flex-wrap w-full items-center gap-6">
           <form
             onSubmit={handleSubmit(handleProjectExpensesFormSubmit)}
-            className=" w-full space-y-10 px-6"
+            className="w-full space-y-10"
           >
             <header className={'flex items-center w-full justify-between'}>
               <span className="text-2xl font-bold text-white">
@@ -91,7 +84,7 @@ export default function ProjectExpensesForm() {
 
             <section className="flex flex-wrap w-full gap-6">
               <Input
-                id="expensesDescription"
+                id="description"
                 label="Descrição de despesa"
                 classNames={{
                   label: 'text-gray-300',
@@ -99,9 +92,9 @@ export default function ProjectExpensesForm() {
                   inputWrapper:
                     'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                 }}
-                {...register('expensesDescription')}
-                errorMessage={errors.expensesDescription?.message}
-                validationState={errors.expensesDescription && 'invalid'}
+                {...register('description')}
+                errorMessage={errors.description?.message}
+                validationState={errors.description && 'invalid'}
                 // placeholder={id && ' '}
               />
 
@@ -120,15 +113,23 @@ export default function ProjectExpensesForm() {
                 // placeholder={id && ' '}
               />
 
-              <Checkbox
-                radius="sm"
-                classNames={{
-                  wrapper: 'data-[selected=true]:bg-yellow-500',
-                  label: 'text-gray-100',
-                }}
-              >
-                Exige nota fiscal
-              </Checkbox>
+              <Controller
+                control={control}
+                name="requireReceipt"
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    radius="sm"
+                    onChange={onChange}
+                    isSelected={value}
+                    classNames={{
+                      wrapper: 'data-[selected=true]:bg-yellow-500',
+                      label: 'text-gray-100',
+                    }}
+                  >
+                    Exige nota fiscal
+                  </Checkbox>
+                )}
+              />
             </section>
           </form>
         </section>

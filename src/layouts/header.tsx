@@ -13,16 +13,27 @@ import {
 
 import logo from '../../public/assets/logo-negative-yellow.svg'
 import { usePathname, useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 
 export default function Header() {
   const path = usePathname()
   const router = useRouter()
+
+  const handleUserLogOut = () => {
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+
+      localStorage.clear()
+      router.push('/login')
+    }
+  }
 
   return (
     <Navbar
       classNames={{
         base: 'bg-black',
         content: 'gap-6',
+        item: 'flex gap-6',
       }}
       maxWidth="xl"
     >
@@ -131,6 +142,14 @@ export default function Header() {
             <span>
               Olá, <span className="font-medium text-yellow-500">Thayná</span>!
             </span>
+          </Button>
+
+          <Button
+            className="bg-red-500/10 text-red-500"
+            isIconOnly
+            onClick={handleUserLogOut}
+          >
+            <LogOut size={18} />
           </Button>
         </NavbarItem>
       </NavbarContent>

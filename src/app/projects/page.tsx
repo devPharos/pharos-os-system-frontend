@@ -4,6 +4,8 @@ import { Card } from '@/components/Card'
 import ProjectTable from '@/components/tables/projects'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
+import { Client } from '@/types/client'
+import { Project } from '@/types/projects'
 import {
   Dropdown,
   DropdownTrigger,
@@ -15,6 +17,7 @@ import {
   Link,
 } from '@nextui-org/react'
 import axios from 'axios'
+import { format } from 'date-fns'
 import {
   Search,
   PlusCircle,
@@ -29,9 +32,11 @@ import {
   Building2,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Projects() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -39,11 +44,25 @@ export default function Projects() {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
-      axios.get('http://localhost:3333/projects', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      axios
+        .get('http://localhost:3333/projects', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setProjects(response.data.projects)
+        })
+
+      axios
+        .get('http://localhost:3333/clients', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setClients(response.data)
+        })
     }
   }, [])
 
@@ -191,27 +210,42 @@ export default function Projects() {
         </header>
 
         <section className="flex flex-wrap gap-6">
-          <Link href="">
-            <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
-              <Card.Header>
-                <section className="flex items-center gap-2">
-                  <Card.Title label={'Projeto mto legal 1'} />
-                </section>
-                <Card.Badge
-                  className={'text-gray-300/80 bg-gray-500/10'}
-                  status={'Em aberto'}
-                  icon={ArrowRightCircle}
-                />
-              </Card.Header>
-              <Card.Content>
-                <Card.Info icon={Building2} info="Pharos IT Solutions" />
-                <Card.Badge
-                  className="text-gray-300/80 rounded-md bg-gray-500/20"
-                  status={'10/06/2023'}
-                />
-              </Card.Content>
-            </Card.Root>
-          </Link>
+          {projects &&
+            projects.map((project, index) => {
+              const client = clients.find(
+                (client) => client.id === project.clientId,
+              )
+
+              return (
+                <Link href="" key={index}>
+                  <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
+                    <Card.Header>
+                      <section className="flex items-center gap-2">
+                        <Card.Title label={project.name} />
+                      </section>
+                      <Card.Badge
+                        className={'text-gray-300/80 bg-gray-500/10'}
+                        status={'Em aberto'}
+                        icon={ArrowRightCircle}
+                      />
+                    </Card.Header>
+                    <Card.Content>
+                      <Card.Info
+                        icon={Building2}
+                        info={client?.fantasyName || ''}
+                      />
+                      <Card.Badge
+                        className="text-gray-300/80 rounded-md bg-gray-500/20"
+                        status={format(
+                          new Date(project?.startDate),
+                          'dd/LL/yyyy',
+                        )}
+                      />
+                    </Card.Content>
+                  </Card.Root>
+                </Link>
+              )
+            })}
         </section>
       </main>
     </div>

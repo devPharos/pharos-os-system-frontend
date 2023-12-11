@@ -3,6 +3,7 @@
 import Loading from '@/components/Loading'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
+import { Collaborator } from '@/types/collaborator'
 import { Company } from '@/types/company'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
@@ -10,11 +11,12 @@ import axios from 'axios'
 import { Clock, Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
   const [companies, setCompanies] = useState<Company[]>([])
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
   const [client, setClient] = useState<Client>()
@@ -26,6 +28,7 @@ export default function CreateClient() {
 
   const collaboratorFormSchema = z.object({
     companyId: z.string().uuid('Selecione uma opção'),
+    supervisorId: z.string().uuid().optional(),
     name: z.string().min(1, 'Campo obrigatório'),
     lastName: z.string().min(1, 'Campo obrigatório'),
     account: z.string().min(1, 'Campo obrigatório'),
@@ -57,26 +60,10 @@ export default function CreateClient() {
   const {
     register,
     handleSubmit,
-    setValue,
-
+    control,
     formState: { errors },
   } = useForm<CollaboratorFormSchema>({
     resolver: zodResolver(collaboratorFormSchema),
-    defaultValues: async () =>
-      axios
-        .get('http://localhost:3333/client/data', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            id,
-          },
-        })
-        .then((response) => {
-          setClient(response.data)
-          return response.data
-        })
-        .catch(function (error) {
-          console.error(error)
-        }),
   })
 
   const handleCollaboratorFormSubmit: SubmitHandler<CollaboratorFormSchema> = (
@@ -117,7 +104,23 @@ export default function CreateClient() {
         })
         .then(function (response) {
           const data = response.data
+
           setCompanies(data)
+          setLoading(false)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+
+      axios
+        .get('http://localhost:3333/list/collaborators', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setCollaborators(data)
           setLoading(false)
         })
         .catch(function (error) {
@@ -178,12 +181,41 @@ export default function CreateClient() {
                     {...register('companyId')}
                     errorMessage={errors.companyId?.message}
                     validationState={errors.companyId && 'invalid'}
-                    // defaultSelectedKeys={client ? [client?.companyId] : []}
                   >
                     {companies.map((company) => (
                       <SelectItem key={company.id}>{company.name}</SelectItem>
                     ))}
                   </Select>
+
+                  <Controller
+                    name="supervisorId"
+                    control={control}
+                    rules={{ required: false }}
+                    render={({ field }) => (
+                      <Select
+                        label="Supervisor"
+                        {...field}
+                        classNames={{
+                          trigger:
+                            'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                          listboxWrapper: 'max-h-[400px] rounded-lg',
+                          popover: 'bg-gray-700 rounded-lg ',
+                          base: 'max-w-sm',
+                        }}
+                        listboxProps={{
+                          itemClasses: {
+                            base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                          },
+                        }}
+                      >
+                        {collaborators.map((collaborator) => (
+                          <SelectItem key={collaborator.id}>
+                            {collaborator.name + ' ' + collaborator.lastName}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
 
                   <Input
                     id="name"

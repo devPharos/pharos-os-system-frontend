@@ -92,89 +92,95 @@ export default function Clients() {
           </Button>
         </header>
 
-        <header className="flex items-center justify-between">
-          <section className="flex w-6/12 gap-6">
-            <Input
-              placeholder="Buscar"
-              startContent={<Search className="w-5 h-5 text-gray-300" />}
-              classNames={{
-                label: 'font-semibold text-gray-300',
-                inputWrapper:
-                  'bg-transparent border border-1 rounded-lg border-gray-300 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 px-4 py-2',
-              }}
-            />
+        <header className="flex items-center justify-between gap-6">
+          <Input
+            placeholder="Buscar"
+            startContent={<Search className="w-5 h-5 text-gray-300" />}
+            classNames={{
+              label: 'font-semibold text-gray-300',
+              inputWrapper:
+                'bg-transparent border border-1 rounded-lg border-gray-300 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 px-4 py-2',
+            }}
+          />
 
-            <Dropdown
-              classNames={{
-                base: 'bg-gray-700 rounded-lg',
+          <Dropdown
+            classNames={{
+              base: 'bg-gray-700 rounded-lg  min-w-fit',
+            }}
+            backdrop="opaque"
+          >
+            <DropdownTrigger>
+              <Button
+                className="rounded-lg min-w-fit border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+                startContent={<PlusCircle size={18} />}
+              >
+                Status
+              </Button>
+            </DropdownTrigger>
+
+            <DropdownMenu
+              onAction={(key) => onStatusFilter(key)}
+              itemClasses={{
+                base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
               }}
-              backdrop="opaque"
             >
-              <DropdownTrigger>
-                <Button
-                  className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
-                  startContent={<PlusCircle size={40} />}
-                >
-                  Status
-                </Button>
-              </DropdownTrigger>
-
-              <DropdownMenu
-                onAction={(key) => onStatusFilter(key)}
-                itemClasses={{
-                  base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+              <DropdownSection
+                showDivider
+                classNames={{
+                  divider: 'bg-gray-500',
                 }}
               >
-                <DropdownSection
-                  showDivider
-                  classNames={{
-                    divider: 'bg-gray-500',
-                  }}
+                <DropdownItem
+                  startContent={
+                    <Card.Badge
+                      status=""
+                      className="text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                      icon={XCircle}
+                    />
+                  }
+                  key={'false'}
                 >
-                  <DropdownItem
-                    startContent={
-                      <Card.Badge
-                        status=""
-                        className="text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
-                        icon={XCircle}
-                      />
-                    }
-                    key={'false'}
-                  >
-                    Inativo
-                  </DropdownItem>
+                  Inativo
+                </DropdownItem>
 
-                  <DropdownItem
-                    startContent={
-                      <Card.Badge
-                        status=""
-                        className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
-                        icon={CheckCircle2}
-                      />
-                    }
-                    key={'true'}
-                  >
-                    Ativo
-                  </DropdownItem>
-                </DropdownSection>
+                <DropdownItem
+                  startContent={
+                    <Card.Badge
+                      status=""
+                      className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
+                      icon={CheckCircle2}
+                    />
+                  }
+                  key={'true'}
+                >
+                  Ativo
+                </DropdownItem>
+              </DropdownSection>
 
-                <DropdownSection>
-                  <DropdownItem
-                    startContent={
-                      <Card.Badge
-                        status=""
-                        className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
-                        icon={Eraser}
-                      />
-                    }
-                    key={'Limpar'}
-                  >
-                    Limpar filtros
-                  </DropdownItem>
-                </DropdownSection>
-              </DropdownMenu>
-            </Dropdown>
-          </section>
+              <DropdownSection>
+                <DropdownItem
+                  startContent={
+                    <Card.Badge
+                      status=""
+                      className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
+                      icon={Eraser}
+                    />
+                  }
+                  key={'Limpar'}
+                >
+                  Limpar filtros
+                </DropdownItem>
+              </DropdownSection>
+            </DropdownMenu>
+          </Dropdown>
+
+          <Button
+            onClick={() => router.push('/clients/users')}
+            className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold border-dashed border-2 min-w-fit bg-transparent border-yellow-500 hover:bg-yellow-500"
+          >
+            <PlusCircle size={18} />
+            Adicionar usuário
+          </Button>
         </header>
 
         <section className="flex flex-wrap w-full gap-6">

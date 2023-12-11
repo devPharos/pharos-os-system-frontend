@@ -1,16 +1,22 @@
+import { ProjectServices } from '@/types/projects'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Checkbox, Input, Select } from '@nextui-org/react'
 import axios from 'axios'
 import { Save } from 'lucide-react'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-export default function ProjectServicesForm() {
+interface ProjectServicesFormProps {
+  handleNewProjectService: (service: Partial<ProjectServices>) => void
+}
+
+export default function ProjectServicesForm({
+  handleNewProjectService,
+}: ProjectServicesFormProps) {
   const projectServicesFormSchema = z.object({
-    projectId: z.string().uuid('Selecione uma opção'),
-    expensesDescription: z.string().min(1, 'Insira a descrição da despesa'),
-    value: z.string().min(1, 'Insira o valor máximo da despesa'),
-    requireReceipt: z.boolean().default(false),
+    description: z.string().min(1, 'Insira a descrição da despesa'),
+    chargesClient: z.boolean().default(false),
+    passCollaborator: z.boolean().default(false),
   })
 
   type ProjectServicesFormSchema = z.infer<typeof projectServicesFormSchema>
@@ -18,6 +24,8 @@ export default function ProjectServicesForm() {
   const {
     register,
     handleSubmit,
+    control,
+    reset,
     formState: { errors },
   } = useForm<ProjectServicesFormSchema>({
     resolver: zodResolver(projectServicesFormSchema),
@@ -42,30 +50,12 @@ export default function ProjectServicesForm() {
   const handleProjectExpensesFormSubmit: SubmitHandler<
     ProjectServicesFormSchema
   > = (data: ProjectServicesFormSchema) => {
-    // setLoading(true)
-
-    if (window !== undefined) {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
-      // axios
-      //   .post('http://localhost:3333/accounts/client', data, {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   })
-      //   .then(function () {
-      //     setLoading(false)
-      //     router.push('/clients')
-      //   })
-      //   .catch(function (error) {
-      //     console.error(error)
-      //   })
-    }
+    handleNewProjectService(data)
+    reset()
   }
 
   return (
-    <div className="min-h-screen max-w-7xl flex flex-col items-center gap-14 w-full">
+    <div className="max-w-7xl flex flex-col items-center gap-14 w-full">
       <div className="flex flex-col items-center w-full gap-2 pb-6">
         <section className="flex flex-wrap w-full items-center gap-6">
           <form
@@ -91,44 +81,55 @@ export default function ProjectServicesForm() {
 
             <section className="flex flex-wrap w-full gap-6">
               <Input
-                id="expensesDescription"
-                label="Descrição de despesa"
+                // id="expensesDescription"
+                label="Descrição do serviço"
                 classNames={{
                   label: 'text-gray-300',
                   base: 'max-w-sm',
                   inputWrapper:
                     'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                 }}
-                {...register('expensesDescription')}
-                errorMessage={errors.expensesDescription?.message}
-                validationState={errors.expensesDescription && 'invalid'}
+                {...register('description')}
+                errorMessage={errors.description?.message}
+                validationState={errors.description && 'invalid'}
                 // placeholder={id && ' '}
               />
 
-              <Input
-                id="value"
-                label="Valor"
-                classNames={{
-                  label: 'text-gray-300',
-                  base: 'max-w-sm',
-                  inputWrapper:
-                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                }}
-                {...register('value')}
-                errorMessage={errors.value?.message}
-                validationState={errors.value && 'invalid'}
-                // placeholder={id && ' '}
+              <Controller
+                control={control}
+                name="chargesClient"
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    radius="sm"
+                    onChange={onChange}
+                    isSelected={value}
+                    classNames={{
+                      wrapper: 'data-[selected=true]:bg-yellow-500',
+                      label: 'text-gray-100',
+                    }}
+                  >
+                    Cobra do cliente
+                  </Checkbox>
+                )}
               />
 
-              <Checkbox
-                radius="sm"
-                classNames={{
-                  wrapper: 'data-[selected=true]:bg-yellow-500',
-                  label: 'text-gray-100',
-                }}
-              >
-                Exige nota fiscal
-              </Checkbox>
+              <Controller
+                control={control}
+                name="passCollaborator"
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    radius="sm"
+                    onChange={onChange}
+                    isSelected={value}
+                    classNames={{
+                      wrapper: 'data-[selected=true]:bg-yellow-500',
+                      label: 'text-gray-100',
+                    }}
+                  >
+                    Repassa para o colaborador
+                  </Checkbox>
+                )}
+              />
             </section>
           </form>
         </section>

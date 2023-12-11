@@ -7,6 +7,7 @@ export interface UserData {
   userId: string
   companyId: string
   collaboratorId: string
+  clientId: string
 }
 
 export interface Profile {

@@ -23,6 +23,11 @@ export interface ServiceOrderCreation {
   serviceOrderDetails: ServiceOrderDetails[]
 }
 
+export interface ServiceOrderCollaborator {
+  name: string
+  lastName: string
+}
+
 export interface ServiceOrderCard {
   id: string
   companyId: string
@@ -36,6 +41,8 @@ export interface ServiceOrderCard {
   status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho'
   clientName?: string
   selected?: boolean
+
+  collaborator: ServiceOrderCollaborator
 }
 
 export interface ServiceOrder {

@@ -38,3 +38,18 @@ export interface ProjectDetails {
   projectServiceType: string
   totalHours: number
 }
+
+export interface Project {
+  id?: string
+  clientId: string
+  coordinatorId: string
+  name: string
+  startDate: Date
+  endDate: Date | undefined
+  deliveryForecast: Date
+  hoursForecast: string
+  hoursBalance: string | undefined
+  hourValue: string
+  projectExpenses: Partial<ProjectExpenses>[]
+  projectServices: Partial<ProjectServices>[]
+}

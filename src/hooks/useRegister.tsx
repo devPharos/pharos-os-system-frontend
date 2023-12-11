@@ -32,22 +32,28 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-const getUserData = (accessToken: string): UserData => {
+const getUserData = async (): Promise<UserData> => {
   let userData: UserData = {
     collaboratorId: '',
     companyId: '',
     userId: '',
+    clientId: '',
   }
 
-  axios
-    .get(`http://localhost:3333/accounts/user`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-    .then((response) => {
-      return (userData = response.data)
-    })
+  if (window !== undefined) {
+    const localStorage = window.localStorage
+    const token = localStorage.getItem('access_token')
+
+    await axios
+      .get(`http://localhost:3333/user/data`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        return (userData = response.data)
+      })
+  }
 
   return userData
 }

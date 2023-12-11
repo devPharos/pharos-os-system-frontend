@@ -55,7 +55,7 @@ export default function ServiceOrders() {
       const userToken: string = localStorage.getItem('access_token') || ''
 
       axios
-        .get('http://localhost:3333/service-orders', {
+        .get('http://localhost:3333/list/service-orders', {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
@@ -270,7 +270,10 @@ export default function ServiceOrders() {
                     />
                   </Card.Header>
                   <Card.Content>
-                    <Card.Info icon={User} info="Thayná Gitirana" />
+                    <Card.Info
+                      icon={User}
+                      info={serviceOrder.collaborator.name}
+                    />
                     <Card.Info
                       icon={Clock}
                       info={`${format(

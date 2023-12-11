@@ -7,80 +7,97 @@ import { Company } from '@/types/company'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Clock, Save } from 'lucide-react'
+import { Clock, Save, Trash2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import ProjectExpensesForm from './expenses'
+import ProjectServicesForm from './services'
+import { Card } from '@/components/Card'
+import { Project, ProjectExpenses, ProjectServices } from '@/types/projects'
+import { Collaborator } from '@/types/collaborator'
+import Toast from '@/components/Toast'
 
 export default function CreateProject() {
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [showToast, setShowToast] = useState(false)
+  const [clients, setClients] = useState<Client[]>([])
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [expenses, setExpenses] = useState<Partial<ProjectExpenses>[]>([])
+  const [services, setServices] = useState<Partial<ProjectServices>[]>([])
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
   const [client, setClient] = useState<Client>()
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const localStorage = window.localStorage
-  const token = localStorage.getItem('access_token')
 
-  const clientFormSchema = z.object({
+  const projectFormSchema = z.object({
     clientId: z.string().uuid('Selecione uma opção'),
     coordinatorId: z.string().uuid('Selecione uma opção'),
     name: z.string().min(1, 'Insira o nome do projeto'),
     startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
+    endDate: z.optional(z.string()),
     deliveryForecast: z.coerce.date(),
     hoursForecast: z.string().min(1, 'Insira a previsão de horas'),
-    hoursBalance: z.string().min(1, 'Insira o balanço de horas'),
+    hoursBalance: z.string(),
     hourValue: z.string().min(1, 'Insira o valor da hora'),
   })
 
-  type ClientFormSchema = z.infer<typeof clientFormSchema>
+  type ProjectFormSchema = z.infer<typeof projectFormSchema>
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ClientFormSchema>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: async () =>
-      id &&
-      axios
-        .get('http://localhost:3333/client/data', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            id,
-          },
-        })
-        .then((response) => {
-          setClient(response.data)
-          return response.data
-        })
-        .catch(function (error) {
-          console.error(error)
-        }),
+  } = useForm<ProjectFormSchema>({
+    resolver: zodResolver(projectFormSchema),
+    // defaultValues: async () =>
+    //   id &&
+    //   axios
+    //     .get('http://localhost:3333/client/data', {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //         id,
+    //       },
+    //     })
+    //     .then((response) => {
+    //       setClient(response.data)
+    //       return response.data
+    //     })
+    //     .catch(function (error) {
+    //       console.error(error)
+    //     }),
   })
 
-  const handleClientFormSubmit: SubmitHandler<ClientFormSchema> = (
-    data: ClientFormSchema,
+  const handleProjectFormSubmit: SubmitHandler<ProjectFormSchema> = (
+    data: ProjectFormSchema,
   ) => {
     setLoading(true)
 
     if (window !== undefined) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
-
+      const body: Project = {
+        ...data,
+        projectExpenses: expenses,
+        projectServices: services,
+        endDate: data.endDate ? new Date(data?.endDate) : undefined,
+      }
       axios
-        .post('http://localhost:3333/accounts/client', data, {
+        .post('http://localhost:3333/projects', body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then(function () {
-          setLoading(false)
-          router.push('/clients')
+          setShowToast(true)
+
+          setInterval(() => {
+            setShowToast(false)
+          }, 3000)
+
+          router.push('/projects')
         })
         .catch(function (error) {
           console.error(error)
@@ -95,15 +112,28 @@ export default function CreateProject() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/companies', {
+        .get('http://localhost:3333/clients', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then(function (response) {
           const data = response.data
-          setCompanies(data)
-          setLoading(false)
+          setClients(data)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+
+      axios
+        .get('http://localhost:3333/collaborators/data', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setCollaborators(data)
         })
         .catch(function (error) {
           console.error(error)
@@ -111,13 +141,27 @@ export default function CreateProject() {
     }
   }, [id])
 
+  const onNewProjectExpense = (expense: Partial<ProjectExpenses>) => {
+    const newProjectExpenseList: Partial<ProjectExpenses>[] = [...expenses]
+    newProjectExpenseList.push(expense)
+
+    setExpenses(newProjectExpenseList)
+  }
+
+  const onNewProjectService = (service: Partial<ProjectServices>) => {
+    const newProjectServiceList: Partial<ProjectServices>[] = [...services]
+    newProjectServiceList.push(service)
+
+    setServices(newProjectServiceList)
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center gap-14">
       <Header />
 
       <div className="flex flex-col items-center w-full gap-6 pb-6">
         <form
-          onSubmit={handleSubmit(handleClientFormSubmit)}
+          onSubmit={handleSubmit(handleProjectFormSubmit)}
           className="max-w-7xl w-full space-y-10 px-6"
         >
           <header className={'flex items-center justify-between'}>
@@ -127,7 +171,6 @@ export default function CreateProject() {
 
             <section className="flex items-center gap-6">
               <Button
-                disabled={loading}
                 type="submit"
                 className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
               >
@@ -160,8 +203,8 @@ export default function CreateProject() {
               validationState={errors.clientId && 'invalid'}
               defaultSelectedKeys={client ? [client?.companyId] : []}
             >
-              {companies.map((company) => (
-                <SelectItem key={company.id}>{company.name}</SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id}>{client.fantasyName}</SelectItem>
               ))}
             </Select>
 
@@ -187,8 +230,10 @@ export default function CreateProject() {
               validationState={errors.coordinatorId && 'invalid'}
               defaultSelectedKeys={client ? [client?.companyId] : []}
             >
-              {companies.map((company) => (
-                <SelectItem key={company.id}>{company.name}</SelectItem>
+              {collaborators.map((collaborator) => (
+                <SelectItem key={collaborator.id}>
+                  {collaborator.name + ' ' + collaborator.lastName}
+                </SelectItem>
               ))}
             </Select>
 
@@ -234,9 +279,9 @@ export default function CreateProject() {
                 inputWrapper:
                   'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
               }}
-              {...register('startDate')}
-              errorMessage={errors.startDate?.message}
-              validationState={errors.startDate && 'invalid'}
+              {...register('endDate', { required: false })}
+              errorMessage={errors.endDate?.message}
+              validationState={errors.endDate && 'invalid'}
               placeholder={' '}
             />
 
@@ -278,13 +323,11 @@ export default function CreateProject() {
               classNames={{
                 label: 'text-gray-300',
                 base: 'max-w-sm min-w-fit',
-                mainWrapper: ' max-w-sm min-w-fit',
+                mainWrapper: 'max-w-sm min-w-fit',
                 inputWrapper:
                   'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
               }}
               {...register('hoursBalance')}
-              errorMessage={errors.hoursBalance?.message}
-              validationState={errors.hoursBalance && 'invalid'}
             />
 
             <Input
@@ -304,7 +347,50 @@ export default function CreateProject() {
           </section>
         </form>
 
-        <ProjectExpensesForm />
+        <ProjectExpensesForm handleNewProjectExpense={onNewProjectExpense} />
+        <section className="flex w-full justify-start max-w-7xl px-6 items-center gap-6">
+          {expenses.length > 0 &&
+            expenses.map((expense, index) => (
+              <main
+                key={index}
+                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+              >
+                <span className="text-sm text-gray-300">
+                  {expense.description}
+                </span>
+                <span>R$ {expense.value},00</span>
+
+                <Card.Badge
+                  status=""
+                  icon={Trash2}
+                  className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                />
+              </main>
+            ))}
+        </section>
+
+        <ProjectServicesForm handleNewProjectService={onNewProjectService} />
+
+        <section className="flex w-full justify-start max-w-7xl px-6 items-center gap-6">
+          {services.length > 0 &&
+            services.map((service, index) => (
+              <main
+                key={index}
+                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+              >
+                <span className="text-sm text-gray-300">
+                  {service.description}
+                </span>
+                <Card.Badge
+                  status=""
+                  icon={Trash2}
+                  className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                />
+              </main>
+            ))}
+        </section>
+
+        {showToast && <Toast message="Projeto criado com sucesso" />}
       </div>
     </div>
   )

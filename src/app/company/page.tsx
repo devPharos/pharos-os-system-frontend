@@ -55,7 +55,7 @@ export default function Company() {
           <section className="flex flex-col">
             <span className="font-bold text-2xl text-white">Sua empresa</span>
             <span className="text-gray-300">
-              Gerencie todos os seus colaboradores e clientes
+              Gerencie todos os seus colaboradores
             </span>
           </section>
 
@@ -104,10 +104,12 @@ export default function Company() {
                     label={collaborator.name + ' ' + collaborator.lastName}
                   />
                   <section className="flex items-center gap-2">
-                    <Card.Badge
-                      className="text-blue-500 bg-blue-500/10"
-                      status={collaborator.userId ? 'Com acesso' : 'Sem acesso'}
-                    />
+                    {!collaborator.userId && (
+                      <Card.Badge
+                        className="text-blue-500 bg-blue-500/10"
+                        status={'Sem acesso'}
+                      />
+                    )}
                   </section>
                 </Card.Header>
               </Card.Root>
