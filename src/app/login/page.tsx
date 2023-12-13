@@ -10,16 +10,18 @@ import logo from '../../../public/assets/logo-negative-yellow.svg'
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button, Input } from '@nextui-org/react'
 import { useState } from 'react'
-import { z } from 'zod'
+import { setErrorMap, z } from 'zod'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useRegister } from '@/hooks/useRegister'
 import { useRouter } from 'next/navigation'
+import Toast from '@/components/Toast'
 
 export default function Login() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
+  const [toast, setToast] = useState(false)
   const { user, setUser } = useRegister()
   const router = useRouter()
 
@@ -71,6 +73,12 @@ export default function Login() {
         router.push('/')
       })
       .catch(function (error) {
+        setToast(true)
+
+        setTimeout(() => {
+          setToast(false)
+        }, 3000)
+
         setLoading(false)
         console.error(error)
       })
@@ -81,7 +89,7 @@ export default function Login() {
   }
 
   return (
-    <div className="grid grid-cols-2 w-full min-h-screen max-[1030px]:grid-cols-1">
+    <div className="relative grid grid-cols-2 w-full min-h-screen max-[1030px]:grid-cols-1">
       <div className="flex flex-col items-center justify-center min-h-screen py-8 max-[1030px]:hidden">
         <section className="max-w-lg flex flex-col gap-10 ">
           <span className="text-3xl text-white font-semibold">
@@ -172,6 +180,8 @@ export default function Login() {
           </Button>
         </form>
       </div>
+
+      {toast && <Toast message="Email ou senha incorretos" type="error" />}
     </div>
   )
 }

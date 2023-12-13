@@ -66,7 +66,7 @@ export default function Profile() {
           setShowToast(true)
 
           setInterval(() => {
-            setShowToast(false)
+            setShowToast(!showToast)
           }, 3000)
         })
         .catch(function (error) {
