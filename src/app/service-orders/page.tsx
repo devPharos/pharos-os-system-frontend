@@ -1,6 +1,7 @@
 'use client'
 import { Card } from '@/components/Card'
-import ServiceOrdersTable from '@/components/tables/service-orders'
+import { saveAs } from 'file-saver'
+
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { Client } from '@/types/client'
@@ -13,6 +14,7 @@ import {
   DropdownSection,
   DropdownTrigger,
   Input,
+  Spinner,
 } from '@nextui-org/react'
 import axios from 'axios'
 import { format } from 'date-fns'
@@ -34,6 +36,7 @@ import { Key, useEffect, useState } from 'react'
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
   const [filteredItems, setFilteredItems] = useState<ServiceOrderCard[]>([])
+  const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
 
   const onStatusFilter = (status: Key) => {
@@ -83,6 +86,27 @@ export default function ServiceOrders() {
     }
   }, [])
 
+  async function MakeReporting() {
+    setLoading(true)
+
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const userToken: string = localStorage.getItem('access_token') || ''
+
+      const response2 = await axios.get('http://localhost:3333/pdf', {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          id: 'eede43f5-f635-4d1b-a4f8-3dba1cda4111',
+        },
+        responseType: 'blob',
+      })
+
+      const pdfBlob = new Blob([response2.data], { type: 'application/pdf' })
+      saveAs(pdfBlob)
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -95,7 +119,7 @@ export default function ServiceOrders() {
         />
 
         <header className="flex items-center justify-between">
-          <section className="flex w-6/12 gap-6">
+          <section className="flex w-full gap-6">
             <Input
               placeholder="Buscar"
               startContent={<Search className="w-5 h-5 text-gray-300" />}
@@ -114,8 +138,8 @@ export default function ServiceOrders() {
             >
               <DropdownTrigger>
                 <Button
-                  className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
-                  startContent={<PlusCircle size={40} />}
+                  className="rounded-lg min-w-fit border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+                  startContent={<PlusCircle size={18} />}
                 >
                   Status
                 </Button>
@@ -214,10 +238,19 @@ export default function ServiceOrders() {
                 </DropdownSection>
               </DropdownMenu>
             </Dropdown>
+
+            <Button
+              className="rounded-full px-6 py-4 text-gray-200 font-bold bg-zinc-800 hover:bg-zinc-700"
+              onClick={MakeReporting}
+              disabled={loading}
+            >
+              {loading && <Spinner size="sm" color="default" />}
+              Baixar relatório
+            </Button>
           </section>
         </header>
 
-        <section className="flex flex-wrap gap-6">
+        <section className="flex flex-wrap gap-6 justify-between">
           {filteredItems.map((serviceOrder) => {
             const client = clients.find(
               (client) => client.id === serviceOrder.clientId,

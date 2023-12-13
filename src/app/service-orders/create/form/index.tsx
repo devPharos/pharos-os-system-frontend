@@ -14,6 +14,7 @@ import {
   Clock,
   DollarSign,
   FileUp,
+  PlusCircle,
   Save,
   Search,
   User,
@@ -33,6 +34,7 @@ import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
 import Loading from '@/components/Loading'
+import html2pdf from 'html2pdf.js'
 
 interface OsFormProps {
   id?: string
@@ -120,7 +122,7 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
               },
             })
             .then(() => {
-              setLoading(true)
+              // setLoading(true)
               router.push('/service-orders')
             })
             .catch((error) => {
@@ -132,7 +134,8 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
 
   useEffect(() => {
     if (id) {
-      setLoading(true)
+      // setLoading(true)
+      // setLoading(false)
 
       if (serviceOrder) {
         setLoading(false)
@@ -158,6 +161,7 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
         })
         .then((response) => {
           setClients(response.data)
+          //      setLoading(false)
         })
     }
   }, [id, serviceOrder])
@@ -183,170 +187,165 @@ export default function CreateOSForm({ serviceOrder, id }: OsFormProps) {
   }
 
   return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="flex flex-col items-center w-full gap-2">
-          <form
-            onSubmit={handleSubmit(handleOSFormSubmit)}
-            className="max-w-7xl w-full space-y-10 px-6 py-14"
+    // <>
+    //   {loading ? (
+    //     <Loading />
+    //   ) : (
+    <div className="flex flex-col items-center w-full gap-2">
+      <form
+        onSubmit={handleSubmit(handleOSFormSubmit)}
+        className="max-w-7xl w-full space-y-10 px-6 py-14"
+      >
+        <header className="flex items-center justify-between">
+          <span className="text-2xl font-bold text-white">
+            Cadastro de Ordem de Serviço
+          </span>
+
+          <section className="flex items-center gap-6">
+            <Button className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold">
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={loading || osDetails.length === 0}
+              type="submit"
+              className="disabled:border-none disabled:bg-transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+            >
+              <Save size={16} />
+              Salvar OS
+            </Button>
+          </section>
+        </header>
+
+        <section className="flex items-center gap-6">
+          <Select
+            id="remote"
+            label="Atendimento"
+            classNames={{
+              trigger: 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+              listboxWrapper: 'max-h-[400px] rounded-lg',
+              popover: 'bg-gray-700 rounded-lg',
+            }}
+            listboxProps={{
+              itemClasses: {
+                base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+              },
+            }}
+            {...register('serviceType')}
+            errorMessage={errors.serviceType?.message}
+            validationState={errors.serviceType && 'invalid'}
+            defaultSelectedKeys={
+              serviceOrder
+                ? [serviceOrder?.remote ? 'Remoto' : 'Presencial']
+                : []
+            }
           >
-            <header className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-white">
-                Cadastro de Ordem de Serviço
-              </span>
+            {serviceTypes.map((service) => (
+              <SelectItem key={service} value={service}>
+                {service}
+              </SelectItem>
+            ))}
+          </Select>
 
-              <section className="flex items-center gap-6">
-                <Button className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold">
-                  Cancelar
-                </Button>
-                <Button
-                  disabled={loading || osDetails.length === 0}
-                  type="submit"
-                  className="disabled:border-none disabled:bg-transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
-                >
-                  <Save size={16} />
-                  Salvar OS
-                </Button>
-              </section>
-            </header>
+          <Input
+            id="date"
+            type="date"
+            label="Emissão"
+            placeholder=" "
+            classNames={{
+              label: 'text-gray-300 font-normal',
+              inputWrapper:
+                'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
+              input: '[color-scheme]:dark',
+            }}
+            {...register('date')}
+            errorMessage={errors.date?.message}
+            validationState={errors.date && 'invalid'}
+            value={date}
+          />
 
-            <section className="flex items-center gap-6">
-              <Select
-                id="remote"
-                label="Atendimento"
-                classNames={{
-                  trigger:
-                    'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
-                  listboxWrapper: 'max-h-[400px] rounded-lg',
-                  popover: 'bg-gray-700 rounded-lg',
-                }}
-                listboxProps={{
-                  itemClasses: {
-                    base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                  },
-                }}
-                {...register('serviceType')}
-                errorMessage={errors.serviceType?.message}
-                validationState={errors.serviceType && 'invalid'}
-                defaultSelectedKeys={
-                  serviceOrder
-                    ? [serviceOrder?.remote ? 'Remoto' : 'Presencial']
-                    : []
-                }
-              >
-                {serviceTypes.map((service) => (
-                  <SelectItem key={service} value={service}>
-                    {service}
-                  </SelectItem>
-                ))}
-              </Select>
+          <Select
+            id="clientId"
+            label="Cliente"
+            classNames={{
+              trigger: 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+              listboxWrapper: 'max-h-[400px] rounded-lg',
+              popover: 'bg-gray-700 rounded-lg',
+            }}
+            listboxProps={{
+              itemClasses: {
+                base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+              },
+            }}
+            onSelectionChange={(keys) => handleClientProjects(keys)}
+            selectorIcon={<Search />}
+            {...register('clientId')}
+            errorMessage={errors.clientId?.message}
+            validationState={errors.clientId && 'invalid'}
+            defaultSelectedKeys={serviceOrder ? [serviceOrder?.clientId] : []}
+          >
+            {clients.map((client) => {
+              return (
+                <SelectItem key={client.id}>{client.fantasyName}</SelectItem>
+              )
+            })}
+          </Select>
+        </section>
+      </form>
 
-              <Input
-                id="date"
-                type="date"
-                label="Emissão"
-                placeholder=" "
-                classNames={{
-                  label: 'text-gray-300 font-normal',
-                  inputWrapper:
-                    'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
-                  input: '[color-scheme]:dark',
-                }}
-                {...register('date')}
-                errorMessage={errors.date?.message}
-                validationState={errors.date && 'invalid'}
-                value={date}
-              />
-
-              <Select
-                id="clientId"
-                label="Cliente"
-                classNames={{
-                  trigger:
-                    'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
-                  listboxWrapper: 'max-h-[400px] rounded-lg',
-                  popover: 'bg-gray-700 rounded-lg',
-                }}
-                listboxProps={{
-                  itemClasses: {
-                    base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                  },
-                }}
-                onSelectionChange={(keys) => handleClientProjects(keys)}
-                selectorIcon={<Search />}
-                {...register('clientId')}
-                errorMessage={errors.clientId?.message}
-                validationState={errors.clientId && 'invalid'}
-                defaultSelectedKeys={
-                  serviceOrder ? [serviceOrder?.clientId] : []
-                }
-              >
-                {clients.map((client) => {
-                  return (
-                    <SelectItem key={client.id}>
-                      {client.fantasyName}
-                    </SelectItem>
-                  )
-                })}
-              </Select>
-            </section>
-          </form>
-
-          {clientId && (
-            <CreateOSDetails
-              clientId={clientId}
-              handleOSDetailsSave={onOSDetailsSave}
-              osDetail={osDetail}
-            />
-          )}
-
-          {osDetails && (
-            <section className="flex flex-wrap gap-6 justify-start w-full max-w-7xl px-6 pb-8">
-              {osDetails.map((detail, index) => {
-                return (
-                  <Card.Root
-                    onClick={() => handleCardDetailClick(detail)}
-                    className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"
-                    key={index}
-                  >
-                    <Card.Header>
-                      <Card.Title label={detail.projectDetails.projectName} />
-                      <Card.Badge
-                        className="text-yellow-500 bg-yellow-500/10"
-                        status={detail.projectDetails.projectServiceType}
-                      />
-                    </Card.Header>
-                    <Card.Content>
-                      <Card.Info
-                        icon={Clock}
-                        info={`${format(
-                          new Date(detail.projectDetails.startDate),
-                          'HH:mm',
-                        )} - ${format(
-                          new Date(detail.projectDetails.endDate),
-                          'HH:mm',
-                        )}`}
-                      />
-                      {detail.projectExpenses.length > 0 && (
-                        <Card.Info
-                          icon={CircleDollarSign}
-                          info={`${detail.projectExpenses.length} ${
-                            detail.projectExpenses.length === 1
-                              ? 'despesa'
-                              : 'despesas'
-                          }`}
-                        />
-                      )}
-                    </Card.Content>
-                  </Card.Root>
-                )
-              })}
-            </section>
-          )}
-        </div>
+      {clientId && (
+        <CreateOSDetails
+          clientId={clientId}
+          handleOSDetailsSave={onOSDetailsSave}
+          osDetail={osDetail}
+        />
       )}
-    </>
+
+      {osDetails && (
+        <section className="flex flex-wrap gap-6 justify-start w-full max-w-7xl px-6 pb-8">
+          {osDetails.map((detail, index) => {
+            return (
+              <Card.Root
+                onClick={() => handleCardDetailClick(detail)}
+                className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"
+                key={index}
+              >
+                <Card.Header>
+                  <Card.Title label={detail.projectDetails.projectName} />
+                  <Card.Badge
+                    className="text-yellow-500 bg-yellow-500/10"
+                    status={detail.projectDetails.projectServiceType}
+                  />
+                </Card.Header>
+                <Card.Content>
+                  <Card.Info
+                    icon={Clock}
+                    info={`${format(
+                      new Date(detail.projectDetails.startDate),
+                      'HH:mm',
+                    )} - ${format(
+                      new Date(detail.projectDetails.endDate),
+                      'HH:mm',
+                    )}`}
+                  />
+                  {detail.projectExpenses.length > 0 && (
+                    <Card.Info
+                      icon={CircleDollarSign}
+                      info={`${detail.projectExpenses.length} ${
+                        detail.projectExpenses.length === 1
+                          ? 'despesa'
+                          : 'despesas'
+                      }`}
+                    />
+                  )}
+                </Card.Content>
+              </Card.Root>
+            )
+          })}
+        </section>
+      )}
+    </div>
+    //   )}
+    // </>
   )
 }
