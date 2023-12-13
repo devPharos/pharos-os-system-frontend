@@ -1,9 +1,7 @@
 'use client'
 
 import { Card } from '@/components/Card'
-import ProjectTable from '@/components/tables/projects'
 import Header from '@/layouts/header'
-import PageHeader from '@/layouts/page-header'
 import { Client } from '@/types/client'
 import { Project } from '@/types/projects'
 import {
@@ -21,18 +19,15 @@ import { format } from 'date-fns'
 import {
   Search,
   PlusCircle,
-  Pencil,
   AlertCircle,
   ArrowRightCircle,
   CheckCircle2,
-  CircleDollarSign,
   Eraser,
-  User,
-  Clock,
   Building2,
+  XCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Key, useEffect, useState } from 'react'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -66,6 +61,20 @@ export default function Projects() {
     }
   }, [])
 
+  const onStatusFilter = (status: Key) => {
+    const newFilteredProjects = projects.map((project) => {
+      project.hide = true
+
+      if (project.status === status || status === 'Limpar') {
+        project.hide = false
+      }
+
+      return project
+    })
+
+    setProjects(newFilteredProjects)
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -87,7 +96,7 @@ export default function Projects() {
         </header>
 
         <header className="flex items-center justify-between">
-          <section className="flex w-6/12 gap-6">
+          <section className="flex w-full gap-6">
             <Input
               placeholder="Buscar"
               startContent={<Search className="w-5 h-5 text-gray-300" />}
@@ -106,15 +115,15 @@ export default function Projects() {
             >
               <DropdownTrigger>
                 <Button
-                  className="rounded-lg border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
-                  startContent={<PlusCircle size={40} />}
+                  className="rounded-lg min-w-fit border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+                  startContent={<PlusCircle size={18} />}
                 >
                   Status
                 </Button>
               </DropdownTrigger>
 
               <DropdownMenu
-                // onAction={(key) => onStatusFilter(key)}
+                onAction={(key) => onStatusFilter(key)}
                 itemClasses={{
                   base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
                 }}
@@ -129,64 +138,52 @@ export default function Projects() {
                     startContent={
                       <Card.Badge
                         status=""
-                        className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
-                        icon={Pencil}
-                      />
-                    }
-                    key={'Rascunho'}
-                  >
-                    Rascunho
-                  </DropdownItem>
-
-                  <DropdownItem
-                    startContent={
-                      <Card.Badge
-                        status=""
-                        className="bg-yellow-500/10 text-yellow-500 py-2 px-2 rounded-md"
+                        className="text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
                         icon={AlertCircle}
                       />
                     }
-                    key={'Aberto'}
+                    key={'NaoIniciado'}
                   >
-                    Em aberto
+                    Não iniciado
                   </DropdownItem>
+
                   <DropdownItem
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-orange-600/10 text-orange-600 py-2 px-2 rounded-md"
+                        className="text-orange-600 bg-orange-500/10 py-2 px-2 rounded-md"
                         icon={ArrowRightCircle}
                       />
                     }
-                    key={'Enviado'}
+                    key={'Iniciado'}
                   >
-                    Enviado ao cliente
+                    Iniciado
                   </DropdownItem>
 
                   <DropdownItem
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-blue-500/10 text-blue-500 py-2 px-2 rounded-md"
+                        className="text-green-500 bg-green-500/10 py-2 px-2 rounded-md"
                         icon={CheckCircle2}
                       />
                     }
-                    key={'Validado'}
+                    key={'Finalizado'}
                   >
-                    Validado
+                    Finalizado
                   </DropdownItem>
 
                   <DropdownItem
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
-                        icon={CircleDollarSign}
+                        className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
+                        icon={XCircle}
                       />
                     }
-                    key={'Faturado'}
+                    key={'Cancelado'}
                   >
-                    Faturado
+                    Cancelado
                   </DropdownItem>
                 </DropdownSection>
 
@@ -195,7 +192,7 @@ export default function Projects() {
                     startContent={
                       <Card.Badge
                         status=""
-                        className="bg-red-500/10 text-red-500 py-2 px-2 rounded-md"
+                        className="bg-blue-500/10 text-blue-500 py-2 px-2 rounded-md"
                         icon={Eraser}
                       />
                     }
@@ -215,36 +212,59 @@ export default function Projects() {
               const client = clients.find(
                 (client) => client.id === project.clientId,
               )
+              if (!project.hide) {
+                return (
+                  <Link href="" key={index}>
+                    <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
+                      <Card.Header>
+                        <section className="flex items-center gap-2">
+                          <Card.Title label={project.name} />
+                        </section>
+                        <Card.Badge
+                          className={
+                            project.status === 'NaoIniciado'
+                              ? 'text-red-500 bg-red-500/10'
+                              : project.status === 'Iniciado'
+                              ? 'text-orange-600 bg-orange-500/10'
+                              : project.status === 'Finalizado'
+                              ? 'text-green-500 bg-green-500/10'
+                              : 'text-gray-300/80 bg-gray-500/10'
+                          }
+                          status={
+                            project.status === 'NaoIniciado'
+                              ? 'Não iniciado'
+                              : project.status
+                          }
+                          icon={
+                            project.status === 'NaoIniciado'
+                              ? AlertCircle
+                              : project.status === 'Iniciado'
+                              ? ArrowRightCircle
+                              : project.status === 'Finalizado'
+                              ? CheckCircle2
+                              : XCircle
+                          }
+                        />
+                      </Card.Header>
+                      <Card.Content>
+                        <Card.Info
+                          icon={Building2}
+                          info={client?.fantasyName || ''}
+                        />
+                        <Card.Badge
+                          className="text-gray-300/80 rounded-md bg-gray-500/20"
+                          status={format(
+                            new Date(project?.startDate),
+                            'dd/LL/yyyy',
+                          )}
+                        />
+                      </Card.Content>
+                    </Card.Root>
+                  </Link>
+                )
+              }
 
-              return (
-                <Link href="" key={index}>
-                  <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
-                    <Card.Header>
-                      <section className="flex items-center gap-2">
-                        <Card.Title label={project.name} />
-                      </section>
-                      <Card.Badge
-                        className={'text-gray-300/80 bg-gray-500/10'}
-                        status={'Em aberto'}
-                        icon={ArrowRightCircle}
-                      />
-                    </Card.Header>
-                    <Card.Content>
-                      <Card.Info
-                        icon={Building2}
-                        info={client?.fantasyName || ''}
-                      />
-                      <Card.Badge
-                        className="text-gray-300/80 rounded-md bg-gray-500/20"
-                        status={format(
-                          new Date(project?.startDate),
-                          'dd/LL/yyyy',
-                        )}
-                      />
-                    </Card.Content>
-                  </Card.Root>
-                </Link>
-              )
+              return null
             })}
         </section>
       </main>

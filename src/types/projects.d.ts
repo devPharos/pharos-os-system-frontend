@@ -45,6 +45,8 @@ export interface Project {
   coordinatorId: string
   name: string
   startDate: Date
+  status: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
+  hide?: boolean
   endDate: Date | undefined
   deliveryForecast: Date
   hoursForecast: string
