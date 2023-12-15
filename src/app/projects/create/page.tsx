@@ -25,7 +25,7 @@ import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { getUserData } from '@/hooks/useRegister'
 import { UserData } from '@/types/user'
-import { format } from 'date-fns'
+import { compareAsc, compareDesc, format, parseISO } from 'date-fns'
 
 export default function CreateProject() {
   const [showToast, setShowToast] = useState(false)
@@ -62,6 +62,7 @@ export default function CreateProject() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<ProjectFormSchema>({
     resolver: zodResolver(projectFormSchema),
@@ -93,7 +94,31 @@ export default function CreateProject() {
   ) => {
     setLoading(true)
 
-    if (window !== undefined) {
+    const startDate = data.startDate
+    const deliveryForecast = data.deliveryForecast
+    const endDate = parseISO(data?.endDate || '')
+
+    const compareStartDate = compareDesc(startDate, deliveryForecast)
+    const compareEndDate = compareDesc(startDate, endDate || 0)
+
+    if (compareStartDate === -1) {
+      setError('startDate', {
+        message:
+          'A data inicial não pode ser após a data de previsão de entrega',
+      })
+    }
+
+    if (compareEndDate === -1 && endDate) {
+      setError('endDate', {
+        message: 'A data de término não pode ser anterior a data de início',
+      })
+    }
+
+    if (
+      window !== undefined &&
+      compareStartDate !== -1 &&
+      compareEndDate !== -1
+    ) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body: Project = {
@@ -144,6 +169,7 @@ export default function CreateProject() {
             setInterval(() => {
               setShowToast(false)
             }, 3000)
+
             setLoading(false)
 
             router.push('/projects')
@@ -200,8 +226,6 @@ export default function CreateProject() {
     }
   }, [id])
 
-  console.log(project?.endDate)
-
   const onNewProjectExpense = (expense: Partial<ProjectExpenses>) => {
     const newProjectExpenseList: Partial<ProjectExpenses>[] = [...expenses]
     newProjectExpenseList.push(expense)
@@ -214,6 +238,72 @@ export default function CreateProject() {
     newProjectServiceList.push(service)
 
     setServices(newProjectServiceList)
+  }
+
+  const handleDeleteExpense = (
+    expenseId: string | undefined,
+    index: number,
+  ) => {
+    if (window !== undefined && expenseId) {
+      const localStorage = window.localStorage
+      const token = localStorage.getItem('access_token')
+
+      axios
+        .delete('http://localhost:3333/delete/project/expense', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            expenseId,
+            projectId: id,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setExpenses(data)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+    }
+
+    if (!expenseId) {
+      const newExpenseList = expenses.splice(index, 0)
+
+      setServices(newExpenseList)
+    }
+  }
+
+  const handleDeleteService = (
+    serviceId: string | undefined,
+    index: number,
+  ) => {
+    if (window !== undefined && serviceId) {
+      setLoading(true)
+      const localStorage = window.localStorage
+      const token = localStorage.getItem('access_token')
+
+      axios
+        .delete('http://localhost:3333/delete/project/service', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            serviceId,
+            projectId: id,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setServices(data)
+          setLoading(false)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+    }
+
+    if (!serviceId) {
+      const newServiceList = services.splice(index, 0)
+
+      setServices(newServiceList)
+    }
   }
 
   return (
@@ -231,6 +321,13 @@ export default function CreateProject() {
             </span>
 
             <section className="flex items-center gap-6">
+              <Button
+                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                onClick={() => router.push('/projects')}
+              >
+                Cancelar
+              </Button>
+
               <Button
                 disabled={showExpenses}
                 onClick={() => setShowExpenses(true)}
@@ -435,7 +532,14 @@ export default function CreateProject() {
             <ProjectExpensesForm
               handleNewProjectExpense={onNewProjectExpense}
             />
-            <section className="flex w-full justify-start max-w-7xl px-6 items-center gap-6">
+          </>
+        )}
+
+        {expenses?.length > 0 && (
+          <section className="w-full flex flex-col gap-4 max-w-7xl px-6">
+            <span className="text-lg font-medium text-gray-300">Despesas</span>
+
+            <section className="flex w-full justify-start items-center gap-6">
               {expenses?.length > 0 &&
                 expenses.map((expense, index) => (
                   <main
@@ -450,12 +554,13 @@ export default function CreateProject() {
                     <Card.Badge
                       status=""
                       icon={Trash2}
-                      className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                      className=" text-red-500 bg-red-500/10 py-2 px-2 cursor-pointer rounded-md"
+                      onClick={() => handleDeleteExpense(expense?.id, index)}
                     />
                   </main>
                 ))}
             </section>
-          </>
+          </section>
         )}
 
         {showServices && (
@@ -463,8 +568,13 @@ export default function CreateProject() {
             <ProjectServicesForm
               handleNewProjectService={onNewProjectService}
             />
+          </>
+        )}
 
-            <section className="flex w-full justify-start max-w-7xl px-6 items-center gap-6">
+        {services?.length > 0 && (
+          <section className="w-full flex flex-col gap-4 max-w-7xl px-6">
+            <span className="text-lg font-medium text-gray-300">Serviços</span>
+            <section className="flex w-full justify-start items-center gap-6">
               {services.length > 0 &&
                 services.map((service, index) => (
                   <main
@@ -477,12 +587,13 @@ export default function CreateProject() {
                     <Card.Badge
                       status=""
                       icon={Trash2}
-                      className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                      className=" text-red-500 bg-red-500/10 py-2 cursor-pointer px-2 rounded-md"
+                      onClick={() => handleDeleteService(service?.id, index)}
                     />
                   </main>
                 ))}
             </section>
-          </>
+          </section>
         )}
 
         {showToast && <Toast message="Projeto criado com sucesso" />}
