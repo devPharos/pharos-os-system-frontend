@@ -34,7 +34,6 @@ import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
 import Loading from '@/components/Loading'
-import html2pdf from 'html2pdf.js'
 
 interface OsFormProps {
   id?: string

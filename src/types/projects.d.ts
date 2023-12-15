@@ -44,14 +44,23 @@ export interface Project {
   clientId: string
   coordinatorId: string
   name: string
-  startDate: Date
-  status: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
+  startDate: Date | string
+  status?: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
   hide?: boolean
-  endDate: Date | undefined
-  deliveryForecast: Date
+  endDate: Date | undefined | string
+  deliveryForecast: Date | string
   hoursForecast: string
   hoursBalance: string | undefined
   hourValue: string
   projectExpenses: Partial<ProjectExpenses>[]
   projectServices: Partial<ProjectServices>[]
+}
+
+export interface ProjectClient {
+  id: string
+  fantasyName: string
+}
+
+export interface ProjectFounded extends Project {
+  client: ProjectClient
 }

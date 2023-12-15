@@ -2,7 +2,7 @@ import { ElementType, HTMLAttributes } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 interface CardHeaderBadgeProps extends HTMLAttributes<HTMLElement> {
-  status: string
+  status: string | undefined
   icon?: ElementType
 }
 export function CardHeaderBadge({

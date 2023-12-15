@@ -37,7 +37,7 @@ export default function CreateOSExpenses({
 }: OSExpensesProps) {
   const localStorage = window.localStorage
   const token: string = localStorage.getItem('access_token') || ''
-  const userData: UserData = getUserData(token)
+
   const [loading, setLoading] = useState(false)
   const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])
 

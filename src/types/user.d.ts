@@ -8,6 +8,7 @@ export interface UserData {
   companyId: string
   collaboratorId: string
   clientId: string
+  token?: string
 }
 
 export interface Profile {

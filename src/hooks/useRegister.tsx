@@ -38,6 +38,7 @@ const getUserData = async (): Promise<UserData> => {
     companyId: '',
     userId: '',
     clientId: '',
+    token: '',
   }
 
   if (window !== undefined) {
@@ -51,7 +52,10 @@ const getUserData = async (): Promise<UserData> => {
         },
       })
       .then((response) => {
-        return (userData = response.data)
+        return (userData = {
+          ...response.data,
+          token,
+        })
       })
   }
 

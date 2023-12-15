@@ -12,7 +12,6 @@ import {
   DropdownSection,
   DropdownItem,
   Input,
-  Link,
 } from '@nextui-org/react'
 import axios from 'axios'
 import { format } from 'date-fns'
@@ -26,6 +25,7 @@ import {
   Building2,
   XCircle,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Key, useEffect, useState } from 'react'
 
@@ -75,6 +75,18 @@ export default function Projects() {
     setProjects(newFilteredProjects)
   }
 
+  const handleFilterProjectByName = (value: string) => {
+    const filteredProjects = projects.map((project) => {
+      if (project.name.includes(value)) {
+        return project
+      }
+
+      return null
+    })
+
+    // setProjects(filteredProjects)
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -105,6 +117,7 @@ export default function Projects() {
                 inputWrapper:
                   'bg-transparent border border-1 rounded-lg border-gray-300 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 px-4 py-2',
               }}
+              onValueChange={(value) => handleFilterProjectByName(value)}
             />
 
             <Dropdown
@@ -214,7 +227,15 @@ export default function Projects() {
               )
               if (!project.hide) {
                 return (
-                  <Link href="" key={index}>
+                  <Link
+                    href={{
+                      pathname: '/projects/create',
+                      query: {
+                        id: project.id,
+                      },
+                    }}
+                    key={index}
+                  >
                     <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
                       <Card.Header>
                         <section className="flex items-center gap-2">
