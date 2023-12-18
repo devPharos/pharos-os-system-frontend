@@ -33,17 +33,11 @@ export default function CreateClient() {
   const token = localStorage.getItem('access_token')
 
   const clientFormSchema = z.object({
-    account: z.string().min(1, 'Campo obrigatório'),
-    accountDigit: z
-      .string()
-      .max(1, 'No máximo um dígito')
-      .min(1, 'Campo obrigatório'),
+    account: z.string(),
+    accountDigit: z.string().max(1, 'No máximo um dígito').optional(),
     address: z.string().min(1, 'Campo obrigatório'),
     agency: z.string().min(1, 'Campo obrigatório'),
-    agencyDigit: z
-      .string()
-      .max(1, 'No máximo um dígito')
-      .min(1, 'Campo obrigatório'),
+    agencyDigit: z.optional(z.string().max(1, 'No máximo um dígito')),
     bank: z.string().min(1, 'Campo obrigatório'),
     businessName: z.string().min(1, 'Campo obrigatório'),
     cep: z.string().min(1, 'Campo obrigatório'),
@@ -52,13 +46,13 @@ export default function CreateClient() {
       .string()
       .min(1, 'Campo obrigatório')
       .max(18, 'Seu CNPJ deve ter 14 dígitos'),
-    complement: z.string().min(1, 'Campo obrigatório'),
+    complement: z.string().optional(),
     country: z.string().min(1, 'Campo obrigatório'),
     fantasyName: z.string().min(1, 'Campo obrigatório'),
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
-    pixKey: z.string().min(1, 'Campo obrigatório'),
+    pixKey: z.string().optional(),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -432,8 +426,6 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('complement')}
-                    errorMessage={errors.complement?.message}
-                    validationState={errors.complement && 'invalid'}
                     placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
                 </section>
@@ -483,8 +475,6 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('agencyDigit')}
-                    errorMessage={errors.agencyDigit?.message}
-                    validationState={errors.agencyDigit && 'invalid'}
                     placeholder={id && ' '}
                   />
 
@@ -513,8 +503,6 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('accountDigit')}
-                    errorMessage={errors.accountDigit?.message}
-                    validationState={errors.accountDigit && 'invalid'}
                     placeholder={id && ' '}
                   />
 
@@ -528,8 +516,6 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('pixKey')}
-                    errorMessage={errors.pixKey?.message}
-                    validationState={errors.pixKey && 'invalid'}
                     placeholder={id && ' '}
                   />
                 </section>
