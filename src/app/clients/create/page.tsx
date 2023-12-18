@@ -106,23 +106,46 @@ export default function CreateClient() {
       setLoading(false)
     }
 
-    if (window !== undefined && isAValideCNPJOrCPF) {
+    if (window !== undefined) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
-      axios
-        .post('http://localhost:3333/accounts/client', data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(function () {
-          setLoading(false)
-          router.push('/clients')
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
+      if (!id) {
+        axios
+          .post('http://localhost:3333/accounts/client', data, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(function () {
+            setLoading(false)
+            router.push('/clients')
+          })
+          .catch(function (error) {
+            console.error(error)
+            setLoading(false)
+            setError('cnpj', {
+              message: 'Já existe um cliente com o mesmo CPF/CNPJ',
+            })
+          })
+      }
+
+      if (id) {
+        axios
+          .put('http://localhost:3333/update/client', data, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(function () {
+            setLoading(false)
+            router.push('/clients')
+          })
+          .catch(function (error) {
+            console.error(error)
+            setLoading(false)
+          })
+      }
     }
   }
 
@@ -145,6 +168,7 @@ export default function CreateClient() {
         })
         .catch(function (error) {
           console.error(error)
+          setLoading(false)
         })
     }
   }, [id])
@@ -216,6 +240,7 @@ export default function CreateClient() {
                   <Input
                     id="cnpj"
                     label="CNPJ/CPF"
+                    disabled={!!id}
                     placeholder={id && ' '}
                     classNames={{
                       label: 'text-gray-300',
