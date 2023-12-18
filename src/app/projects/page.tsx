@@ -1,6 +1,7 @@
 'use client'
 
 import { Card } from '@/components/Card'
+import { onFilter } from '@/functions/auxiliar'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Project } from '@/types/projects'
@@ -27,7 +28,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Key, useEffect, useState } from 'react'
+import { Key, useEffect, useState, useRef } from 'react'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -61,32 +62,6 @@ export default function Projects() {
     }
   }, [])
 
-  const onStatusFilter = (status: Key) => {
-    const newFilteredProjects = projects.map((project) => {
-      project.hide = true
-
-      if (project.status === status || status === 'Limpar') {
-        project.hide = false
-      }
-
-      return project
-    })
-
-    setProjects(newFilteredProjects)
-  }
-
-  const handleFilterProjectByName = (value: string) => {
-    const filteredProjects = projects.map((project) => {
-      if (project.name.includes(value)) {
-        return project
-      }
-
-      return null
-    })
-
-    // setProjects(filteredProjects)
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -117,7 +92,9 @@ export default function Projects() {
                 inputWrapper:
                   'bg-transparent border border-1 rounded-lg border-gray-300 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 px-4 py-2',
               }}
-              onValueChange={(value) => handleFilterProjectByName(value)}
+              onValueChange={(search) =>
+                onFilter({ search, array: projects, setArray: setProjects })
+              }
             />
 
             <Dropdown
@@ -136,7 +113,9 @@ export default function Projects() {
               </DropdownTrigger>
 
               <DropdownMenu
-                onAction={(key) => onStatusFilter(key)}
+                onAction={(status) =>
+                  onFilter({ status, array: projects, setArray: setProjects })
+                }
                 itemClasses={{
                   base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
                 }}
@@ -225,6 +204,7 @@ export default function Projects() {
               const client = clients.find(
                 (client) => client.id === project.clientId,
               )
+
               if (!project.hide) {
                 return (
                   <Link

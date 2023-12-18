@@ -10,11 +10,13 @@ import {
   ArrowRightCircle,
   Building2,
   CheckCircle2,
+  CircleDashed,
   CircleDollarSign,
   Eraser,
   Eye,
   Monitor,
   Pencil,
+  PencilLine,
   PlusCircle,
   Search,
   XCircle,
@@ -37,40 +39,92 @@ export default function Clients() {
   const token = localStorage.getItem('access_token')
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
-  const [filteredItems, setFilteredItems] = useState<Client[]>([])
 
-  const onStatusFilter = (status: Key) => {
-    const newClientsList = [...clients]
-    const active = status !== 'false'
+  const onStatusFilter = ({
+    status = null,
+    search = '',
+  }: {
+    status?: Key | null
+    search?: string
+  }) => {
+    const newFilteredClients = clients.map((client) => {
+      client.hide = true
 
-    if (status !== 'Limpar') {
-      const filteredList = newClientsList.filter(
-        (client) => client.active === active,
-      )
-      setFilteredItems(filteredList)
-    }
+      if (status) {
+        if (
+          (status === 'false' && !client.active) ||
+          (status === 'true' && client.active) ||
+          status === 'Limpar'
+        ) {
+          client.hide = false
+        }
+      }
 
-    if (status === 'Limpar') {
-      setFilteredItems(newClientsList)
-    }
+      if (search) {
+        if (client.fantasyName.includes(search)) {
+          client.hide = false
+        }
+      }
+
+      if (!search && !status) {
+        client.hide = false
+      }
+
+      return client
+    })
+
+    setClients(newFilteredClients)
   }
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3333/clients', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then(function (response) {
-        const data = response.data
-        setClients(data)
-        setFilteredItems(response.data)
-      })
-      .catch(function (error) {
-        console.error(error)
-      })
-  }, [token])
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const token = localStorage.getItem('access_token')
+
+      axios
+        .get('http://localhost:3333/clients', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setClients(data)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+    }
+  }, [])
+
+  const handleChangeClientStatus = (
+    key: Key,
+    id: string,
+    active: boolean | undefined,
+  ) => {
+    if (key === 'status' && window !== undefined) {
+      const localStorage = window.localStorage
+      const token = localStorage.getItem('access_token')
+      const body = {
+        clientId: id,
+        active: !active,
+      }
+
+      axios
+        .put('http://localhost:3333/update/client/status', body, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function (response) {
+          const data = response.data
+          setClients(data)
+        })
+        .catch(function (error) {
+          console.error(error)
+        })
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center">
@@ -101,6 +155,7 @@ export default function Clients() {
               inputWrapper:
                 'bg-transparent border border-1 rounded-lg border-gray-300 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 px-4 py-2',
             }}
+            onValueChange={(search) => onStatusFilter({ search })}
           />
 
           <Dropdown
@@ -119,7 +174,7 @@ export default function Clients() {
             </DropdownTrigger>
 
             <DropdownMenu
-              onAction={(key) => onStatusFilter(key)}
+              onAction={(status) => onStatusFilter({ status })}
               itemClasses={{
                 base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
               }}
@@ -184,36 +239,91 @@ export default function Clients() {
         </header>
 
         <section className="flex flex-wrap w-full gap-6">
-          {filteredItems.map((client) => {
-            return (
-              <Link
-                href={{
-                  pathname: '/clients/create',
-                  query: {
-                    id: client.id,
-                  },
-                }}
-                key={client.id}
-                className="flex-1"
-              >
-                <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit max-w-sm">
-                  <Card.Header>
-                    <Card.Title label={client.fantasyName} />
-                    <Card.Badge
-                      className={
-                        client.active
-                          ? 'text-green-500 bg-green-500/10'
-                          : 'text-red-500 bg-red-500/10'
+          {clients.map((client) => {
+            if (!client.hide) {
+              return (
+                <Dropdown
+                  classNames={{
+                    base: 'bg-gray-700 rounded-lg w-full flex-1',
+                  }}
+                  backdrop="opaque"
+                  key={client.cnpj}
+                >
+                  <DropdownTrigger>
+                    <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
+                      <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
+                        <Card.Header>
+                          <Card.Title label={client.fantasyName} />
+                          <Card.Badge
+                            className={
+                              client.active
+                                ? 'text-green-500 bg-green-500/10'
+                                : 'text-red-500 bg-red-500/10'
+                            }
+                            status={client.active ? 'Ativo' : 'Inativo'}
+                          />
+                        </Card.Header>
+                        <Card.Content>
+                          <Card.Info icon={Building2} info={client.cnpj} />
+                          {!client.userId && (
+                            <Card.Badge
+                              className="text-gray-300/80 bg-gray-500/10"
+                              status={'Sem acesso'}
+                            />
+                          )}
+                        </Card.Content>
+                      </Card.Root>
+                    </Button>
+                  </DropdownTrigger>
+
+                  <DropdownMenu
+                    itemClasses={{
+                      base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                    }}
+                    onAction={(key: Key) =>
+                      handleChangeClientStatus(key, client.id, client?.active)
+                    }
+                  >
+                    <DropdownItem
+                      startContent={
+                        <Card.Badge
+                          status=""
+                          className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                          icon={PencilLine}
+                        />
                       }
-                      status={client.active ? 'Ativo' : 'Inativo'}
-                    />
-                  </Card.Header>
-                  <Card.Content>
-                    <Card.Info icon={Building2} info={client.cnpj} />
-                  </Card.Content>
-                </Card.Root>
-              </Link>
-            )
+                      key={'edit'}
+                    >
+                      <Link
+                        href={{
+                          pathname: '/clients/create',
+                          query: {
+                            id: client.id,
+                          },
+                        }}
+                      >
+                        Editar cliente
+                      </Link>
+                    </DropdownItem>
+
+                    <DropdownItem
+                      startContent={
+                        <Card.Badge
+                          status=""
+                          className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                          icon={CircleDashed}
+                        />
+                      }
+                      key={'status'}
+                    >
+                      Alterar status do cliente
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              )
+            }
+
+            return null
           })}
         </section>
       </main>

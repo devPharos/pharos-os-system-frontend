@@ -1,6 +1,7 @@
 export interface Client {
   id: string
   active?: boolean
+  hide?: boolean
   companyId: string
   userId: string | null
   account: string
