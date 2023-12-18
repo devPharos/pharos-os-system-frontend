@@ -1,6 +1,12 @@
 'use client'
 
 import Loading from '@/components/Loading'
+import {
+  handleFormatCPForCNPJ,
+  handleFormatPhone,
+  validateCNPJ,
+  validateCPF,
+} from '@/functions/auxiliar'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Company } from '@/types/company'
@@ -9,7 +15,7 @@ import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
 import { Clock, Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -41,7 +47,10 @@ export default function CreateClient() {
     businessName: z.string().min(1, 'Campo obrigatório'),
     cep: z.string().min(1, 'Campo obrigatório'),
     city: z.string().min(1, 'Campo obrigatório'),
-    cnpj: z.string().min(1, 'Campo obrigatório'),
+    cnpj: z
+      .string()
+      .min(1, 'Campo obrigatório')
+      .max(18, 'Seu CNPJ deve ter 14 dígitos'),
     complement: z.string().min(1, 'Campo obrigatório'),
     country: z.string().min(1, 'Campo obrigatório'),
     fantasyName: z.string().min(1, 'Campo obrigatório'),
@@ -57,7 +66,7 @@ export default function CreateClient() {
   const {
     register,
     handleSubmit,
-    setValue,
+    setError,
 
     formState: { errors },
   } = useForm<ClientFormSchema>({
@@ -83,7 +92,22 @@ export default function CreateClient() {
     data: ClientFormSchema,
   ) => {
     setLoading(true)
-    if (window !== undefined) {
+
+    const cnpjOrCpf = data.cnpj.replace(/\D/g, '')
+    const errorMessage =
+      cnpjOrCpf.length === 14 ? 'Insira um CNPJ válido' : 'Insira um CPF válido'
+
+    const isAValideCNPJOrCPF =
+      cnpjOrCpf.length === 14 ? validateCNPJ(cnpjOrCpf) : validateCPF(cnpjOrCpf)
+
+    if (!isAValideCNPJOrCPF) {
+      setError('cnpj', {
+        message: errorMessage,
+      })
+      setLoading(false)
+    }
+
+    if (window !== undefined && isAValideCNPJOrCPF) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -217,7 +241,7 @@ export default function CreateClient() {
 
                   <Input
                     id="cnpj"
-                    label="CNPJ"
+                    label="CNPJ/CPF"
                     placeholder={id && ' '}
                     classNames={{
                       label: 'text-gray-300',
@@ -226,6 +250,7 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('cnpj')}
+                    onChange={handleFormatCPForCNPJ}
                     errorMessage={errors.cnpj?.message}
                     validationState={errors.cnpj && 'invalid'}
                   />
@@ -240,6 +265,7 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('phone')}
+                    onChange={handleFormatPhone}
                     errorMessage={errors.phone?.message}
                     validationState={errors.phone && 'invalid'}
                   />
