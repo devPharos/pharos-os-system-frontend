@@ -2,6 +2,7 @@
 
 import Loading from '@/components/Loading'
 import {
+  getCEPData,
   handleFormatCPForCNPJ,
   handleFormatPhone,
   validateCNPJ,
@@ -15,12 +16,13 @@ import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
 import { Clock, Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, MouseEventHandler, useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
   const [companies, setCompanies] = useState<Company[]>([])
+  const [cep, setCep] = useState<string>('')
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
   const [client, setClient] = useState<Client>()
@@ -66,7 +68,7 @@ export default function CreateClient() {
     register,
     handleSubmit,
     setError,
-
+    setValue,
     formState: { errors },
   } = useForm<ClientFormSchema>({
     resolver: zodResolver(clientFormSchema),
@@ -151,6 +153,7 @@ export default function CreateClient() {
 
   useEffect(() => {
     setLoading(true)
+
     if (window !== undefined) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
@@ -172,6 +175,34 @@ export default function CreateClient() {
         })
     }
   }, [id])
+
+  const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value
+
+    const formattedCEP = inputValue
+      .replace(/\D/g, '')
+      .replace(/^(\d{2})(\d{3})?(\d{3})?/, '$1.$2-$3')
+
+    e.target.value = formattedCEP
+
+    setCep(e.target.value)
+  }
+
+  const buscarCep = async () => {
+    const cepData = await getCEPData(cep)
+
+    if (cepData?.erro === true) {
+      setError('cep', {
+        message: 'CEP não encontrado',
+      })
+    }
+
+    setValue('city', cepData?.localidade || '')
+    setValue('state', cepData?.uf || '')
+    setValue('complement', cepData?.complemento || '')
+    setValue('neighborhood', cepData?.bairro || '')
+    setValue('address', cepData?.logradouro || '')
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-14">
@@ -276,6 +307,32 @@ export default function CreateClient() {
 
                 <section className="flex flex-wrap gap-6">
                   <Input
+                    id="cep"
+                    label="CEP"
+                    classNames={{
+                      label: 'text-gray-300',
+                      base: 'max-w-sm',
+                      inputWrapper:
+                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    {...register('cep')}
+                    errorMessage={errors.cep?.message}
+                    validationState={errors.cep && 'invalid'}
+                    placeholder={id && ' '}
+                    value={cep}
+                    onChange={handleCepChange}
+                    endContent={
+                      <Button
+                        onClick={buscarCep}
+                        className="disabled:border-none items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                        disabled={cep.length !== 10}
+                      >
+                        Buscar CEP
+                      </Button>
+                    }
+                  />
+
+                  <Input
                     id="country"
                     label="País"
                     classNames={{
@@ -302,7 +359,7 @@ export default function CreateClient() {
                     {...register('state')}
                     errorMessage={errors.state?.message}
                     validationState={errors.state && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -317,7 +374,7 @@ export default function CreateClient() {
                     {...register('city')}
                     errorMessage={errors.city?.message}
                     validationState={errors.city && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -332,7 +389,7 @@ export default function CreateClient() {
                     {...register('neighborhood')}
                     errorMessage={errors.neighborhood?.message}
                     validationState={errors.neighborhood && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -347,7 +404,7 @@ export default function CreateClient() {
                     {...register('address')}
                     errorMessage={errors.address?.message}
                     validationState={errors.address && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -377,22 +434,7 @@ export default function CreateClient() {
                     {...register('complement')}
                     errorMessage={errors.complement?.message}
                     validationState={errors.complement && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="cep"
-                    label="CEP"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('cep')}
-                    errorMessage={errors.cep?.message}
-                    validationState={errors.cep && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
                 </section>
               </section>

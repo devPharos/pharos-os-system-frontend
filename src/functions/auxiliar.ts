@@ -1,5 +1,6 @@
 import { Project } from '@/types/projects'
-import { ChangeEvent, Key } from 'react'
+import axios from 'axios'
+import { ChangeEvent, Key, useState } from 'react'
 
 export const parseDate = (date: string): Date => {
   const [hours, minutes] = date.split(':').map(Number)
@@ -192,4 +193,56 @@ export const validateCPF = (cpf: string): boolean => {
   }
 
   return true
+}
+
+interface AddressData {
+  bairro: string
+  cep: string
+  complemento: string
+  ddd: string
+  gia: string
+  ibge: string
+  localidade: string
+  logradouro: string
+  siafi: string
+  uf: string
+  erro?: boolean
+}
+
+export const handleFormatCEP = (e: ChangeEvent<HTMLInputElement>) => {
+  const inputValue = e.target.value
+
+  const formattedPhone = inputValue
+    .replace(/\D/g, '')
+    .replace(/^(\d{2})(\d{3})?(\d{3})?/, '$1.$2-$3')
+
+  e.target.value = formattedPhone
+}
+
+export const getCEPData = async (cep: string): Promise<AddressData | null> => {
+  const newCep = cep.replace(/\D/g, '')
+
+  let data = {
+    bairro: '',
+    cep: '',
+    complemento: '',
+    ddd: '',
+    gia: '',
+    ibge: '',
+    localidade: '',
+    logradouro: '',
+    siafi: '',
+    uf: '',
+  }
+
+  await axios
+    .get(`https://viacep.com.br/ws/${newCep}/json/`)
+    .then(function (response) {
+      data = response.data
+    })
+    .catch(function (error) {
+      console.error(error)
+    })
+
+  return data
 }
