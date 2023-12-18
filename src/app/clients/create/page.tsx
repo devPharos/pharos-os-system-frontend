@@ -31,7 +31,6 @@ export default function CreateClient() {
   const token = localStorage.getItem('access_token')
 
   const clientFormSchema = z.object({
-    companyId: z.string().uuid('Selecione uma opção'),
     account: z.string().min(1, 'Campo obrigatório'),
     accountDigit: z
       .string()
@@ -184,31 +183,6 @@ export default function CreateClient() {
                 <span className="text-gray-200">Informações</span>
 
                 <section className="flex flex-wrap gap-6">
-                  <Select
-                    id="companyId"
-                    label="Empresa"
-                    classNames={{
-                      trigger:
-                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                      listboxWrapper: 'max-h-[400px] rounded-lg',
-                      popover: 'bg-gray-700 rounded-lg ',
-                      base: 'max-w-sm',
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                      },
-                    }}
-                    {...register('companyId')}
-                    errorMessage={errors.companyId?.message}
-                    validationState={errors.companyId && 'invalid'}
-                    defaultSelectedKeys={client ? [client?.companyId] : []}
-                  >
-                    {companies.map((company) => (
-                      <SelectItem key={company.id}>{company.name}</SelectItem>
-                    ))}
-                  </Select>
-
                   <Input
                     id="businessName"
                     label="Razão social"
