@@ -1,7 +1,10 @@
 'use client'
 
 import Loading from '@/components/Loading'
+import { states } from '@/data/states'
 import {
+  Bank,
+  getBanksData,
   getCEPData,
   handleFormatCPForCNPJ,
   handleFormatPhone,
@@ -31,6 +34,7 @@ export default function CreateClient() {
   const router = useRouter()
   const localStorage = window.localStorage
   const token = localStorage.getItem('access_token')
+  const [banks, setBanks] = useState<Bank[]>([])
 
   const clientFormSchema = z.object({
     account: z.string(),
@@ -147,6 +151,7 @@ export default function CreateClient() {
 
   useEffect(() => {
     setLoading(true)
+    getBanks()
 
     if (window !== undefined) {
       const localStorage = window.localStorage
@@ -180,6 +185,12 @@ export default function CreateClient() {
     e.target.value = formattedCEP
 
     setCep(e.target.value)
+  }
+
+  const getBanks = async () => {
+    const banks = await getBanksData()
+
+    setBanks(banks)
   }
 
   const buscarCep = async () => {
@@ -216,6 +227,13 @@ export default function CreateClient() {
               </span>
 
               <section className="flex items-center gap-6">
+                <Button
+                  className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                  onClick={() => router.push('/clients')}
+                >
+                  Cancelar
+                </Button>
+
                 <Button
                   disabled={loading}
                   type="submit"
@@ -341,20 +359,29 @@ export default function CreateClient() {
                     placeholder={id && ' '}
                   />
 
-                  <Input
+                  <Select
                     id="state"
                     label="Estado"
                     classNames={{
-                      label: 'text-gray-300',
+                      trigger:
+                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                      listboxWrapper: 'max-h-[400px] rounded-lg',
+                      popover: 'bg-gray-700 rounded-lg ',
                       base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    listboxProps={{
+                      itemClasses: {
+                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                      },
                     }}
                     {...register('state')}
                     errorMessage={errors.state?.message}
                     validationState={errors.state && 'invalid'}
-                    placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
+                  >
+                    {states.map((state) => (
+                      <SelectItem key={state}>{state}</SelectItem>
+                    ))}
+                  </Select>
 
                   <Input
                     id="city"
@@ -435,20 +462,31 @@ export default function CreateClient() {
                 <span className="text-gray-200">Dados bancários</span>
 
                 <section className="flex flex-wrap gap-6">
-                  <Input
+                  <Select
                     id="bank"
                     label="Banco"
                     classNames={{
-                      label: 'text-gray-300',
+                      trigger:
+                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                      listboxWrapper: 'max-h-[400px] rounded-lg',
+                      popover: 'bg-gray-700 rounded-lg ',
                       base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    listboxProps={{
+                      itemClasses: {
+                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                      },
                     }}
                     {...register('bank')}
                     errorMessage={errors.bank?.message}
                     validationState={errors.bank && 'invalid'}
-                    placeholder={id && ' '}
-                  />
+                  >
+                    {banks.map((bank) => (
+                      <SelectItem key={bank.code}>
+                        {bank.code} - {bank.fullName}
+                      </SelectItem>
+                    ))}
+                  </Select>
 
                   <Input
                     id="agency"

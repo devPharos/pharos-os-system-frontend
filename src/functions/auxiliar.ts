@@ -246,3 +246,27 @@ export const getCEPData = async (cep: string): Promise<AddressData | null> => {
 
   return data
 }
+
+export interface Bank {
+  code: number
+  fullName: string
+}
+
+export const getBanksData = async (): Promise<Bank[]> => {
+  let banks: Bank[] = []
+
+  await axios
+    .get(`https://brasilapi.com.br/api/banks/v1`)
+    .then(function (response) {
+      banks = response.data
+        .sort(function (a: Bank, b: Bank) {
+          return a.code < b.code ? -1 : a.code > b.code ? 1 : 0
+        })
+        .filter((bank: Bank) => bank.code)
+    })
+    .catch(function (error) {
+      console.error(error)
+    })
+
+  return banks
+}

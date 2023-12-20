@@ -22,13 +22,14 @@ export default function Users() {
   const createUserSchema = z.object({
     clientId: z.string().uuid('Selecione um cliente'),
     email: z.string().email('Insira um email'),
-    password: z.string().min(1, 'Insira a senha'),
+    password: z.string().min(8, 'A senha deve conter no mínimo 8 caracteres'),
   })
 
   type CreateUserSchema = z.infer<typeof createUserSchema>
 
   const {
     register,
+    setError,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateUserSchema>({
@@ -80,6 +81,9 @@ export default function Users() {
           router.push('/clients')
         })
         .catch((error) => {
+          setError('email', {
+            message: 'Já existe um usuário cadastrado com esse e-mail',
+          })
           console.log(error)
         })
     }
@@ -100,6 +104,13 @@ export default function Users() {
             </span>
 
             <section className="flex items-center gap-6">
+              <Button
+                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                onClick={() => router.push('/clients')}
+              >
+                Cancelar
+              </Button>
+
               <Button
                 // disabled={loading}
                 type="submit"
