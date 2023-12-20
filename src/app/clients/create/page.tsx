@@ -297,6 +297,7 @@ export default function CreateClient() {
                     errorMessage={errors.cnpj?.message}
                     validationState={errors.cnpj && 'invalid'}
                   />
+
                   <Input
                     id="phone"
                     label="Telefone"

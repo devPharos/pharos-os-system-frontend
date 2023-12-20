@@ -3,4 +3,5 @@ export interface Collaborator {
   userId: string
   name: string
   lastName: string
+  hide?: boolean
 }

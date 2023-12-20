@@ -1,6 +1,16 @@
 'use client'
 
 import Loading from '@/components/Loading'
+import { states } from '@/data/states'
+import {
+  Bank,
+  getBanksData,
+  getCEPData,
+  handleFormatCPForCNPJ,
+  handleFormatPhone,
+  validateCNPJ,
+  validateCPF,
+} from '@/functions/auxiliar'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
@@ -10,48 +20,41 @@ import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
 import { Clock, Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [cep, setCep] = useState<string>('')
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [collaborator, setCollaborator] = useState<Collaborator>()
+  const [banks, setBanks] = useState<Bank[]>([])
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
-  const [client, setClient] = useState<Client>()
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const localStorage = window.localStorage
-  const token = localStorage.getItem('access_token')
+  const token = window !== undefined && localStorage.getItem('access_token')
 
   const collaboratorFormSchema = z.object({
-    companyId: z.string().uuid('Selecione uma opção'),
     supervisorId: z.string().uuid().optional(),
     name: z.string().min(1, 'Campo obrigatório'),
     lastName: z.string().min(1, 'Campo obrigatório'),
     account: z.string().min(1, 'Campo obrigatório'),
-    accountDigit: z
-      .string()
-      .max(1, 'No máximo um dígito')
-      .min(1, 'Campo obrigatório'),
+    accountDigit: z.string().max(1, 'No máximo um dígito'),
     address: z.string().min(1, 'Campo obrigatório'),
     agency: z.string().min(1, 'Campo obrigatório'),
-    agencyDigit: z
-      .string()
-      .max(1, 'No máximo um dígito')
-      .min(1, 'Campo obrigatório'),
+    agencyDigit: z.string().max(1, 'No máximo um dígito'),
     bank: z.string().min(1, 'Campo obrigatório'),
     cep: z.string().min(1, 'Campo obrigatório'),
     city: z.string().min(1, 'Campo obrigatório'),
     cnpj: z.string().min(1, 'Campo obrigatório'),
-    complement: z.string().min(1, 'Campo obrigatório'),
+    complement: z.string(),
     country: z.string().min(1, 'Campo obrigatório'),
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
-    pixKey: z.string().min(1, 'Campo obrigatório'),
+    pixKey: z.string(),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -60,22 +63,110 @@ export default function CreateClient() {
   const {
     register,
     handleSubmit,
+    setError,
+    setValue,
     control,
     formState: { errors },
   } = useForm<CollaboratorFormSchema>({
     resolver: zodResolver(collaboratorFormSchema),
+    defaultValues: async () =>
+      axios
+        .get('http://localhost:3333/find/collaborator', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            id,
+          },
+        })
+        .then((response) => {
+          setCollaborator(response.data)
+          return response.data
+        })
+        .catch(function (error) {
+          console.error(error)
+        }),
   })
+
+  const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value
+
+    const formattedCEP = inputValue
+      .replace(/\D/g, '')
+      .replace(/^(\d{2})(\d{3})?(\d{3})?/, '$1.$2-$3')
+
+    e.target.value = formattedCEP
+
+    setCep(e.target.value)
+  }
+
+  const getBanks = async () => {
+    const banks = await getBanksData()
+
+    setBanks(banks)
+  }
+
+  const buscarCep = async () => {
+    const cepData = await getCEPData(cep)
+
+    if (cepData?.erro === true) {
+      setError('cep', {
+        message: 'CEP não encontrado',
+      })
+    }
+
+    setValue('city', cepData?.localidade || '')
+    setValue('state', cepData?.uf || '')
+    setValue('complement', cepData?.complemento || '')
+    setValue('neighborhood', cepData?.bairro || '')
+    setValue('address', cepData?.logradouro || '')
+  }
 
   const handleCollaboratorFormSubmit: SubmitHandler<CollaboratorFormSchema> = (
     data: CollaboratorFormSchema,
   ) => {
     setLoading(true)
-    if (window !== undefined) {
+
+    const cnpjOrCpf = data.cnpj.replace(/\D/g, '')
+    const errorMessage =
+      cnpjOrCpf.length === 14 ? 'Insira um CNPJ válido' : 'Insira um CPF válido'
+
+    const isAValidCNPJOrCPF =
+      cnpjOrCpf.length === 14 ? validateCNPJ(cnpjOrCpf) : validateCPF(cnpjOrCpf)
+
+    if (!isAValidCNPJOrCPF) {
+      setError('cnpj', {
+        message: errorMessage,
+      })
+      setLoading(false)
+    }
+
+    if (window !== undefined && isAValidCNPJOrCPF) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
+      if (!id) {
+        axios
+          .post('http://localhost:3333/accounts/collaborator', data, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(function () {
+            setLoading(false)
+            router.push('/company')
+          })
+          .catch(function (error) {
+            console.error(error)
+            setLoading(false)
+            setError('cnpj', {
+              message: 'Já existe um cliente com o mesmo CPF/CNPJ',
+            })
+          })
+
+        return
+      }
+
       axios
-        .post('http://localhost:3333/accounts/collaborator', data, {
+        .put('http://localhost:3333/update/collaborator', data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -86,34 +177,24 @@ export default function CreateClient() {
         })
         .catch(function (error) {
           console.error(error)
+          setLoading(false)
+          setError('cnpj', {
+            message: 'Já existe um cliente com o mesmo CPF/CNPJ',
+          })
         })
     }
   }
 
   useEffect(() => {
     setLoading(true)
+    getBanks()
+
     if (window !== undefined) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/companies', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-
-          setCompanies(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-
-      axios
-        .get('http://localhost:3333/list/collaborators', {
+        .get('http://localhost:3333/list/supervisors', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -148,6 +229,13 @@ export default function CreateClient() {
 
               <section className="flex items-center gap-6">
                 <Button
+                  className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                  onClick={() => router.push('/company')}
+                >
+                  Cancelar
+                </Button>
+
+                <Button
                   disabled={loading}
                   type="submit"
                   className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
@@ -163,30 +251,6 @@ export default function CreateClient() {
                 <span className="text-gray-200">Informações</span>
 
                 <section className="flex flex-wrap gap-6">
-                  <Select
-                    id="companyId"
-                    label="Empresa"
-                    classNames={{
-                      trigger:
-                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                      listboxWrapper: 'max-h-[400px] rounded-lg',
-                      popover: 'bg-gray-700 rounded-lg ',
-                      base: 'max-w-sm',
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                      },
-                    }}
-                    {...register('companyId')}
-                    errorMessage={errors.companyId?.message}
-                    validationState={errors.companyId && 'invalid'}
-                  >
-                    {companies.map((company) => (
-                      <SelectItem key={company.id}>{company.name}</SelectItem>
-                    ))}
-                  </Select>
-
                   <Controller
                     name="supervisorId"
                     control={control}
@@ -207,6 +271,9 @@ export default function CreateClient() {
                             base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
                           },
                         }}
+                        errorMessage={errors.supervisorId?.message}
+                        validationState={errors.supervisorId && 'invalid'}
+                        defaultSelectedKeys={id ? [collaborator?.id || ''] : []}
                       >
                         {collaborators.map((collaborator) => (
                           <SelectItem key={collaborator.id}>
@@ -249,7 +316,8 @@ export default function CreateClient() {
 
                   <Input
                     id="cnpj"
-                    label="CNPJ"
+                    label="CNPJ/CPF"
+                    disabled={!!id}
                     placeholder={id && ' '}
                     classNames={{
                       label: 'text-gray-300',
@@ -258,6 +326,7 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('cnpj')}
+                    onChange={handleFormatCPForCNPJ}
                     errorMessage={errors.cnpj?.message}
                     validationState={errors.cnpj && 'invalid'}
                   />
@@ -272,6 +341,7 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('phone')}
+                    onChange={handleFormatPhone}
                     errorMessage={errors.phone?.message}
                     validationState={errors.phone && 'invalid'}
                   />
@@ -282,6 +352,34 @@ export default function CreateClient() {
                 <span className="text-gray-200">Endereço</span>
 
                 <section className="flex flex-wrap gap-6">
+                  <Input
+                    id="cep"
+                    label="CEP"
+                    classNames={{
+                      label: 'text-gray-300',
+                      base: 'max-w-sm',
+                      inputWrapper:
+                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    {...register('cep')}
+                    errorMessage={errors.cep?.message}
+                    validationState={errors.cep && 'invalid'}
+                    placeholder={id && ' '}
+                    value={!id ? cep : undefined}
+                    onChange={handleCepChange}
+                    endContent={
+                      !id && (
+                        <Button
+                          onClick={buscarCep}
+                          className="disabled:border-none items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                          disabled={cep.length !== 10}
+                        >
+                          Buscar CEP
+                        </Button>
+                      )
+                    }
+                  />
+
                   <Input
                     id="country"
                     label="País"
@@ -297,20 +395,29 @@ export default function CreateClient() {
                     placeholder={id && ' '}
                   />
 
-                  <Input
+                  <Select
                     id="state"
                     label="Estado"
                     classNames={{
-                      label: 'text-gray-300',
+                      trigger:
+                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                      listboxWrapper: 'max-h-[400px] rounded-lg',
+                      popover: 'bg-gray-700 rounded-lg ',
                       base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    listboxProps={{
+                      itemClasses: {
+                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                      },
                     }}
                     {...register('state')}
                     errorMessage={errors.state?.message}
                     validationState={errors.state && 'invalid'}
-                    placeholder={id && ' '}
-                  />
+                  >
+                    {states.map((state) => (
+                      <SelectItem key={state}>{state}</SelectItem>
+                    ))}
+                  </Select>
 
                   <Input
                     id="city"
@@ -324,7 +431,7 @@ export default function CreateClient() {
                     {...register('city')}
                     errorMessage={errors.city?.message}
                     validationState={errors.city && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -339,7 +446,7 @@ export default function CreateClient() {
                     {...register('neighborhood')}
                     errorMessage={errors.neighborhood?.message}
                     validationState={errors.neighborhood && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -354,7 +461,7 @@ export default function CreateClient() {
                     {...register('address')}
                     errorMessage={errors.address?.message}
                     validationState={errors.address && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
 
                   <Input
@@ -382,24 +489,7 @@ export default function CreateClient() {
                         'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
                     }}
                     {...register('complement')}
-                    errorMessage={errors.complement?.message}
-                    validationState={errors.complement && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="cep"
-                    label="CEP"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('cep')}
-                    errorMessage={errors.cep?.message}
-                    validationState={errors.cep && 'invalid'}
-                    placeholder={id && ' '}
+                    placeholder={id || cep.length === 10 ? ' ' : undefined}
                   />
                 </section>
               </section>
@@ -408,20 +498,31 @@ export default function CreateClient() {
                 <span className="text-gray-200">Dados bancários</span>
 
                 <section className="flex flex-wrap gap-6">
-                  <Input
+                  <Select
                     id="bank"
                     label="Banco"
                     classNames={{
-                      label: 'text-gray-300',
+                      trigger:
+                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                      listboxWrapper: 'max-h-[400px] rounded-lg',
+                      popover: 'bg-gray-700 rounded-lg ',
                       base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                    }}
+                    listboxProps={{
+                      itemClasses: {
+                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                      },
                     }}
                     {...register('bank')}
                     errorMessage={errors.bank?.message}
                     validationState={errors.bank && 'invalid'}
-                    placeholder={id && ' '}
-                  />
+                  >
+                    {banks.map((bank) => (
+                      <SelectItem key={bank.code}>
+                        {bank.code} - {bank.fullName}
+                      </SelectItem>
+                    ))}
+                  </Select>
 
                   <Input
                     id="agency"
