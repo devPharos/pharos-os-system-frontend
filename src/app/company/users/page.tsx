@@ -2,7 +2,7 @@
 
 import Header from '@/layouts/header'
 
-import { Save } from 'lucide-react'
+import { Eye, EyeOff, Save } from 'lucide-react'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import { z } from 'zod'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -11,11 +11,18 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { User } from '@/types/user'
 
 export default function Users() {
+  const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
+  const token = window !== undefined && localStorage.getItem('access_token')
   const [collaboratorsId, setCollaboratorsId] = useState<Collaborator[]>([])
   const [showToast, setShowToast] = useState(false)
+  const [user, setUser] = useState<User>()
+  const searchParams = useSearchParams()
+  const params = Array.from(searchParams.values())
+  const id = params[0]
   const router = useRouter()
 
   const createUserSchema = z.object({
@@ -32,21 +39,21 @@ export default function Users() {
     formState: { errors },
   } = useForm<CreateUserSchema>({
     resolver: zodResolver(createUserSchema),
-    // defaultValues: async () =>
-    //   axios
-    //     .get('http://localhost:3333/client/data', {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         id,
-    //       },
-    //     })
-    //     .then((response) => {
-    //       setClient(response.data)
-    //       return response.data
-    //     })
-    //     .catch(function (error) {
-    //       console.error(error)
-    //     }),
+    defaultValues: async () =>
+      axios
+        .get('http://localhost:3333/find/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            id,
+          },
+        })
+        .then((response) => {
+          setUser(response.data)
+          return response.data
+        })
+        .catch(function (error) {
+          console.error(error)
+        }),
   })
 
   useEffect(() => {
@@ -66,36 +73,69 @@ export default function Users() {
     }
   }, [])
 
+  const handleChangePasswordVisibility = () => {
+    setPasswordVisible(!isPasswordVisible)
+  }
+
   const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
     data: CreateUserSchema,
   ) => {
     if (window !== undefined) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
-      const body = {
-        collaboratorId: data.collaboratorId,
-        email: data.email,
-        password: data.password,
+
+      if (!user) {
+        const body = {
+          collaboratorId: data.collaboratorId,
+          email: data.email,
+          password: data.password,
+        }
+        axios
+          .post('http://localhost:3333/accounts/user', body, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(() => {
+            setShowToast(true)
+
+            setInterval(() => {
+              setShowToast(false)
+            }, 3000)
+
+            router.push('/company')
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       }
 
-      axios
-        .post('http://localhost:3333/accounts/user', body, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(() => {
-          setShowToast(true)
+      if (user) {
+        const body = {
+          userId: id,
+          email: data.email,
+          password: data.password,
+        }
+        axios
+          .put('http://localhost:3333/update/user', body, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(() => {
+            console.log('ok')
+            // setShowToast(true)
 
-          setInterval(() => {
-            setShowToast(false)
-          }, 3000)
+            // setInterval(() => {
+            //   setShowToast(false)
+            // }, 3000)
 
-          router.push('/company')
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+            // router.push('/company')
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      }
     }
   }
 
@@ -115,6 +155,13 @@ export default function Users() {
 
             <section className="flex items-center gap-6">
               <Button
+                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                onClick={() => router.push('/company')}
+              >
+                Cancelar
+              </Button>
+
+              <Button
                 // disabled={loading}
                 type="submit"
                 className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
@@ -130,8 +177,11 @@ export default function Users() {
               id="collaboratorId"
               label="Colaborador"
               classNames={{
-                trigger:
-                  'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                trigger: [
+                  user
+                    ? 'bg-gray-700 cursor-not-allowed data-[hover=true]:bg-gray-600 rounded-lg'
+                    : 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+                ],
                 listboxWrapper: 'max-h-[400px] rounded-lg',
                 popover: 'bg-gray-700 rounded-lg ',
                 base: 'max-w-sm',
@@ -144,19 +194,30 @@ export default function Users() {
               {...register('collaboratorId')}
               errorMessage={errors.collaboratorId?.message}
               validationState={errors.collaboratorId && 'invalid'}
-              //  defaultSelectedKeys={client ? [client?.companyId] : []}
+              selectedKeys={user ? [user?.collaboratorId || ''] : []}
+              isOpen={false}
             >
-              {collaboratorsId.map((collaborator) => (
-                <SelectItem key={collaborator.id}>
-                  {collaborator.name + ' ' + collaborator.lastName}
-                </SelectItem>
-              ))}
+              {collaboratorsId.map((collaborator) => {
+                if (user) {
+                  return (
+                    <SelectItem key={user?.collaboratorId || ''}>
+                      {user?.name + ' ' + user?.lastName}
+                    </SelectItem>
+                  )
+                }
+
+                return (
+                  <SelectItem key={collaborator.id}>
+                    {collaborator.name + ' ' + collaborator.lastName}
+                  </SelectItem>
+                )
+              })}
             </Select>
 
             <Input
               id="email"
               label="E-mail"
-              //  placeholder={id && ' '}
+              placeholder={id && ' '}
               classNames={{
                 label: 'text-gray-300',
                 base: 'max-w-sm',
@@ -168,20 +229,38 @@ export default function Users() {
               validationState={errors.email && 'invalid'}
             />
 
-            <Input
-              id="password"
-              label="Senha"
-              //  placeholder={id && ' '}
-              classNames={{
-                label: 'text-gray-300',
-                base: 'max-w-sm',
-                inputWrapper:
-                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-              }}
-              {...register('password')}
-              errorMessage={errors.password?.message}
-              validationState={errors.password && 'invalid'}
-            />
+            {!id && (
+              <Input
+                id="password"
+                label="Senha"
+                placeholder={id && ' '}
+                classNames={{
+                  label: 'text-gray-300',
+                  base: 'max-w-sm',
+                  inputWrapper:
+                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                }}
+                {...register('password')}
+                type={isPasswordVisible ? 'text' : 'password'}
+                errorMessage={errors.password?.message}
+                validationState={errors.password && 'invalid'}
+                endContent={
+                  isPasswordVisible ? (
+                    <Eye
+                      className="text-gray-300 cursor-pointer"
+                      size={20}
+                      onClick={handleChangePasswordVisibility}
+                    />
+                  ) : (
+                    <EyeOff
+                      className="text-gray-300 cursor-pointer"
+                      size={20}
+                      onClick={handleChangePasswordVisibility}
+                    />
+                  )
+                }
+              />
+            )}
           </section>
         </form>
       </div>

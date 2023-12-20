@@ -1,6 +1,9 @@
 export interface User {
-  access_token: string
+  name?: string
+  lastName?: string
+  collaboratorId?: string
   email: string
+  password: string
 }
 
 export interface UserData {

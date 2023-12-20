@@ -24,16 +24,17 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
+  const token =
+    window !== undefined && window.localStorage.getItem('access_token')
   const [companies, setCompanies] = useState<Company[]>([])
   const [cep, setCep] = useState<string>('')
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
-  const [client, setClient] = useState<Client>()
   const id = params[0]
+  const [client, setClient] = useState<Client>()
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
   const localStorage = window.localStorage
-  const token = localStorage.getItem('access_token')
   const [banks, setBanks] = useState<Bank[]>([])
 
   const clientFormSchema = z.object({

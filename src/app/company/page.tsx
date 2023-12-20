@@ -7,6 +7,7 @@ import {
   Building2,
   CheckCircle2,
   Eraser,
+  PencilLine,
   PlusCircle,
   Search,
   XCircle,
@@ -21,7 +22,7 @@ import {
   Input,
 } from '@nextui-org/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Key, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Collaborator } from '@/types/collaborator'
 
@@ -45,6 +46,10 @@ export default function Company() {
         })
     }
   }, [])
+
+  const handleEdit = (key: Key, id: string, userId: string | undefined) => {
+    router.push(`/company/${key}?id=${key === 'collaborators' ? id : userId}`)
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center">
@@ -95,24 +100,74 @@ export default function Company() {
         <section className="flex flex-wrap w-full gap-6">
           {collaborators &&
             collaborators.map((collaborator) => (
-              <Card.Root
+              <Dropdown
+                classNames={{
+                  base: 'bg-gray-700 rounded-lg w-full flex-1',
+                }}
+                backdrop="opaque"
                 key={collaborator.id}
-                className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit max-w-sm"
               >
-                <Card.Header>
-                  <Card.Title
-                    label={collaborator.name + ' ' + collaborator.lastName}
-                  />
-                  <section className="flex items-center gap-2">
-                    {!collaborator.userId && (
+                <DropdownTrigger>
+                  <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
+                    <Card.Root
+                      key={collaborator.id}
+                      className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit max-w-sm"
+                    >
+                      <Card.Header>
+                        <Card.Title
+                          label={
+                            collaborator.name + ' ' + collaborator.lastName
+                          }
+                        />
+                        <section className="flex items-center gap-2">
+                          {!collaborator.userId && (
+                            <Card.Badge
+                              className="text-blue-500 bg-blue-500/10"
+                              status={'Sem acesso'}
+                            />
+                          )}
+                        </section>
+                      </Card.Header>
+                    </Card.Root>
+                  </Button>
+                </DropdownTrigger>
+
+                <DropdownMenu
+                  itemClasses={{
+                    base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                  }}
+                  onAction={(key: Key) =>
+                    handleEdit(key, collaborator.id, collaborator?.userId)
+                  }
+                >
+                  <DropdownItem
+                    startContent={
                       <Card.Badge
-                        className="text-blue-500 bg-blue-500/10"
-                        status={'Sem acesso'}
+                        status=""
+                        className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                        icon={PencilLine}
                       />
-                    )}
-                  </section>
-                </Card.Header>
-              </Card.Root>
+                    }
+                    key={'collaborators'}
+                  >
+                    Editar colaborador
+                  </DropdownItem>
+
+                  <DropdownItem
+                    startContent={
+                      <Card.Badge
+                        status=""
+                        className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                        icon={PencilLine}
+                      />
+                    }
+                    key={'users'}
+                    className={!collaborator.userId ? 'hidden' : undefined}
+                  >
+                    Editar usuário
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
             ))}
         </section>
       </main>

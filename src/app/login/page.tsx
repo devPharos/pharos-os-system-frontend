@@ -22,7 +22,6 @@ export default function Login() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<boolean>(false)
-  const { user, setUser } = useRegister()
   const router = useRouter()
 
   const loginFormSchema = z.object({
@@ -58,12 +57,6 @@ export default function Login() {
       })
       .then(function (response) {
         const data = response.data
-
-        setUser({
-          ...user,
-          access_token: data.access_token,
-          email: userLoginData.email,
-        })
 
         if (typeof window !== undefined) {
           const localStorage = window.localStorage
