@@ -36,7 +36,6 @@ import { Client } from '@/types/client'
 import Link from 'next/link'
 
 export default function Clients() {
-  const token = localStorage.getItem('access_token')
   const router = useRouter()
   const [clients, setClients] = useState<Client[]>([])
 

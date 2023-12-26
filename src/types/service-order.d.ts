@@ -26,6 +26,17 @@ export interface ServiceOrderCreation {
 export interface ServiceOrderCollaborator {
   name: string
   lastName: string
+  supervisorId?: string
+}
+
+export interface ServiceOrderDate {
+  formattedDate: string
+  date: string
+}
+
+export interface ServiceOrderClient {
+  fantasyName: string
+  cnpj: string
 }
 
 export interface ServiceOrderCard {
@@ -41,8 +52,16 @@ export interface ServiceOrderCard {
   status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho'
   clientName?: string
   selected?: boolean
+  client: ServiceOrderClient
+  hide?: boolean
 
   collaborator: ServiceOrderCollaborator
+}
+
+export interface ServiceOrderPage {
+  serviceOrders: ServiceOrderCard
+  serviceOrdersSupervisedByMe: ServiceOrderCard
+  defaultDate: ServiceOrderDate
 }
 
 export interface ServiceOrder {

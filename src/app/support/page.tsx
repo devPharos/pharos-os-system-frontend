@@ -292,10 +292,10 @@ export default function Support() {
                     id: ticket.id,
                   },
                 }}
-                className="flex-1"
+                className="bg-gray-700 rounded-lg w-full flex-1"
                 key={ticket.id}
               >
-                <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit max-w-sm">
+                <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit">
                   <Card.Header>
                     <Card.Title label={ticket.title} />
                     <section className="flex gap-2">
