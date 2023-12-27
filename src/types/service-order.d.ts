@@ -35,6 +35,7 @@ export interface ServiceOrderDate {
 }
 
 export interface ServiceOrderClient {
+  id: string
   fantasyName: string
   cnpj: string
 }
@@ -64,15 +65,46 @@ export interface ServiceOrderPage {
   defaultDate: ServiceOrderDate
 }
 
+export interface ProjectExpenses {
+  id?: string
+  requireReceipt?: string
+  value: string
+  description?: string
+}
+
+export interface ProjectServices {
+  id?: string
+  description?: string
+}
+
+export interface ServiceOrderExpenses {
+  id?: string
+  projectId?: string
+  projectExpenses: ProjectExpenses
+}
+
+export interface ServiceOrderProject {
+  id: string
+  name: string
+  projectsExpenses: ProjectExpenses[]
+}
+export interface ServiceOrderDetail {
+  id?: string
+  project: ServiceOrderProject
+  projectServices: ProjectServices
+  startDate: string
+  endDate: string
+  description: string
+}
+
 export interface ServiceOrder {
   id: string
-  client: string
-  clientId: string
-  collaborator: string
-  status: 'Aberto' | 'Enviado' | 'Faturado' | 'Cancelado'
-  date: Date
-  startDate: Date
-  endDate: Date
   remote: boolean
-  osDetails: ServiceOrderDetails[]
+  date: string
+  fantasyName: string
+  cnpj: string
+  client: ServiceOrderClient
+  clientId: string
+  serviceOrderExpenses?: ServiceOrderExpenses[]
+  serviceOrderDetails: ServiceOrderDetail[]
 }

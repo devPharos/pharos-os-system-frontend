@@ -19,27 +19,27 @@ import {
 } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Key, useEffect, useState } from 'react'
+import { ChangeEvent, Key, useEffect, useState } from 'react'
 import axios from 'axios'
-import { Client } from '@/types/client'
-import { Projects, ProjectServices, ProjectExpenses } from '@/types/projects'
-import { Card } from '@/components/Card'
-import { ServiceOrderExpense } from '@/types/service-order'
+import { ProjectExpenses } from '@/types/service-order'
 
 interface OSExpensesProps {
   projectId: string
-  handleExpenseSave: (expense: ServiceOrderExpense) => void
+  handleExpenseSave: (expense: ProjectExpenses) => void
+  expense?: ProjectExpenses
 }
 
 export default function CreateOSExpenses({
   projectId,
   handleExpenseSave,
+  expense,
 }: OSExpensesProps) {
   const localStorage = window.localStorage
   const token: string = localStorage.getItem('access_token') || ''
 
   const [loading, setLoading] = useState(false)
   const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])
+  const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()
 
   const osExpensesFormSchema = z.object({
     projectExpenseId: z.string().uuid('Selecione um tipo de reembolso'),
@@ -55,6 +55,10 @@ export default function CreateOSExpenses({
     formState: { errors },
   } = useForm<TOsExpensesFormData>({
     resolver: zodResolver(osExpensesFormSchema),
+    defaultValues: {
+      projectExpenseId: expense?.id,
+      value: expense?.value,
+    },
   })
 
   const handleOSExpensesFormSubmit: SubmitHandler<TOsExpensesFormData> = (
@@ -62,9 +66,9 @@ export default function CreateOSExpenses({
   ) => {
     const exp = projectExpenses.find((exp) => exp.id === data.projectExpenseId)
 
-    const expense: ServiceOrderExpense = {
+    const expense: ProjectExpenses = {
       ...data,
-      description: exp?.description,
+      description: exp?.description || '',
     }
     handleExpenseSave(expense)
     reset()
@@ -90,6 +94,18 @@ export default function CreateOSExpenses({
         setProjectExpenses(response.data.projectExpenses)
       })
   }, [projectId, token])
+
+  const handleSelectProject = (e: ChangeEvent<HTMLSelectElement>) => {
+    const expense = projectExpenses.find(
+      (expense) => expense.id === e.target.value,
+    )
+
+    if (expense) {
+      setProjectExpense(expense)
+    }
+  }
+
+  console.log(expense)
 
   return (
     <form
@@ -128,10 +144,14 @@ export default function CreateOSExpenses({
             {...register('projectExpenseId')}
             errorMessage={errors.projectExpenseId?.message}
             validationState={errors.projectExpenseId && 'invalid'}
+            onChange={handleSelectProject}
+            defaultSelectedKeys={expense ? [expense?.id || ''] : []}
           >
-            {projectExpenses?.map((project) => {
+            {projectExpenses?.map((project, index) => {
               return (
-                <SelectItem key={project.id}>{project.description}</SelectItem>
+                <SelectItem key={project.id || index}>
+                  {project.description}
+                </SelectItem>
               )
             })}
           </Select>
@@ -144,6 +164,7 @@ export default function CreateOSExpenses({
                 'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
             }}
             {...register('value')}
+            placeholder={projectExpense?.value || expense?.value}
             errorMessage={errors.value?.message}
             validationState={errors.value && 'invalid'}
             endContent={<DollarSign className="text-gray-300" size={20} />}

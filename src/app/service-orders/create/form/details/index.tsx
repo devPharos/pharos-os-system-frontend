@@ -10,26 +10,25 @@ import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import {
-  Projects,
-  ProjectServices,
-  ProjectExpenses,
-  ProjectDetails,
-} from '@/types/projects'
+import { Projects, ProjectServices, ProjectDetails } from '@/types/projects'
 import CreateOSExpenses from '../expenses'
 import {
   ServiceOrder,
-  ServiceOrderDetails,
+  ServiceOrderDetail,
   ServiceOrderExpense,
+  ProjectExpenses,
+  ServiceOrderExpenses,
 } from '@/types/service-order'
 import { parseDate } from '@/functions/auxiliar'
 import { format, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
+import { useSearchParams } from 'next/navigation'
 
 interface OSDetailsProps {
   clientId: string
-  handleOSDetailsSave: (osDetails: ServiceOrderDetails) => void
-  osDetail?: ServiceOrderDetails
+  handleOSDetailsSave: (osDetails: ServiceOrderDetail) => void
+  osDetail?: ServiceOrderDetail
+  osExpenses?: ServiceOrderExpenses[]
 }
 
 const osFormSchema = z.object({
@@ -46,6 +45,7 @@ export default function CreateOSDetails({
   clientId,
   handleOSDetailsSave,
   osDetail,
+  osExpenses,
 }: OSDetailsProps) {
   const localStorage = window.localStorage
   const token: string = localStorage.getItem('access_token') || ''
@@ -54,24 +54,25 @@ export default function CreateOSDetails({
   const [projects, setProjects] = useState<Projects[]>([])
   const [projectServices, setProjectServices] = useState<ProjectServices[]>([])
   const [projectId, setProjectId] = useState<string | null>(null)
-  const [projectExpenses, setProjectExpenses] = useState<ServiceOrderExpense[]>(
-    [],
-  )
+  const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])
+  const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()
+  const searchParams = useSearchParams()
+  const params = Array.from(searchParams.values())
+  const id = params[0]
 
   const {
     register,
     handleSubmit,
     reset,
-    control,
     formState: { errors },
   } = useForm<TOsDetailsFormData>({
     resolver: zodResolver(osFormSchema),
     defaultValues: {
-      description: osDetail?.projectDetails.description,
-      endDate: osDetail?.projectDetails.endDate.toString(),
-      startDate: osDetail?.projectDetails.startDate.toString(),
-      projectId: osDetail?.projectDetails.projectId,
-      projectServiceId: osDetail?.projectDetails.projectServiceId,
+      description: osDetail?.description,
+      endDate: format(parseISO(osDetail?.endDate || ''), 'HH:mm'),
+      startDate: format(parseISO(osDetail?.startDate || ''), 'HH:mm'),
+      projectId: osDetail?.project.id,
+      projectServiceId: osDetail?.projectServices.id,
     },
   })
 
@@ -110,9 +111,18 @@ export default function CreateOSDetails({
         projectName,
       }
 
-      const osDetails = {
-        projectDetails,
-        projectExpenses,
+      const osDetails: ServiceOrderDetail = {
+        description: data.description,
+        endDate: endDate.toISOString(),
+        startDate: startDate.toISOString(),
+        project: {
+          id: projectId || '',
+          name: projectName,
+          projectsExpenses: projectExpenses,
+        },
+        projectServices: {
+          id: data.description,
+        },
       }
 
       handleOSDetailsSave(osDetails)
@@ -123,8 +133,8 @@ export default function CreateOSDetails({
 
   useEffect(() => {
     if (osDetail) {
-      setProjectId(osDetail.projectDetails.projectId)
-      handleProjectServices(osDetail.projectDetails.projectId)
+      setProjectId(osDetail.project.id)
+      handleProjectServices(osDetail.project.id)
     }
 
     setLoading(true)
@@ -177,12 +187,41 @@ export default function CreateOSDetails({
     handleProjectServices(selectedProjectId)
   }
 
-  const onExpenseSave = (expense: ServiceOrderExpense) => {
-    const newExpensesList: ServiceOrderExpense[] = [...projectExpenses]
+  const onExpenseSave = (expense: ProjectExpenses) => {
+    const newExpensesList: ProjectExpenses[] = [...projectExpenses]
 
     newExpensesList.push(expense)
     setProjectExpenses(newExpensesList)
     setNewExpense(false)
+  }
+
+  const handleCardExpenseClick = (expense: ProjectExpenses) => {
+    setNewExpense(true)
+
+    if (osDetail?.project.projectsExpenses) {
+      setProjectId(osDetail.project?.id)
+      setProjectExpense(expense)
+    }
+  }
+
+  const handleDeleteExpense = (expenseid: string | undefined) => {
+    if (expenseid && window !== undefined) {
+      const localStorage = window.localStorage
+      const userToken: string = localStorage.getItem('access_token') || ''
+
+      axios
+        .delete('http://localhost:3333/delete/service-order/expense', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            serviceorderexpenseid: expenseid,
+            serviceorderid: id,
+          },
+        })
+        .then((response) => {
+          setProjectExpenses(response.data)
+          setLoading(false)
+        })
+    }
   }
 
   return (
@@ -234,9 +273,7 @@ export default function CreateOSDetails({
               errorMessage={errors.projectId?.message}
               validationState={errors.projectId && 'invalid'}
               onSelectionChange={(keys) => handleSelectsData(keys)}
-              defaultSelectedKeys={
-                osDetail ? [osDetail?.projectDetails.projectId] : []
-              }
+              defaultSelectedKeys={osDetail ? [osDetail?.project.id] : []}
             >
               {projects?.map((project) => {
                 return <SelectItem key={project.id}>{project.name}</SelectItem>
@@ -260,7 +297,7 @@ export default function CreateOSDetails({
               errorMessage={errors.projectServiceId?.message}
               validationState={errors.projectServiceId && 'invalid'}
               defaultSelectedKeys={
-                osDetail ? [osDetail?.projectDetails.projectServiceId] : []
+                osDetail ? [osDetail?.projectServices?.id || ''] : []
               }
             >
               {projectServices?.map((service) => {
@@ -277,6 +314,7 @@ export default function CreateOSDetails({
               type="time"
               placeholder=" "
               label="Hora inicial"
+              step={900}
               classNames={{
                 label: 'text-gray-300',
                 inputWrapper:
@@ -286,19 +324,13 @@ export default function CreateOSDetails({
               {...register('startDate')}
               errorMessage={errors.startDate?.message}
               validationState={errors.startDate && 'invalid'}
-              value={
-                osDetail &&
-                format(
-                  new Date(osDetail?.projectDetails.startDate),
-                  'HH:mm',
-                ).toString()
-              }
             />
 
             <Input
               id="endDate"
               type="time"
               placeholder=" "
+              step={900}
               label="Hora final"
               classNames={{
                 label: 'text-gray-300',
@@ -309,13 +341,6 @@ export default function CreateOSDetails({
               {...register('endDate')}
               errorMessage={errors.endDate?.message}
               validationState={errors.endDate && 'invalid'}
-              value={
-                osDetail &&
-                format(
-                  new Date(osDetail?.projectDetails.endDate),
-                  'HH:mm',
-                ).toString()
-              }
             />
           </section>
           <Textarea
@@ -329,7 +354,6 @@ export default function CreateOSDetails({
             {...register('description')}
             errorMessage={errors.description?.message}
             validationState={errors.description && 'invalid'}
-            defaultValue={osDetail ? osDetail.projectDetails.description : ''}
           />
         </section>
       </form>
@@ -339,35 +363,43 @@ export default function CreateOSDetails({
           <CreateOSExpenses
             projectId={projectId}
             handleExpenseSave={onExpenseSave}
+            expense={projectExpense}
           />
         </div>
       )}
 
       {
         <section className="w-full max-w-7xl px-6 flex gap-6">
-          {osDetail &&
-            osDetail.projectExpenses.map((expense) => (
+          {osExpenses &&
+            osExpenses.map((expense) => (
               <main
-                key={expense.projectExpenseId}
-                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+                key={expense.projectExpenses.id}
+                className="flex items-center gap-6 justify-center cursor-pointer bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
               >
-                <span className="text-sm text-gray-300">
-                  {expense?.description}
+                <span
+                  className="text-sm text-gray-300"
+                  onClick={() =>
+                    handleCardExpenseClick(expense.projectExpenses)
+                  }
+                >
+                  {expense?.projectExpenses.description}
                 </span>
-                <span>R$ {expense.value},00</span>
+                <span>R$ {expense.projectExpenses.value},00</span>
 
                 <Card.Badge
                   status=""
                   icon={Trash2}
-                  className=" text-red-500 bg-red-500/10 py-2 px-2 rounded-md"
+                  className=" text-red-500 cursor-pointer bg-red-500/10 py-2 px-2 rounded-md"
+                  onClick={() => handleDeleteExpense(expense?.id)}
                 />
               </main>
             ))}
           {projectExpenses &&
-            projectExpenses.map((expense) => (
+            projectExpenses.map((expense, index) => (
               <main
-                key={expense.projectExpenseId}
-                className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+                key={expense?.id || index}
+                className="flex items-center gap-6 cursor-pointer justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
+                onClick={() => handleCardExpenseClick(expense)}
               >
                 <span className="text-sm text-gray-300">
                   {expense?.description}
