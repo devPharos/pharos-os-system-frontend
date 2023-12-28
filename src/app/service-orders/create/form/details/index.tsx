@@ -68,11 +68,11 @@ export default function CreateOSDetails({
   } = useForm<TOsDetailsFormData>({
     resolver: zodResolver(osFormSchema),
     defaultValues: {
-      description: osDetail?.description,
-      endDate: format(parseISO(osDetail?.endDate || ''), 'HH:mm'),
-      startDate: format(parseISO(osDetail?.startDate || ''), 'HH:mm'),
-      projectId: osDetail?.project.id,
-      projectServiceId: osDetail?.projectServices.id,
+      description: id && osDetail?.description,
+      endDate: id && format(parseISO(osDetail?.endDate || ''), 'HH:mm'),
+      startDate: id && format(parseISO(osDetail?.startDate || ''), 'HH:mm'),
+      projectId: id && osDetail?.project.id,
+      projectServiceId: id && osDetail?.projectServices.id,
     },
   })
 
@@ -93,40 +93,25 @@ export default function CreateOSDetails({
   const handleOSFormSubmit: SubmitHandler<TOsDetailsFormData> = (
     data: TOsDetailsFormData,
   ) => {
-    const endDate = parseISO(data.endDate)
-    const startDate = parseISO(data.startDate)
-
     const projectServiceName = getProjectServiceName(data.projectServiceId)
     const projectName = getProjectName(data.projectId)
-    const totalHours =
-      startDate.getTime() - endDate.getTime() / (1000 * 60 * 60)
 
-    if (projectServiceName && projectName) {
-      const projectDetails: ProjectDetails = {
-        ...data,
-        endDate,
-        startDate,
-        totalHours,
-        projectServiceType: projectServiceName,
-        projectName,
-      }
-
-      const osDetails: ServiceOrderDetail = {
-        description: data.description,
-        endDate: endDate.toISOString(),
-        startDate: startDate.toISOString(),
-        project: {
-          id: projectId || '',
-          name: projectName,
-          projectsExpenses: projectExpenses,
-        },
-        projectServices: {
-          id: data.description,
-        },
-      }
-
-      handleOSDetailsSave(osDetails)
+    const osDetails: ServiceOrderDetail = {
+      description: data.description,
+      endDate: data.endDate,
+      startDate: data.startDate,
+      project: {
+        id: data.projectId,
+        name: projectName || '',
+        projectsExpenses: projectExpenses,
+      },
+      projectServices: {
+        id: data.projectServiceId,
+        description: projectServiceName,
+      },
     }
+
+    handleOSDetailsSave(osDetails)
 
     reset()
   }
@@ -223,6 +208,7 @@ export default function CreateOSDetails({
         })
     }
   }
+  console.log(osDetail)
 
   return (
     <div className="flex flex-col items-center w-full gap-2 pb-6">
@@ -364,6 +350,9 @@ export default function CreateOSDetails({
             projectId={projectId}
             handleExpenseSave={onExpenseSave}
             expense={projectExpense}
+            osExpenses={osExpenses?.find(
+              (exp) => projectExpense?.id === exp.projectExpenses.id,
+            )}
           />
         </div>
       )}
@@ -394,6 +383,7 @@ export default function CreateOSDetails({
                 />
               </main>
             ))}
+
           {projectExpenses &&
             projectExpenses.map((expense, index) => (
               <main

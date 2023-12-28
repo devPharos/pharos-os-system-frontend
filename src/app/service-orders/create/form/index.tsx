@@ -14,6 +14,7 @@ import {
   Clock,
   DollarSign,
   FileUp,
+  PencilLine,
   PlusCircle,
   Save,
   Search,
@@ -21,7 +22,7 @@ import {
 } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Key, useEffect, useState } from 'react'
+import { ChangeEvent, Key, MouseEventHandler, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Client } from '@/types/client'
 import CreateOSDetails from './details'
@@ -48,7 +49,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const [osDetail, setOsDetail] = useState<ServiceOrderDetail>()
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
   const token = localStorage.getItem('access_token')
-  const [date, setDate] = useState('')
+  const [status, setStatus] = useState('')
 
   const serviceTypes: string[] = ['Remoto', 'Presencial']
 
@@ -93,70 +94,73 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const handleOSFormSubmit: SubmitHandler<TOsFormData> = (
     data: TOsFormData,
   ) => {
+    if (status !== '') {
+      handleCreateNewOS(data)
+    }
+  }
+
+  const handleCreateNewOS = (data: TOsFormData) => {
+    setLoading(true)
+
     if (window !== undefined) {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
-      // let totalHours = 0
+      const serviceOrderDetails = osDetails
+      const body = {
+        clientId: data.clientId,
+        date: data.date,
+        serviceType: data.serviceType,
+        status,
+        serviceOrderDetails,
+      }
 
-      osDetails.forEach((detail) => {
-        // totalHours += detail.projectDetails.totalHours
-      })
+      if (!id) {
+        axios
+          .post('http://localhost:3333/service-order', body, {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+            },
+          })
+          .then(() => {
+            setLoading(false)
+            router.push('/service-orders')
+          })
+          .catch((error) => {
+            console.log(error)
+            setLoading(false)
+          })
+      }
 
-      osDetails.sort(
-        (a: any, b: any) =>
-          a.projectDetails.startDate - b.projectDetails.startDate,
-      )
+      if (id) {
+        const updateBody = {
+          id,
+          ...body,
+        }
 
-      // const startDate: Date = osDetails[0].projectDetails.startDate
-      // const endDate: Date =
-      //   osDetails[osDetails.length - 1].projectDetails.endDate
-
-      // axios
-      //   .get(`http://localhost:3333/accounts/user`, {
-      //     headers: {
-      //       Authorization: `Bearer ${userToken}`,
-      //     },
-      //   })
-      //   .then((response) => {
-      //     const userData = response.data
-      //     // const body: ServiceOrderCreation = {
-      //     //   clientId: data.clientId,
-      //     //   collaboratorId: userData?.collaboratorId || '',
-      //     //   companyId: userData?.companyId,
-      //     //   date: data.date,
-      //     //   remote: data.serviceType === 'Remoto',
-      //     //   startDate,
-      //     //   endDate,
-      //     //   totalHours: totalHours.toString(),
-      //     //   //serviceOrderDetails: osDetails,
-      //     // }
-      //     axios
-      //       .post('http://localhost:3333/service-order', body, {
-      //         headers: {
-      //           Authorization: `Bearer ${userToken}`,
-      //         },
-      //       })
-      //       .then(() => {
-      //         // setLoading(true)
-      //         router.push('/service-orders')
-      //       })
-      //       .catch((error) => {
-      //         console.log(error)
-      //       })
-      //   })
+        axios
+          .put('http://localhost:3333/update/service-order', updateBody, {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+            },
+          })
+          .then(() => {
+            setLoading(false)
+            router.push('/service-orders')
+          })
+          .catch((error) => {
+            console.log(error)
+            setLoading(false)
+          })
+      }
     }
   }
 
   useEffect(() => {
     if (id) {
       setLoading(true)
-      // setLoading(false)
 
       if (serviceOrder) {
         setLoading(false)
-
-        const newDate = format(new Date(serviceOrder.date), 'yyyy-LL-dd')
-        setDate(newDate)
 
         setOsDetails(serviceOrder.serviceOrderDetails)
       }
@@ -200,7 +204,11 @@ export default function CreateOSForm({ id }: OsFormProps) {
     }
   }
 
-  console.log(osDetails)
+  const handleSaveOS = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const status = event.currentTarget.id
+
+    setStatus(status)
+  }
 
   return (
     <>
@@ -226,9 +234,22 @@ export default function CreateOSForm({ id }: OsFormProps) {
                 </Button>
 
                 <Button
+                  id="Rascunho"
+                  disabled={loading || osDetails.length === 0}
+                  type="submit"
+                  className="disabled:border-none disabled:bg-transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 font-bold bg-gray-100 hover:bg-gray-200"
+                  onClick={handleSaveOS}
+                >
+                  <PencilLine size={16} />
+                  Salvar Rascunho
+                </Button>
+
+                <Button
+                  id="Aberto"
                   disabled={loading || osDetails.length === 0}
                   type="submit"
                   className="disabled:border-none disabled:bg-transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+                  onClick={handleSaveOS}
                 >
                   <Save size={16} />
                   Salvar OS
@@ -327,6 +348,16 @@ export default function CreateOSForm({ id }: OsFormProps) {
           {osDetails && (
             <section className="flex flex-wrap gap-6 justify-start w-full max-w-7xl px-6 pb-8">
               {osDetails.map((detail, index) => {
+                const endDate =
+                  id && detail.endDate.split(':')[0].length !== 2
+                    ? format(new Date(detail.endDate), 'HH:mm')
+                    : detail?.endDate
+
+                const startDate =
+                  id && detail.startDate.split(':')[0].length !== 2
+                    ? format(new Date(detail.startDate), 'HH:mm')
+                    : detail?.startDate
+
                 return (
                   <Card.Root
                     onClick={() => handleCardDetailClick(detail)}
@@ -343,21 +374,20 @@ export default function CreateOSForm({ id }: OsFormProps) {
                     <Card.Content>
                       <Card.Info
                         icon={Clock}
-                        info={`${format(
-                          new Date(detail.startDate),
-                          'HH:mm',
-                        )} - ${format(new Date(detail.endDate), 'HH:mm')}`}
+                        info={startDate + ' - ' + endDate}
                       />
-                      {detail.project.projectsExpenses?.length > 0 && (
-                        <Card.Info
-                          icon={CircleDollarSign}
-                          info={`${detail.project.projectsExpenses?.length} ${
-                            detail.project.projectsExpenses?.length === 1
-                              ? 'despesa'
-                              : 'despesas'
-                          }`}
-                        />
-                      )}
+                      {serviceOrder?.serviceOrderExpenses &&
+                        serviceOrder?.serviceOrderExpenses?.length > 0 && (
+                          <Card.Info
+                            icon={CircleDollarSign}
+                            info={`${serviceOrder?.serviceOrderExpenses
+                              ?.length} ${
+                              serviceOrder?.serviceOrderExpenses?.length === 1
+                                ? 'despesa'
+                                : 'despesas'
+                            }`}
+                          />
+                        )}
                     </Card.Content>
                   </Card.Root>
                 )

@@ -27,6 +27,7 @@ export interface ServiceOrderCollaborator {
   name: string
   lastName: string
   supervisorId?: string
+  id: string
 }
 
 export interface ServiceOrderDate {
@@ -63,13 +64,16 @@ export interface ServiceOrderPage {
   serviceOrders: ServiceOrderCard
   serviceOrdersSupervisedByMe: ServiceOrderCard
   defaultDate: ServiceOrderDate
+  formattedDate: string
+  date: string
 }
 
 export interface ProjectExpenses {
-  id?: string
+  id: string
   requireReceipt?: string
   value: string
   description?: string
+  serviceOrderExpenseId?: id
 }
 
 export interface ProjectServices {

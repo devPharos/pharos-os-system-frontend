@@ -21,18 +21,20 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { ChangeEvent, Key, useEffect, useState } from 'react'
 import axios from 'axios'
-import { ProjectExpenses } from '@/types/service-order'
+import { ProjectExpenses, ServiceOrderExpenses } from '@/types/service-order'
 
 interface OSExpensesProps {
   projectId: string
   handleExpenseSave: (expense: ProjectExpenses) => void
   expense?: ProjectExpenses
+  osExpenses?: ServiceOrderExpenses
 }
 
 export default function CreateOSExpenses({
   projectId,
   handleExpenseSave,
   expense,
+  osExpenses,
 }: OSExpensesProps) {
   const localStorage = window.localStorage
   const token: string = localStorage.getItem('access_token') || ''
@@ -51,6 +53,7 @@ export default function CreateOSExpenses({
   const {
     register,
     handleSubmit,
+    setError,
     reset,
     formState: { errors },
   } = useForm<TOsExpensesFormData>({
@@ -66,12 +69,27 @@ export default function CreateOSExpenses({
   ) => {
     const exp = projectExpenses.find((exp) => exp.id === data.projectExpenseId)
 
-    const expense: ProjectExpenses = {
-      ...data,
-      description: exp?.description || '',
+    const isValueCorrect = projectExpense
+      ? data.value.replace(/\D/g, '') <= projectExpense?.value
+      : data.value.replace(/\D/g, '') <= (expense?.value || '')
+
+    if (!isValueCorrect) {
+      setError('value', {
+        message: `Insira um valor até ${projectExpense?.value}`,
+      })
     }
-    handleExpenseSave(expense)
-    reset()
+
+    if (isValueCorrect) {
+      const expense: ProjectExpenses = {
+        ...data,
+        id: data.projectExpenseId,
+        description: exp?.description || '',
+        serviceOrderExpenseId: osExpenses?.id,
+      }
+
+      handleExpenseSave(expense)
+      reset()
+    }
   }
 
   useEffect(() => {
@@ -95,17 +113,18 @@ export default function CreateOSExpenses({
       })
   }, [projectId, token])
 
-  const handleSelectProject = (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectProject = (selectedKey: any) => {
+    setLoading(true)
+    const selectedExpenseId = selectedKey.currentKey
+
     const expense = projectExpenses.find(
-      (expense) => expense.id === e.target.value,
+      (expense) => expense.id === selectedExpenseId,
     )
 
     if (expense) {
       setProjectExpense(expense)
     }
   }
-
-  console.log(expense)
 
   return (
     <form
@@ -144,12 +163,12 @@ export default function CreateOSExpenses({
             {...register('projectExpenseId')}
             errorMessage={errors.projectExpenseId?.message}
             validationState={errors.projectExpenseId && 'invalid'}
-            onChange={handleSelectProject}
+            onSelectionChange={(keys) => handleSelectProject(keys)}
             defaultSelectedKeys={expense ? [expense?.id || ''] : []}
           >
-            {projectExpenses?.map((project, index) => {
+            {projectExpenses?.map((project) => {
               return (
-                <SelectItem key={project.id || index}>
+                <SelectItem key={project.id} value={project.id}>
                   {project.description}
                 </SelectItem>
               )

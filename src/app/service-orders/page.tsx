@@ -24,6 +24,7 @@ import {
   Select,
   SelectItem,
   Spinner,
+  useDisclosure,
 } from '@nextui-org/react'
 import axios from 'axios'
 import { format } from 'date-fns'
@@ -35,6 +36,7 @@ import {
   CircleDollarSign,
   Clock,
   Eraser,
+  Filter,
   Pencil,
   PencilLine,
   PlusCircle,
@@ -60,9 +62,15 @@ export default function ServiceOrders() {
   const [serviceOrderData, setServiceOrderData] = useState<ServiceOrderPage>()
   const [dates, setDates] = useState<ServiceOrderDate[]>([])
   const [loading, setLoading] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { isOpen, onOpen, onOpenChange } = useDisclosure()
   const [selectedOs, setSelectedOs] = useState('')
   const [user, setUser] = useState<UserData>()
+  const [items, setItems] = useState<
+    {
+      key: string
+      label: string
+    }[]
+  >([])
   const router = useRouter()
 
   const onStatusFilter = ({
@@ -90,23 +98,22 @@ export default function ServiceOrders() {
       }
 
       if (supervisor) {
-        console.log(supervisor)
-        if (serviceOrder.collaborator.name === supervisor) {
+        if (serviceOrder.collaborator.id === supervisor) {
           serviceOrder.hide = false
         }
 
-        if (supervisor === 'Todos') {
+        if (supervisor === 'all') {
           serviceOrder.hide = false
         }
 
-        if (supervisor === 'Minhas') {
-          serviceOrder.hide =
-            serviceOrder.collaborator?.supervisorId ===
-            serviceOrder.collaboratorId
+        if (supervisor === 'me') {
+          if (serviceOrder.collaborator.id === user?.collaboratorId) {
+            serviceOrder.hide = false
+          }
         }
       }
 
-      if (!search && !status) {
+      if (!search && !status && !supervisor) {
         serviceOrder.hide = false
       }
 
@@ -181,7 +188,7 @@ export default function ServiceOrders() {
   }
 
   const handleOpenModal = (id: string) => {
-    setIsModalOpen(true)
+    onOpen()
     setSelectedOs(id)
   }
 
@@ -235,6 +242,35 @@ export default function ServiceOrders() {
         })
     }
   }, [])
+
+  useEffect(() => {
+    const items: {
+      key: string
+      label: string
+    }[] = [
+      {
+        key: 'all',
+        label: 'Todos',
+      },
+      {
+        key: 'me',
+        label: 'Minhas',
+      },
+    ]
+
+    serviceOrders.forEach((os) => {
+      if (os.collaborator.supervisorId === user?.collaboratorId) {
+        if (!items.find((item) => item.key === os.collaborator.id)) {
+          items.push({
+            key: os.collaborator.id,
+            label: os.collaborator.name,
+          })
+        }
+      }
+    })
+
+    setItems(items)
+  }, [serviceOrders, user?.collaboratorId])
 
   const getServiceOrdersByMonth: ChangeEventHandler<HTMLSelectElement> = (
     event: ChangeEvent<HTMLSelectElement>,
@@ -303,37 +339,38 @@ export default function ServiceOrders() {
           label="Adicionar OS"
         />
 
-        <Select
-          id="remote"
-          label="Período"
-          classNames={{
-            trigger:
-              'bg-gray-700 max-w-[250px] data-[hover=true]:bg-gray-600 rounded-lg',
-            listboxWrapper: 'max-h-[400px] rounded-lg',
-            popover: 'bg-gray-700 rounded-lg',
-          }}
-          listboxProps={{
-            itemClasses: {
-              base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-            },
-          }}
-          onChange={getServiceOrdersByMonth}
-          defaultSelectedKeys={
-            serviceOrderData && [serviceOrderData.defaultDate?.date]
-          }
-        >
-          {dates &&
-            dates.map((date) => (
-              <SelectItem key={date.date} value={date.date}>
-                {date.formattedDate}
-              </SelectItem>
-            ))}
-        </Select>
-
         {loading ? (
           <Loading />
         ) : (
           <>
+            <Select
+              id="remote"
+              label="Período"
+              classNames={{
+                trigger:
+                  'bg-gray-700 max-w-[250px] data-[hover=true]:bg-gray-600 rounded-lg',
+                listboxWrapper: 'max-h-[400px] rounded-lg',
+                popover: 'bg-gray-700 rounded-lg',
+              }}
+              listboxProps={{
+                itemClasses: {
+                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                },
+              }}
+              onChange={getServiceOrdersByMonth}
+              defaultSelectedKeys={[
+                dates.find((date) => date.date === serviceOrderData?.date)
+                  ?.date || '',
+              ]}
+            >
+              {dates &&
+                dates.map((date) => (
+                  <SelectItem key={date.date} value={date.date}>
+                    {date.formattedDate}
+                  </SelectItem>
+                ))}
+            </Select>
+
             <header className="flex items-center justify-between">
               <section className="flex w-full gap-6">
                 <Input
@@ -346,6 +383,45 @@ export default function ServiceOrders() {
                   }}
                   onValueChange={(search) => onStatusFilter({ search })}
                 />
+
+                <Dropdown
+                  classNames={{
+                    base: 'bg-gray-700 rounded-lg',
+                  }}
+                  backdrop="opaque"
+                >
+                  <DropdownTrigger>
+                    <Button
+                      className="rounded-lg min-w-fit border-2 border-dashed bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 hover:border-solid hover:font-bold"
+                      startContent={<PlusCircle size={18} />}
+                    >
+                      Supervisor
+                    </Button>
+                  </DropdownTrigger>
+
+                  <DropdownMenu
+                    onAction={(key) => onStatusFilter({ supervisor: key })}
+                    itemClasses={{
+                      base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                    }}
+                    items={items}
+                  >
+                    {(item: any) => (
+                      <DropdownItem
+                        key={item.key}
+                        startContent={
+                          <Card.Badge
+                            status=""
+                            className="text-gray-300/80 bg-gray-500/10 py-2 px-2 rounded-md"
+                            icon={Filter}
+                          />
+                        }
+                      >
+                        {item.label}
+                      </DropdownItem>
+                    )}
+                  </DropdownMenu>
+                </Dropdown>
 
                 <Dropdown
                   classNames={{
@@ -692,13 +768,15 @@ export default function ServiceOrders() {
                       </Dropdown>
 
                       <Modal
-                        isOpen={isModalOpen}
+                        isOpen={isOpen}
+                        onOpenChange={onOpenChange}
+                        backdrop="opaque"
                         classNames={{
                           base: 'bg-gray-700 rounded-lg',
                         }}
                       >
                         <ModalContent>
-                          {() => (
+                          {(onClose) => (
                             <>
                               <ModalHeader className="flex flex-col gap-1">
                                 Alterar status da ordem de serviço
