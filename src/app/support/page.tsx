@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Key, useEffect, useState } from 'react'
 
 export default function Support() {
   const router = useRouter()
@@ -65,6 +65,46 @@ export default function Support() {
     }
   }, [])
 
+  const onStatusFilter = ({
+    status = null,
+    priority = null,
+    search = '',
+  }: {
+    status?: Key | null
+    priority?: Key | null
+    search?: string
+  }) => {
+    const newFilteredTickets = tickets.map((ticket) => {
+      ticket.hide = true
+
+      if (status) {
+        if (status === ticket.status || status === 'Limpar') {
+          ticket.hide = false
+        }
+      }
+
+      if (priority) {
+        if (priority === ticket.priority) {
+          ticket.hide = false
+        }
+      }
+
+      if (search) {
+        if (ticket.title.includes(search)) {
+          ticket.hide = false
+        }
+      }
+
+      if (!search && !status) {
+        ticket.hide = false
+      }
+
+      return ticket
+    })
+
+    setTickets(newFilteredTickets)
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
@@ -78,15 +118,13 @@ export default function Support() {
             </span>
           </section>
 
-          {user?.clientId && (
-            <Button
-              className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
-              onClick={() => router.push('/support/create')}
-            >
-              <PlusCircle size={18} className="text-gray-700" />
-              Abrir ticket
-            </Button>
-          )}
+          <Button
+            className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+            onClick={() => router.push('/support/create')}
+          >
+            <PlusCircle size={18} className="text-gray-700" />
+            Abrir ticket
+          </Button>
         </header>
 
         <header className="flex items-center gap-6">
@@ -116,7 +154,7 @@ export default function Support() {
             </DropdownTrigger>
 
             <DropdownMenu
-              onAction={(key) => console.log(key)}
+              onAction={(status) => onStatusFilter({ status })}
               itemClasses={{
                 base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
               }}
@@ -135,7 +173,7 @@ export default function Support() {
                       icon={AlertCircle}
                     />
                   }
-                  key={'false'}
+                  key={'Atraso'}
                 >
                   Em atraso
                 </DropdownItem>
@@ -148,7 +186,7 @@ export default function Support() {
                       icon={GaugeCircle}
                     />
                   }
-                  key={'false'}
+                  key={'NaoIniciado'}
                 >
                   Não iniciado
                 </DropdownItem>
@@ -161,7 +199,7 @@ export default function Support() {
                       icon={ArrowRightCircle}
                     />
                   }
-                  key={'false'}
+                  key={'Iniciado'}
                 >
                   Iniciado
                 </DropdownItem>
@@ -174,7 +212,7 @@ export default function Support() {
                       icon={CheckCircle2}
                     />
                   }
-                  key={'false'}
+                  key={'Finalizado'}
                 >
                   Finalizado
                 </DropdownItem>
@@ -213,7 +251,7 @@ export default function Support() {
             </DropdownTrigger>
 
             <DropdownMenu
-              onAction={(key) => console.log(key)}
+              onAction={(priority) => onStatusFilter({ priority })}
               itemClasses={{
                 base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
               }}
@@ -232,7 +270,7 @@ export default function Support() {
                       icon={ArrowUp}
                     />
                   }
-                  key={'false'}
+                  key={'Alta'}
                 >
                   Alta
                 </DropdownItem>
@@ -245,7 +283,7 @@ export default function Support() {
                       icon={ArrowRight}
                     />
                   }
-                  key={'false'}
+                  key={'Media'}
                 >
                   Média
                 </DropdownItem>
@@ -258,7 +296,7 @@ export default function Support() {
                       icon={ArrowDown}
                     />
                   }
-                  key={'false'}
+                  key={'Baixa'}
                 >
                   Baixa
                 </DropdownItem>
@@ -284,65 +322,79 @@ export default function Support() {
 
         <section className="flex flex-wrap w-full gap-6">
           {tickets &&
-            tickets.map((ticket) => (
-              <Link
-                href={{
-                  pathname: '/support/ticket',
-                  query: {
-                    id: ticket.id,
-                  },
-                }}
-                className="bg-gray-700 rounded-lg w-full flex-1"
-                key={ticket.id}
-              >
-                <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit">
-                  <Card.Header>
-                    <Card.Title label={ticket.title} />
-                    <section className="flex gap-2">
-                      <Card.Badge
-                        className={
-                          ticket.priority === 'Alta'
-                            ? 'text-red-500'
-                            : ticket.priority === 'Media'
-                            ? 'text-orange-600'
-                            : 'text-blue-500'
-                        }
-                        status={ticket.priority}
-                        icon={ArrowUp}
-                      />
-                    </section>
-                  </Card.Header>
-                  <Card.Content>
-                    <section className="w-full flex items-center justify-between">
-                      <Card.Info
-                        icon={Building2}
-                        info={ticket.client.fantasyName}
-                      />
+            tickets.map((ticket) => {
+              if (!ticket.hide) {
+                return (
+                  <Link
+                    href={{
+                      pathname: '/support/ticket',
+                      query: {
+                        id: ticket.id,
+                      },
+                    }}
+                    className="bg-gray-700 rounded-lg w-full flex-1"
+                    key={ticket.id}
+                  >
+                    <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit">
+                      <Card.Header>
+                        <Card.Title label={ticket.title} />
+                        <section className="flex gap-2">
+                          <Card.Badge
+                            className={
+                              ticket.priority === 'Alta'
+                                ? 'text-red-500'
+                                : ticket.priority === 'Media'
+                                ? 'text-orange-600'
+                                : 'text-blue-500'
+                            }
+                            status={ticket.priority}
+                            icon={
+                              ticket.priority === 'Alta'
+                                ? ArrowUp
+                                : ticket.priority === 'Media'
+                                ? ArrowRight
+                                : ArrowDown
+                            }
+                          />
+                        </section>
+                      </Card.Header>
+                      <Card.Content>
+                        <section className="w-full flex items-center justify-between">
+                          <Card.Info
+                            icon={Building2}
+                            info={ticket.client.fantasyName}
+                          />
 
-                      <section className="flex gap-1 items-center">
-                        <Card.Badge
-                          className={'text-gray-200 bg-gray-300/10 min-h-fit'}
-                          status={
-                            ticket.status === 'Atraso'
-                              ? 'Em atraso'
-                              : ticket.status === 'NaoIniciado'
-                              ? 'Não iniciado'
-                              : ticket.status
-                          }
-                        />
+                          <section className="flex gap-1 items-center">
+                            <Card.Badge
+                              className={
+                                'text-gray-200 bg-gray-300/10 min-h-fit'
+                              }
+                              status={
+                                ticket.status === 'Atraso'
+                                  ? 'Em atraso'
+                                  : ticket.status === 'NaoIniciado'
+                                  ? 'Não iniciado'
+                                  : ticket.status
+                              }
+                            />
 
-                        <Button
-                          isIconOnly
-                          className="bg-transparent hover:bg-gray-500 text-gray-100  hover:text-red-500"
-                        >
-                          <Trash size={16} />
-                        </Button>
-                      </section>
-                    </section>
-                  </Card.Content>
-                </Card.Root>
-              </Link>
-            ))}
+                            <Button
+                              isIconOnly
+                              className="bg-transparent hover:bg-gray-500 text-gray-100  hover:text-red-500"
+                            >
+                              <Trash size={16} />
+                            </Button>
+                          </section>
+                        </section>
+                      </Card.Content>
+                    </Card.Root>
+                  </Link>
+                )
+              } else {
+                return null
+              }
+            })}
         </section>
       </main>
     </div>

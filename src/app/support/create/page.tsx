@@ -18,10 +18,18 @@ import { z } from 'zod'
 export default function CreateTicket() {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [coordinatorId, setCoordinatorId] = useState<string>()
   const router = useRouter()
 
   const [user, setUser] = useState<UserData>()
   const priorities = ['Alta', 'Media', 'Baixa']
+  const helpers = [
+    'Desenvolvimento',
+    'Suporte',
+    'Infraestrutura',
+    'Modulos',
+    'Faturamento',
+  ]
 
   const supportFormSchema = z.object({
     message: z.string().min(1, 'Descreva o problema'),
@@ -29,6 +37,13 @@ export default function CreateTicket() {
     projectId: z.string().uuid('Selecione uma opção'),
     priority: z.enum(['Alta', 'Media', 'Baixa']),
     title: z.string().min(1, 'Insira um título'),
+    helper: z.enum([
+      'Desenvolvimento',
+      'Suporte',
+      'Infraestrutura',
+      'Modulos',
+      'Faturamento',
+    ]),
   })
 
   type SupportFormSchema = z.infer<typeof supportFormSchema>
@@ -79,7 +94,7 @@ export default function CreateTicket() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/list/collaborators', {
+        .get('http://localhost:3333/list/project/collaborators', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -93,16 +108,23 @@ export default function CreateTicket() {
         })
 
       axios
-        .get('http://localhost:3333/projects', {
+        .get('http://localhost:3333/list/projects', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
-          setProjects(response.data.projects)
+          setProjects(response.data)
         })
     }
   }, [])
+
+  const handleFindProjectCoordinator = (keys: any) => {
+    const selectedProjectId = keys?.currentKey
+    const project = projects.find((project) => project.id === selectedProjectId)
+
+    setCoordinatorId(project?.coordinatorId)
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-14">
@@ -129,10 +151,10 @@ export default function CreateTicket() {
             </section>
           </header>
 
-          <section className="flex flex-wrap gap-6 justify-between">
+          <section className="flex flex-wrap gap-6">
             <Select
-              id="collaboratorId"
-              label="Colaborador"
+              id="projectId"
+              label="Projeto"
               classNames={{
                 trigger:
                   'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
@@ -145,16 +167,49 @@ export default function CreateTicket() {
                   base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
                 },
               }}
-              {...register('collaboratorId')}
-              errorMessage={errors.collaboratorId?.message}
-              validationState={errors.collaboratorId && 'invalid'}
+              onSelectionChange={(keys: any) =>
+                handleFindProjectCoordinator(keys)
+              }
+              {...register('projectId')}
+              errorMessage={errors.projectId?.message}
+              validationState={errors.projectId && 'invalid'}
             >
-              {collaborators.map((collaborator) => (
-                <SelectItem key={collaborator.id}>
-                  {collaborator.name + ' ' + collaborator.lastName}
-                </SelectItem>
-              ))}
+              {projects &&
+                projects.map((project, index) => (
+                  <SelectItem key={project?.id || index}>
+                    {project.name}
+                  </SelectItem>
+                ))}
             </Select>
+
+            {coordinatorId && (
+              <Select
+                id="collaboratorId"
+                label="Colaborador"
+                classNames={{
+                  trigger:
+                    'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                  listboxWrapper: 'max-h-[400px] rounded-lg',
+                  popover: 'bg-gray-700 rounded-lg ',
+                  base: 'max-w-sm',
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                  },
+                }}
+                {...register('collaboratorId')}
+                errorMessage={errors.collaboratorId?.message}
+                validationState={errors.collaboratorId && 'invalid'}
+                defaultSelectedKeys={[coordinatorId]}
+              >
+                {collaborators.map((collaborator) => (
+                  <SelectItem key={collaborator.id}>
+                    {collaborator.name + ' ' + collaborator.lastName}
+                  </SelectItem>
+                ))}
+              </Select>
+            )}
 
             <Select
               id="priority"
@@ -181,8 +236,8 @@ export default function CreateTicket() {
             </Select>
 
             <Select
-              id="projectId"
-              label="Projeto"
+              id="helper"
+              label="Tópico de ajuda"
               classNames={{
                 trigger:
                   'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
@@ -195,17 +250,13 @@ export default function CreateTicket() {
                   base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
                 },
               }}
-              {...register('projectId')}
-              errorMessage={errors.projectId?.message}
-              validationState={errors.projectId && 'invalid'}
+              {...register('helper')}
+              errorMessage={errors.helper?.message}
+              validationState={errors.helper && 'invalid'}
             >
-              {projects
-                .filter((project) => project.clientId === user?.clientId)
-                .map((project, index) => (
-                  <SelectItem key={project?.id || index}>
-                    {project.name}
-                  </SelectItem>
-                ))}
+              {helpers.map((helper) => (
+                <SelectItem key={helper}>{helper}</SelectItem>
+              ))}
             </Select>
 
             <Input

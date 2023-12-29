@@ -1,3 +1,7 @@
+export interface SupportTicketProject {
+  id: string
+  name: string
+}
 export interface SupportTicketClient {
   id: string
   fantasyName: string
@@ -9,6 +13,13 @@ export interface SupportTicket {
   status: 'Atraso' | 'NaoIniciado' | 'Iniciado' | 'Finalizado'
   title: string
   client: SupportTicketClient
+  hide?: boolean
+  helperTopic:
+    | 'Desenvolvimento'
+    | 'Suporte'
+    | 'Infraestrutura'
+    | 'Modulos'
+    | 'Faturamento'
 }
 
 export interface SupportTicketCollaborator {
@@ -33,13 +44,22 @@ export interface SupportTicketMessage {
   id: string
   message: string
   user: SupportTicketUser
+  createdAt: Date
 }
 
 export interface Ticket {
+  title: string
   collaborator: SupportTicketCollaborator
   status: 'Atraso' | 'NaoIniciado' | 'Iniciado' | 'Finalizado'
   priority: 'Alta' | 'Media' | 'Baixa'
   endDate: string
   client: SupportTicketClient
+  project: SupportTicketProject
+  helperTopic:
+    | 'Desenvolvimento'
+    | 'Suporte'
+    | 'Infraestrutura'
+    | 'Modulos'
+    | 'Faturamento'
   SupportMessage: SupportTicketMessage[]
 }
