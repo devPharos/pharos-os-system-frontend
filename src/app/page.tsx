@@ -3,22 +3,46 @@ import { Card } from '@/components/Card'
 import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
+import { HomeData } from '@/types/home'
+import axios from 'axios'
 import {
   AlertCircle,
   ArrowRightCircle,
   CheckCircle2,
   GaugeCircle,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
   const { user } = useRegister()
+  const [data, setData] = useState<HomeData>()
+
+  useEffect(() => {
+    if (window !== undefined) {
+      const localStorage = window.localStorage
+      const token = localStorage.getItem('access_token')
+
+      axios
+        .get('http://localhost:3333/list/home/data', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setData(response.data)
+        })
+    }
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col items-center">
       <Header />
 
       <main className="flex flex-col gap-14 max-w-7xl w-full px-6 py-14">
-        <PageHeader label="Lançar OS de hoje" title="Bem vindo (a), Thayná!" />
+        <PageHeader
+          label="Lançar OS de hoje"
+          title={`Bem vindo (a), ${data?.name}!`}
+        />
 
         <section className="flex gap-6 max-lg:flex-wrap">
           <Card.Root>
@@ -27,7 +51,10 @@ export default function Home() {
               <Card.Icon icon={GaugeCircle} />
             </Card.Header>
             <Card.Content>
-              <Card.Quantity color="gray-100" quantity={12} />
+              <Card.Quantity
+                color="gray-100"
+                quantity={data?.openTickets || 0}
+              />
             </Card.Content>
           </Card.Root>
 
@@ -37,7 +64,10 @@ export default function Home() {
               <Card.Icon icon={AlertCircle} />
             </Card.Header>
             <Card.Content>
-              <Card.Quantity color="red-500" quantity={12} />
+              <Card.Quantity
+                color="red-500"
+                quantity={data?.overdueTickets || 0}
+              />
             </Card.Content>
           </Card.Root>
 
@@ -47,7 +77,10 @@ export default function Home() {
               <Card.Icon icon={ArrowRightCircle} />
             </Card.Header>
             <Card.Content>
-              <Card.Quantity color="yellow-500" quantity={12} />
+              <Card.Quantity
+                color="yellow-500"
+                quantity={data?.inProgressTickets || 0}
+              />
             </Card.Content>
           </Card.Root>
 
@@ -57,7 +90,10 @@ export default function Home() {
               <Card.Icon icon={CheckCircle2} />
             </Card.Header>
             <Card.Content>
-              <Card.Quantity color="green-500" quantity={12} />
+              <Card.Quantity
+                color="green-500"
+                quantity={data?.doneTickets || 0}
+              />
             </Card.Content>
           </Card.Root>
         </section>

@@ -299,6 +299,9 @@ export default function CreateOSForm({ id }: OsFormProps) {
                 }}
                 {...register('date')}
                 errorMessage={errors.date?.message}
+                defaultValue={
+                  !id ? format(new Date(), 'yyyy-MM-dd') : serviceOrder?.date
+                }
                 validationState={errors.date && 'invalid'}
               />
 
