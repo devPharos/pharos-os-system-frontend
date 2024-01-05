@@ -4,8 +4,11 @@ import axios from 'axios'
 import { createContext, useContext, useState } from 'react'
 
 const defaultUser: User = {
-  access_token: '',
   email: '',
+  password: '',
+  collaboratorId: '',
+  lastName: '',
+  name: '',
 }
 
 interface IRegisterContext {
