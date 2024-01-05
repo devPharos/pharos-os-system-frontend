@@ -21,6 +21,9 @@ import {
   ModalBody,
   ModalContent,
   ModalHeader,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Select,
   SelectItem,
   Spinner,
@@ -56,9 +59,16 @@ import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
 import { getUserData } from '@/hooks/useRegister'
 import { UserData } from '@/types/user'
+import { Client } from '@/types/client'
+import { Projects } from '@/types/projects'
+import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
+  const [clients, setClients] = useState<Client[]>([])
+  const [projects, setProjects] = useState<Projects[]>([])
   const [serviceOrderData, setServiceOrderData] = useState<ServiceOrderPage>()
   const [dates, setDates] = useState<ServiceOrderDate[]>([])
   const [loading, setLoading] = useState(false)
@@ -121,6 +131,31 @@ export default function ServiceOrders() {
     })
 
     setServiceOrders(newFilteredServiceOrders)
+  }
+
+  const serviceOrderReportSchema = z.object({
+    clientId: z.optional(z.string().uuid().nullable()),
+    collaboratorId: z.optional(z.string().uuid().nullable()),
+    projectId: z.optional(z.string().uuid().nullable()),
+    startDate: z.optional(z.string()),
+    endDate: z.optional(z.string()),
+  })
+
+  type ServiceOrderReportSchema = z.infer<typeof serviceOrderReportSchema>
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<ServiceOrderReportSchema>({
+    resolver: zodResolver(serviceOrderReportSchema),
+  })
+
+  const handleServiceOrderReportFormSubmit: SubmitHandler<
+    ServiceOrderReportSchema
+  > = (data: ServiceOrderReportSchema) => {
+    MakeReporting(data)
   }
 
   const handleAction = (key: Key, id: string) => {
@@ -240,6 +275,28 @@ export default function ServiceOrders() {
         .then((response) => {
           setDates(response.data)
         })
+
+      axios
+        .get('http://localhost:3333/clients', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          setClients(response.data)
+          setLoading(false)
+        })
+
+      axios
+        .get('http://localhost:3333/list/projects', {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          setLoading(false)
+          setProjects(response.data)
+        })
     }
   }, [])
 
@@ -307,17 +364,22 @@ export default function ServiceOrders() {
       })
   }
 
-  async function MakeReporting() {
+  async function MakeReporting(data: ServiceOrderReportSchema) {
     setLoading(true)
 
     if (window !== undefined) {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
+      const { collaboratorId, clientId, endDate, projectId, startDate } = data
 
       const response2 = await axios.get('http://localhost:3333/pdf', {
         headers: {
           Authorization: `Bearer ${userToken}`,
-          id: 'eede43f5-f635-4d1b-a4f8-3dba1cda4111',
+          clientid: clientId,
+          collaboratorid: collaboratorId,
+          enddate: endDate,
+          projectid: projectId,
+          startdate: startDate,
         },
         responseType: 'blob',
       })
@@ -532,14 +594,195 @@ export default function ServiceOrders() {
                   </DropdownMenu>
                 </Dropdown>
 
-                <Button
-                  className="rounded-lg min-w-fit px-6 py-4 text-gray-200 font-bold bg-zinc-800 hover:bg-zinc-700"
-                  onClick={MakeReporting}
-                  disabled={loading}
+                <Popover
+                  placement="bottom"
+                  classNames={{
+                    base: [
+                      // arrow color
+                      'bg-zinc-800 rounded-lg p-6',
+                    ],
+                  }}
+                  backdrop="opaque"
                 >
-                  {loading && <Spinner size="sm" color="default" />}
-                  Baixar relatório
-                </Button>
+                  <PopoverTrigger>
+                    <Button
+                      className="rounded-lg min-w-fit px-6 py-4 text-gray-200 font-bold bg-zinc-800 hover:bg-zinc-700"
+                      // onClick={MakeReporting}
+                      disabled={loading}
+                    >
+                      {loading && <Spinner size="sm" color="default" />}
+                      Baixar relatório
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent>
+                    <main className="flex flex-col gap-6">
+                      <header>
+                        <span>Escolha os parâmetros do relatório</span>
+                      </header>
+
+                      <form
+                        onSubmit={handleSubmit(
+                          handleServiceOrderReportFormSubmit,
+                        )}
+                        className="flex flex-wrap w-full gap-4 justify-end"
+                      >
+                        <Controller
+                          name="clientId"
+                          control={control}
+                          rules={{ required: false }}
+                          defaultValue={null}
+                          render={({ field }) => (
+                            <Select
+                              id="clientId"
+                              {...field}
+                              value={field.value || ''}
+                              label="Cliente"
+                              classNames={{
+                                trigger:
+                                  'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+                                listboxWrapper: 'max-h-[400px] rounded-lg',
+                                popover: 'bg-gray-700 rounded-lg',
+                              }}
+                              listboxProps={{
+                                itemClasses: {
+                                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                                },
+                              }}
+                            >
+                              {clients.map((client) => (
+                                <SelectItem key={client.id}>
+                                  {client.fantasyName}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+
+                        <Controller
+                          name="collaboratorId"
+                          control={control}
+                          rules={{ required: false }}
+                          defaultValue={null}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              value={field.value || ''}
+                              id="collaboratorId"
+                              label="Colaborador"
+                              classNames={{
+                                trigger:
+                                  'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+                                listboxWrapper: 'max-h-[400px] rounded-lg',
+                                popover: 'bg-gray-700 rounded-lg',
+                              }}
+                              listboxProps={{
+                                itemClasses: {
+                                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                                },
+                              }}
+                            >
+                              {items.map((collaborator) => (
+                                <SelectItem key={collaborator.key}>
+                                  {collaborator.label}
+                                </SelectItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+
+                        <Controller
+                          name="projectId"
+                          control={control}
+                          defaultValue={null}
+                          rules={{ required: false }}
+                          render={({ field }) => (
+                            <Select
+                              label="Projeto"
+                              {...field}
+                              value={field.value || ''}
+                              classNames={{
+                                trigger:
+                                  'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+                                listboxWrapper: 'max-h-[400px] rounded-lg',
+                                popover: 'bg-gray-700 rounded-lg',
+                              }}
+                              listboxProps={{
+                                itemClasses: {
+                                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                                },
+                              }}
+                            >
+                              {projects &&
+                                projects.map((project) => (
+                                  <SelectItem key={project.id}>
+                                    {project.name}
+                                  </SelectItem>
+                                ))}
+                            </Select>
+                          )}
+                        />
+
+                        <Controller
+                          name="startDate"
+                          control={control}
+                          rules={{ required: false }}
+                          render={({ field }) => (
+                            <>
+                              <Input
+                                id="startDate"
+                                type="date"
+                                {...field}
+                                label="Data de inicio"
+                                placeholder=" "
+                                classNames={{
+                                  label: 'text-gray-300 font-normal',
+                                  inputWrapper:
+                                    'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
+                                  input: '[color-scheme]:dark',
+                                }}
+                                {...register('startDate', { required: false })}
+                              />
+                              {errors.startDate && errors.startDate.message}
+                            </>
+                          )}
+                        />
+
+                        <Controller
+                          name="endDate"
+                          control={control}
+                          rules={{ required: false }}
+                          render={({ field }) => (
+                            <>
+                              <Input
+                                id="endDate"
+                                type="date"
+                                {...field}
+                                label="Data de término"
+                                placeholder=" "
+                                classNames={{
+                                  label: 'text-gray-300 font-normal',
+                                  inputWrapper:
+                                    'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
+                                  input: '[color-scheme]:dark',
+                                }}
+                                {...register('endDate', { required: false })}
+                              />
+                              {errors.endDate && errors.endDate.message}
+                            </>
+                          )}
+                        />
+
+                        <Button
+                          type="submit"
+                          className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
+                        >
+                          Fazer download
+                        </Button>
+                      </form>
+                    </main>
+                  </PopoverContent>
+                </Popover>
               </section>
             </header>
             <section className="flex flex-wrap w-full gap-6">
@@ -825,6 +1068,58 @@ export default function ServiceOrders() {
                 }
               })}
             </section>
+
+            <Modal
+              isOpen={isOpen}
+              onOpenChange={onOpenChange}
+              backdrop="opaque"
+              classNames={{
+                base: 'bg-gray-700 rounded-lg',
+              }}
+            >
+              <ModalContent>
+                {() => (
+                  <>
+                    <ModalHeader className="flex flex-col gap-1">
+                      Alterar status da ordem de serviço
+                    </ModalHeader>
+                    <ModalBody>
+                      <Button
+                        className="bg-transparent hover:bg-gray-800 text-gray-100 justify-start"
+                        startContent={
+                          <Card.Badge
+                            status=""
+                            className="bg-orange-600/10 text-orange-600 py-2 px-2 rounded-md"
+                            icon={ArrowRightCircle}
+                          />
+                        }
+                        onClick={() =>
+                          handleChangeOsStatus(selectedOs, 'Enviado')
+                        }
+                      >
+                        Enviado ao cliente
+                      </Button>
+
+                      <Button
+                        className="bg-transparent hover:bg-gray-800 text-gray-100 justify-start"
+                        startContent={
+                          <Card.Badge
+                            status=""
+                            className="bg-green-500/10 text-green-500 py-2 px-2 rounded-md"
+                            icon={CircleDollarSign}
+                          />
+                        }
+                        onClick={() =>
+                          handleChangeOsStatus(selectedOs, 'Faturado')
+                        }
+                      >
+                        Faturado
+                      </Button>
+                    </ModalBody>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
           </>
         )}
       </main>

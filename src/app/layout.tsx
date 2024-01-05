@@ -3,7 +3,6 @@ import './global.css'
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Providers } from './providers'
-import { useRegister } from '@/hooks/useRegister'
 import { useVerifyPathPermission } from '@/hooks/usePermission'
 
 const roboto = localFont({
