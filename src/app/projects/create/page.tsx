@@ -69,7 +69,7 @@ export default function CreateProject() {
     defaultValues: async () =>
       id &&
       axios
-        .get('http://localhost:3333/find/project', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/find/project`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -129,7 +129,7 @@ export default function CreateProject() {
       }
       if (!id) {
         axios
-          .post('http://localhost:3333/projects', body, {
+          .post(`${process.env.NEXT_PUBLIC_API_URL}/projects`, body, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -152,7 +152,7 @@ export default function CreateProject() {
       if (id) {
         axios
           .put(
-            'http://localhost:3333/update/project',
+            `${process.env.NEXT_PUBLIC_API_URL}/update/project`,
             {
               ...body,
               projectId: id,
@@ -195,7 +195,7 @@ export default function CreateProject() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -210,7 +210,7 @@ export default function CreateProject() {
         })
 
       axios
-        .get('http://localhost:3333/collaborators/data', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -249,7 +249,7 @@ export default function CreateProject() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .delete('http://localhost:3333/delete/project/expense', {
+        .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/project/expense`, {
           headers: {
             Authorization: `Bearer ${token}`,
             expenseId,
@@ -282,7 +282,7 @@ export default function CreateProject() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .delete('http://localhost:3333/delete/project/service', {
+        .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/project/service`, {
           headers: {
             Authorization: `Bearer ${token}`,
             serviceId,

@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     axios
-      .post('http://localhost:3333/sessions', {
+      .post(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
         email: userLoginData.email,
         password: userLoginData.password,
       })

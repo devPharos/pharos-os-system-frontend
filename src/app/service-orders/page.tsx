@@ -169,7 +169,7 @@ export default function ServiceOrders() {
         const userToken: string = localStorage.getItem('access_token') || ''
 
         axios
-          .delete('http://localhost:3333/delete/service-order', {
+          .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/service-order`, {
             headers: {
               Authorization: `Bearer ${userToken}`,
               id,
@@ -211,11 +211,15 @@ export default function ServiceOrders() {
       }
 
       axios
-        .put('http://localhost:3333/update/service-order/status', body, {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
+        .put(
+          `${process.env.NEXT_PUBLIC_API_URL}/update/service-order/status`,
+          body,
+          {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+            },
           },
-        })
+        )
         .then(() => {
           window.location.reload()
         })
@@ -240,7 +244,7 @@ export default function ServiceOrders() {
       const userToken: string = localStorage.getItem('access_token') || ''
 
       axios
-        .get('http://localhost:3333/list/service-orders', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
@@ -267,7 +271,7 @@ export default function ServiceOrders() {
         })
 
       axios
-        .get('http://localhost:3333/list/service-orders/filters', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders/filters`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
@@ -277,7 +281,7 @@ export default function ServiceOrders() {
         })
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
@@ -288,7 +292,7 @@ export default function ServiceOrders() {
         })
 
       axios
-        .get('http://localhost:3333/list/projects', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
@@ -337,7 +341,7 @@ export default function ServiceOrders() {
     const userToken: string = localStorage.getItem('access_token') || ''
 
     axios
-      .get('http://localhost:3333/list/service-orders', {
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
           filterDate: selectedValue,
@@ -372,17 +376,20 @@ export default function ServiceOrders() {
       const userToken: string = localStorage.getItem('access_token') || ''
       const { collaboratorId, clientId, endDate, projectId, startDate } = data
 
-      const response2 = await axios.get('http://localhost:3333/pdf', {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          clientid: clientId,
-          collaboratorid: collaboratorId,
-          enddate: endDate,
-          projectid: projectId,
-          startdate: startDate,
+      const response2 = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            clientid: clientId,
+            collaboratorid: collaboratorId,
+            enddate: endDate,
+            projectid: projectId,
+            startdate: startDate,
+          },
+          responseType: 'blob',
         },
-        responseType: 'blob',
-      })
+      )
 
       const pdfBlob = new Blob([response2.data], { type: 'application/pdf' })
       saveAs(pdfBlob)

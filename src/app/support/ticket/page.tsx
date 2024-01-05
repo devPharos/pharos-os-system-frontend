@@ -65,7 +65,7 @@ export default function SupportTicket() {
     resolver: zodResolver(supportUpdateFormSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/ticket', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/ticket`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -91,7 +91,7 @@ export default function SupportTicket() {
         ...data,
       }
       axios
-        .put('http://localhost:3333/update/support/ticket', body, {
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/support/ticket`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -119,7 +119,7 @@ export default function SupportTicket() {
     resolver: zodResolver(supportFormSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/ticket', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/ticket`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -147,7 +147,7 @@ export default function SupportTicket() {
         supportId: id,
       }
       axios
-        .post('http://localhost:3333/ticket/message', body, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/ticket/message`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -177,7 +177,7 @@ export default function SupportTicket() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/ticket', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/ticket`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -190,7 +190,7 @@ export default function SupportTicket() {
         })
 
       axios
-        .get('http://localhost:3333/list/project/collaborators', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/project/collaborators`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -204,7 +204,7 @@ export default function SupportTicket() {
         })
 
       axios
-        .get('http://localhost:3333/list/projects', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -26,7 +26,7 @@ export default function CreateOS() {
       }
 
       axios
-        .post('http://localhost:3333/service-order/data', body, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order/data`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

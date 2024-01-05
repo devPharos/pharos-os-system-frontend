@@ -42,7 +42,7 @@ export default function Users() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -66,7 +66,7 @@ export default function Users() {
       }
 
       axios
-        .post('http://localhost:3333/accounts/user/client', body, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user/client`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

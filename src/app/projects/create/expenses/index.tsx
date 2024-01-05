@@ -30,22 +30,6 @@ export default function ProjectExpensesForm({
     formState: { errors },
   } = useForm<ProjectExpensesFormSchema>({
     resolver: zodResolver(projectExpensesFormSchema),
-    // defaultValues: async () =>
-    //   id &&
-    //   axios
-    //     .get('http://localhost:3333/client/data', {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         id,
-    //       },
-    //     })
-    //     .then((response) => {
-    //       setClient(response.data)
-    //       return response.data
-    //     })
-    //     .catch(function (error) {
-    //       console.error(error)
-    //     }),
   })
 
   const handleProjectExpensesFormSubmit: SubmitHandler<

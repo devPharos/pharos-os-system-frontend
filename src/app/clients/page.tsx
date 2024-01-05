@@ -81,7 +81,7 @@ export default function Clients() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -110,7 +110,7 @@ export default function Clients() {
       }
 
       axios
-        .put('http://localhost:3333/update/client/status', body, {
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client/status`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

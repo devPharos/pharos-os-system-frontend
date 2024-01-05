@@ -14,7 +14,6 @@ import {
 import { useEffect, useState } from 'react'
 
 export default function Home() {
-  const { user } = useRegister()
   const [data, setData] = useState<HomeData>()
 
   useEffect(() => {
@@ -23,7 +22,7 @@ export default function Home() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/list/home/data', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/home/data`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

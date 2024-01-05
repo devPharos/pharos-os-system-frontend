@@ -46,7 +46,7 @@ const getUserData = async (): Promise<UserData> => {
     const token = localStorage.getItem('access_token')
 
     await axios
-      .get(`http://localhost:3333/user/data`, {
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/user/data`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

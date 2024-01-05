@@ -54,7 +54,7 @@ export default function Support() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/list/tickets', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/tickets`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

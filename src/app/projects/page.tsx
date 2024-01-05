@@ -41,7 +41,7 @@ export default function Projects() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/projects', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -51,7 +51,7 @@ export default function Projects() {
         })
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

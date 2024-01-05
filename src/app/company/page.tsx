@@ -36,7 +36,7 @@ export default function Company() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/collaborators/data', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -36,7 +36,7 @@ export default function Profile() {
     resolver: zodResolver(editProfileFormSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/profile', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -57,7 +57,7 @@ export default function Profile() {
       const userToken: string = localStorage.getItem('access_token') || ''
 
       axios
-        .post('http://localhost:3333/profile', data, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, data, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },

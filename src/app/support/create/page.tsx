@@ -67,7 +67,7 @@ export default function CreateTicket() {
         ...data,
       }
       axios
-        .post('http://localhost:3333/support/ticket', body, {
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/support/ticket`, body, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -94,7 +94,7 @@ export default function CreateTicket() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/list/project/collaborators', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/project/collaborators`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -108,7 +108,7 @@ export default function CreateTicket() {
         })
 
       axios
-        .get('http://localhost:3333/list/projects', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

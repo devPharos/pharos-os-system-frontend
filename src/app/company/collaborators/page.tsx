@@ -71,7 +71,7 @@ export default function CreateClient() {
     resolver: zodResolver(collaboratorFormSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/find/collaborator', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/find/collaborator`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -145,11 +145,15 @@ export default function CreateClient() {
 
       if (!id) {
         axios
-          .post('http://localhost:3333/accounts/collaborator', data, {
-            headers: {
-              Authorization: `Bearer ${token}`,
+          .post(
+            `${process.env.NEXT_PUBLIC_API_URL}/accounts/collaborator`,
+            data,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          })
+          )
           .then(function () {
             setLoading(false)
             router.push('/company')
@@ -166,7 +170,7 @@ export default function CreateClient() {
       }
 
       axios
-        .put('http://localhost:3333/update/collaborator', data, {
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/collaborator`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -194,7 +198,7 @@ export default function CreateClient() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/list/supervisors', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/supervisors`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

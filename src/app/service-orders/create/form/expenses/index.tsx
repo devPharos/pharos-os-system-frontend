@@ -99,7 +99,7 @@ export default function CreateOSExpenses({
     }
 
     axios
-      .get('http://localhost:3333/project-expenses', {
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/project-expenses`, {
         data: {
           body,
         },

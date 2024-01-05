@@ -73,7 +73,7 @@ export default function CreateClient() {
     resolver: zodResolver(clientFormSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/client/data', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/client/data`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -113,7 +113,7 @@ export default function CreateClient() {
 
       if (!id) {
         axios
-          .post('http://localhost:3333/accounts/client', data, {
+          .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -133,7 +133,7 @@ export default function CreateClient() {
 
       if (id) {
         axios
-          .put('http://localhost:3333/update/client', data, {
+          .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -159,7 +159,7 @@ export default function CreateClient() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/companies', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

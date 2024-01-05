@@ -41,7 +41,7 @@ export default function Users() {
     resolver: zodResolver(createUserSchema),
     defaultValues: async () =>
       axios
-        .get('http://localhost:3333/find/user', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/find/user`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -62,7 +62,7 @@ export default function Users() {
       const token = localStorage.getItem('access_token')
 
       axios
-        .get('http://localhost:3333/collaborators', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -91,7 +91,7 @@ export default function Users() {
           password: data.password,
         }
         axios
-          .post('http://localhost:3333/accounts/user', body, {
+          .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user`, body, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -117,7 +117,7 @@ export default function Users() {
           password: data.password,
         }
         axios
-          .put('http://localhost:3333/update/user', body, {
+          .put(`${process.env.NEXT_PUBLIC_API_URL}/update/user`, body, {
             headers: {
               Authorization: `Bearer ${token}`,
             },

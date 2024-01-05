@@ -128,7 +128,7 @@ export default function CreateOSDetails({
     }
 
     axios
-      .get('http://localhost:3333/projects', {
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
         data: {
           body,
         },
@@ -149,7 +149,7 @@ export default function CreateOSDetails({
     }
 
     axios
-      .get('http://localhost:3333/project-services', {
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/project-services`, {
         data: {
           body,
         },
@@ -195,13 +195,16 @@ export default function CreateOSDetails({
       const userToken: string = localStorage.getItem('access_token') || ''
 
       axios
-        .delete('http://localhost:3333/delete/service-order/expense', {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-            serviceorderexpenseid: expenseid,
-            serviceorderid: id,
+        .delete(
+          `${process.env.NEXT_PUBLIC_API_URL}/delete/service-order/expense`,
+          {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+              serviceorderexpenseid: expenseid,
+              serviceorderid: id,
+            },
           },
-        })
+        )
         .then((response) => {
           setProjectExpenses(response.data)
           setLoading(false)

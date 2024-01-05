@@ -72,7 +72,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
     defaultValues: async () =>
       id &&
       axios
-        .get('http://localhost:3333/find/service-order', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/find/service-order`, {
           headers: {
             Authorization: `Bearer ${token}`,
             id,
@@ -116,7 +116,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
 
       if (!id) {
         axios
-          .post('http://localhost:3333/service-order', body, {
+          .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order`, body, {
             headers: {
               Authorization: `Bearer ${userToken}`,
             },
@@ -138,11 +138,15 @@ export default function CreateOSForm({ id }: OsFormProps) {
         }
 
         axios
-          .put('http://localhost:3333/update/service-order', updateBody, {
-            headers: {
-              Authorization: `Bearer ${userToken}`,
+          .put(
+            `${process.env.NEXT_PUBLIC_API_URL}/update/service-order`,
+            updateBody,
+            {
+              headers: {
+                Authorization: `Bearer ${userToken}`,
+              },
             },
-          })
+          )
           .then(() => {
             setLoading(false)
             router.push('/service-orders')
@@ -172,7 +176,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
       const userToken: string = localStorage.getItem('access_token') || ''
 
       axios
-        .get('http://localhost:3333/clients', {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
