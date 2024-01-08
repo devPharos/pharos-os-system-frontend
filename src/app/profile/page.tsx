@@ -5,7 +5,7 @@ import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Profile } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input } from '@nextui-org/react'
+import { Avatar, Button, Input } from '@nextui-org/react'
 import axios from 'axios'
 import { Camera, Save } from 'lucide-react'
 import Image from 'next/image'
@@ -90,16 +90,9 @@ export default function Profile() {
             className="flex flex-col items-end gap-8"
           >
             <section className="relative m-auto">
-              <Image
-                src="https:www.github.com/gitirana.png"
-                alt=""
-                width={100}
-                height={100}
-                className="rounded-full"
-                quality={100}
-              />
+              <Avatar alt="" className="rounded-full w-[100px] h-[100px]" />
 
-              <div className="cursor-pointer hover:bg-yellow-600 absolute right-0 bottom-0 w-8 h-8 flex rounded-full bg-yellow-500 items-center justify-center">
+              <div className="cursor-pointer z-50 hover:bg-yellow-600 absolute right-0 bottom-0 w-8 h-8 flex rounded-full bg-yellow-500 items-center justify-center">
                 <Camera size={20} className="text-gray-500" />
               </div>
             </section>
