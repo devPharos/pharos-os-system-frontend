@@ -1,21 +1,12 @@
 'use client'
-import ClientTable from '@/components/tables/client'
-import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
-import PageHeader from '@/layouts/page-header'
 import { Card } from '@/components/Card'
 import axios from 'axios'
 import {
-  AlertCircle,
-  ArrowRightCircle,
   Building2,
   CheckCircle2,
   CircleDashed,
-  CircleDollarSign,
   Eraser,
-  Eye,
-  Monitor,
-  Pencil,
   PencilLine,
   PlusCircle,
   Search,
@@ -76,7 +67,7 @@ export default function Clients() {
   }
 
   useEffect(() => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -101,7 +92,7 @@ export default function Clients() {
     id: string,
     active: boolean | undefined,
   ) => {
-    if (key === 'status' && window !== undefined) {
+    if (key === 'status' && typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body = {

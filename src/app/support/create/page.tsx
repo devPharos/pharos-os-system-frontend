@@ -60,7 +60,7 @@ export default function CreateTicket() {
   const handleSupportFormSubmit: SubmitHandler<SupportFormSchema> = (
     data: SupportFormSchema,
   ) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body = {
@@ -89,7 +89,7 @@ export default function CreateTicket() {
   useEffect(() => {
     handleUserData()
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

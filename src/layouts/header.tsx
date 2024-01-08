@@ -20,7 +20,7 @@ export default function Header() {
   const router = useRouter()
 
   const handleUserLogOut = () => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
 
       localStorage.clear()

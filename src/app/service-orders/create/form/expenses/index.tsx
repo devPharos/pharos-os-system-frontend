@@ -1,25 +1,10 @@
 'use client'
-
-import { getUserData, useRegister } from '@/hooks/useRegister'
-import Header from '@/layouts/header'
-import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
-import {
-  AlertCircle,
-  Calendar,
-  CircleDollarSign,
-  ClipboardCheck,
-  Clock,
-  DollarSign,
-  FileUp,
-  Save,
-  Search,
-  User,
-} from 'lucide-react'
+import { Button, Input, Select, SelectItem } from '@nextui-org/react'
+import { DollarSign, FileUp, Save } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { ChangeEvent, Key, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ProjectExpenses, ServiceOrderExpenses } from '@/types/service-order'
 
@@ -36,8 +21,10 @@ export default function CreateOSExpenses({
   expense,
   osExpenses,
 }: OSExpensesProps) {
-  const localStorage = window.localStorage
-  const token: string = localStorage.getItem('access_token') || ''
+  const token: string | null =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('access_token')
+      : null
 
   const [loading, setLoading] = useState(false)
   const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])

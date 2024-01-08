@@ -47,8 +47,10 @@ export default function CreateOSDetails({
   osDetail,
   osExpenses,
 }: OSDetailsProps) {
-  const localStorage = window.localStorage
-  const token: string = localStorage.getItem('access_token') || ''
+  const token: string | null =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('access_token')
+      : null
   const [loading, setLoading] = useState(false)
   const [newExpense, setNewExpense] = useState(false)
   const [projects, setProjects] = useState<Projects[]>([])
@@ -190,7 +192,7 @@ export default function CreateOSDetails({
   }
 
   const handleDeleteExpense = (expenseid: string | undefined) => {
-    if (expenseid && window !== undefined) {
+    if (expenseid && typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
 

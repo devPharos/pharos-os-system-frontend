@@ -44,7 +44,7 @@ const getUserData = async (): Promise<UserData> => {
     token: '',
   }
 
-  if (window !== undefined) {
+  if (typeof window !== 'undefined') {
     const localStorage = window.localStorage
     const token = localStorage.getItem('access_token')
 

@@ -5,7 +5,7 @@ import { Profile } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input } from '@nextui-org/react'
 import axios from 'axios'
-import { Camera, PencilLine, Save } from 'lucide-react'
+import { Camera, Save } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -52,7 +52,7 @@ export default function Profile() {
   const handleEditProfileFormSubmit: SubmitHandler<EditProfileFormSchema> = (
     data: EditProfileFormSchema,
   ) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
 

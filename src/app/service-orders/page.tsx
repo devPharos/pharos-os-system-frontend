@@ -164,7 +164,7 @@ export default function ServiceOrders() {
     }
 
     if (key === 'delete') {
-      if (window !== undefined) {
+      if (typeof window !== 'undefined') {
         const localStorage = window.localStorage
         const userToken: string = localStorage.getItem('access_token') || ''
 
@@ -176,7 +176,9 @@ export default function ServiceOrders() {
             },
           })
           .then(() => {
-            window.location.reload()
+            if (typeof window !== 'undefined') {
+              window.location.reload()
+            }
           })
       }
     }
@@ -202,7 +204,7 @@ export default function ServiceOrders() {
     id: string,
     status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho',
   ) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
       const body = {
@@ -221,7 +223,9 @@ export default function ServiceOrders() {
           },
         )
         .then(() => {
-          window.location.reload()
+          if (typeof window !== 'undefined') {
+            window.location.reload()
+          }
         })
     }
   }
@@ -239,7 +243,7 @@ export default function ServiceOrders() {
   useEffect(() => {
     handleUserData()
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
 
@@ -371,7 +375,7 @@ export default function ServiceOrders() {
   async function MakeReporting(data: ServiceOrderReportSchema) {
     setLoading(true)
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
       const { collaboratorId, clientId, endDate, projectId, startDate } = data

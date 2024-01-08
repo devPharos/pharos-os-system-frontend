@@ -9,7 +9,6 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
@@ -37,7 +36,7 @@ export default function Users() {
   })
 
   useEffect(() => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -56,7 +55,7 @@ export default function Users() {
   const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
     data: CreateUserSchema,
   ) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body = {

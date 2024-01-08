@@ -1,9 +1,8 @@
-import { Card } from '@/components/Card'
 import { ProjectExpenses } from '@/types/projects'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Checkbox, Input, Select } from '@nextui-org/react'
-import axios from 'axios'
-import { Save, Trash2 } from 'lucide-react'
+
+import { Save } from 'lucide-react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -35,7 +34,7 @@ export default function ProjectExpensesForm({
   const handleProjectExpensesFormSubmit: SubmitHandler<
     ProjectExpensesFormSchema
   > = (data: ProjectExpensesFormSchema) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       handleNewProjectExpense(data)
       reset()
     }

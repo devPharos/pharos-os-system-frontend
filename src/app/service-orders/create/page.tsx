@@ -16,7 +16,7 @@ export default function CreateOS() {
   const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    if (window !== undefined && id) {
+    if (typeof window !== undefined && id) {
       setLoading(true)
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')

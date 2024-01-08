@@ -1,6 +1,5 @@
 'use client'
 import { Card } from '@/components/Card'
-import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { HomeData } from '@/types/home'
@@ -17,7 +16,7 @@ export default function Home() {
   const [data, setData] = useState<HomeData>()
 
   useEffect(() => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

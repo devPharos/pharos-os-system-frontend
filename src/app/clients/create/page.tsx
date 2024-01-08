@@ -17,15 +17,17 @@ import { Company } from '@/types/company'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Clock, Save } from 'lucide-react'
+import { Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChangeEvent, MouseEventHandler, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
   const token =
-    window !== undefined && window.localStorage.getItem('access_token')
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('access_token')
+      : null
   const [companies, setCompanies] = useState<Company[]>([])
   const [cep, setCep] = useState<string>('')
   const searchParams = useSearchParams()
@@ -34,7 +36,6 @@ export default function CreateClient() {
   const [client, setClient] = useState<Client>()
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const localStorage = window.localStorage
   const [banks, setBanks] = useState<Bank[]>([])
 
   const clientFormSchema = z.object({
@@ -107,7 +108,7 @@ export default function CreateClient() {
       setLoading(false)
     }
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -154,7 +155,7 @@ export default function CreateClient() {
     setLoading(true)
     getBanks()
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

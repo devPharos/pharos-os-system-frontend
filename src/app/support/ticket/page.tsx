@@ -83,7 +83,7 @@ export default function SupportTicket() {
   const handleUpdateSupportFormSubmit: SubmitHandler<
     SupportUpdateFormSchema
   > = (data: SupportUpdateFormSchema) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body = {
@@ -138,7 +138,7 @@ export default function SupportTicket() {
     data: SupportFormSchema,
   ) => {
     setLoading(true)
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
       const body = {
@@ -172,7 +172,7 @@ export default function SupportTicket() {
   useEffect(() => {
     handleUserData()
     setLoading(true)
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

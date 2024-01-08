@@ -102,7 +102,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const handleCreateNewOS = (data: TOsFormData) => {
     setLoading(true)
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''
       const serviceOrderDetails = osDetails
@@ -170,7 +170,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
       }
     }
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       setLoading(true)
       const localStorage = window.localStorage
       const userToken: string = localStorage.getItem('access_token') || ''

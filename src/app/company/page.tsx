@@ -4,7 +4,6 @@ import Header from '@/layouts/header'
 import { Card } from '@/components/Card'
 
 import {
-  Building2,
   CheckCircle2,
   Eraser,
   PencilLine,
@@ -31,7 +30,7 @@ export default function Company() {
   const router = useRouter()
 
   useEffect(() => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

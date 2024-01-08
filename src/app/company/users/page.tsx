@@ -16,7 +16,10 @@ import { User } from '@/types/user'
 
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
-  const token = window !== undefined && localStorage.getItem('access_token')
+  const token =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('access_token')
+      : null
   const [collaboratorsId, setCollaboratorsId] = useState<Collaborator[]>([])
   const [showToast, setShowToast] = useState(false)
   const [user, setUser] = useState<User>()
@@ -57,7 +60,7 @@ export default function Users() {
   })
 
   useEffect(() => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -80,7 +83,7 @@ export default function Users() {
   const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
     data: CreateUserSchema,
   ) => {
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 

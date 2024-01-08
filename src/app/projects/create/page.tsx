@@ -1,13 +1,11 @@
 'use client'
 
-import Loading from '@/components/Loading'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
-import { Company } from '@/types/company'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input, Select, SelectItem, Spinner } from '@nextui-org/react'
+import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Clock, Plus, PlusCircle, Save, Trash2 } from 'lucide-react'
+import { PlusCircle, Save, Trash2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
@@ -15,17 +13,12 @@ import { z } from 'zod'
 import ProjectExpensesForm from './expenses'
 import ProjectServicesForm from './services'
 import { Card } from '@/components/Card'
-import {
-  Project,
-  ProjectExpenses,
-  ProjectFounded,
-  ProjectServices,
-} from '@/types/projects'
+import { Project, ProjectExpenses, ProjectServices } from '@/types/projects'
 import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { getUserData } from '@/hooks/useRegister'
 import { UserData } from '@/types/user'
-import { compareAsc, compareDesc, format, parseISO } from 'date-fns'
+import { compareDesc, parseISO } from 'date-fns'
 
 export default function CreateProject() {
   const [showToast, setShowToast] = useState(false)
@@ -115,7 +108,7 @@ export default function CreateProject() {
     }
 
     if (
-      window !== undefined &&
+      typeof window !== 'undefined' &&
       compareStartDate !== -1 &&
       compareEndDate !== -1
     ) {
@@ -190,7 +183,7 @@ export default function CreateProject() {
     setLoading(true)
     handleUserData()
 
-    if (window !== undefined) {
+    if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -244,7 +237,7 @@ export default function CreateProject() {
     expenseId: string | undefined,
     index: number,
   ) => {
-    if (window !== undefined && expenseId) {
+    if (typeof window !== 'undefined' && expenseId) {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
 
@@ -276,7 +269,7 @@ export default function CreateProject() {
     serviceId: string | undefined,
     index: number,
   ) => {
-    if (window !== undefined && serviceId) {
+    if (typeof window !== 'undefined' && serviceId) {
       setLoading(true)
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')

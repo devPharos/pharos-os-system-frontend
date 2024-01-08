@@ -33,7 +33,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const token =
-    window !== undefined ? window.localStorage.getItem('access_token') : null
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem('access_token')
+      : null
 
   useVerifyPathPermission(token)
 

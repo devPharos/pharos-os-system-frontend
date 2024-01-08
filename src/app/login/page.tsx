@@ -10,11 +10,10 @@ import logo from '../../../public/assets/logo-negative-yellow.svg'
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button, Input } from '@nextui-org/react'
 import { useState } from 'react'
-import { setErrorMap, z } from 'zod'
+import { z } from 'zod'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { useRegister } from '@/hooks/useRegister'
 import { useRouter } from 'next/navigation'
 import Toast from '@/components/Toast'
 
@@ -58,7 +57,7 @@ export default function Login() {
       .then(function (response) {
         const data = response.data
 
-        if (typeof window !== undefined) {
+        if (typeof window !== 'undefined') {
           const localStorage = window.localStorage
           localStorage.setItem('access_token', data.access_token)
         }
