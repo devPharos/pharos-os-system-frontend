@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Providers } from './providers'
 import { useVerifyPathPermission } from '@/hooks/usePermission'
+import metadata from './metadata'
 
 const roboto = localFont({
   src: [
@@ -22,10 +23,6 @@ const roboto = localFont({
   ],
   variable: '--font-roboto',
 })
-
-export const metadata: Metadata = {
-  title: 'PharosIT OS System',
-}
 
 export default function RootLayout({
   children,
