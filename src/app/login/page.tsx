@@ -16,12 +16,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import Toast from '@/components/Toast'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function Login() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<boolean>(false)
   const router = useRouter()
+  const { setToken } = useRegister()
 
   const loginFormSchema = z.object({
     email: z.string().email({
@@ -60,6 +62,7 @@ export default function Login() {
         if (typeof window !== 'undefined') {
           const localStorage = window.localStorage
           localStorage.setItem('access_token', data.access_token)
+          setToken(data.access_token)
         }
 
         router.push('/')

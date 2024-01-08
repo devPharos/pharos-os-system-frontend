@@ -1,5 +1,6 @@
 'use client'
 import { Card } from '@/components/Card'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { HomeData } from '@/types/home'
@@ -14,12 +15,10 @@ import { useEffect, useState } from 'react'
 
 export default function Home() {
   const [data, setData] = useState<HomeData>()
+  const { token } = useRegister()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
+    if (token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/home/data`, {
           headers: {
@@ -30,7 +29,7 @@ export default function Home() {
           setData(response.data)
         })
     }
-  }, [])
+  }, [token])
 
   return (
     <div className="min-h-screen flex flex-col items-center">

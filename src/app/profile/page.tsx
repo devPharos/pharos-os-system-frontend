@@ -1,5 +1,6 @@
 'use client'
 import Toast from '@/components/Toast'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Profile } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,8 +13,7 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function Profile() {
-  const localStorage = window.localStorage
-  const token = localStorage.getItem('access_token')
+  const { token } = useRegister()
   const [showToast, setShowToast] = useState(false)
 
   const editProfileFormSchema = z.object({
@@ -52,27 +52,22 @@ export default function Profile() {
   const handleEditProfileFormSubmit: SubmitHandler<EditProfileFormSchema> = (
     data: EditProfileFormSchema,
   ) => {
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
+    axios
+      .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(function () {
+        setShowToast(true)
 
-      axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, data, {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        })
-        .then(function () {
-          setShowToast(true)
-
-          setInterval(() => {
-            setShowToast(!showToast)
-          }, 3000)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-    }
+        setInterval(() => {
+          setShowToast(!showToast)
+        }, 3000)
+      })
+      .catch(function (error) {
+        console.error(error)
+      })
   }
 
   return (

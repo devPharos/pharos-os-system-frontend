@@ -1,7 +1,7 @@
 'use client'
 import { User, UserData } from '@/types/user'
 import axios from 'axios'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 const defaultUser: User = {
   email: '',
@@ -14,6 +14,9 @@ const defaultUser: User = {
 interface IRegisterContext {
   user: User
   setUser: React.Dispatch<React.SetStateAction<User>>
+  token: string | null
+  setToken: React.Dispatch<React.SetStateAction<string | null>>
+  getUserData: () => Promise<UserData>
 }
 
 export const RegisterContext = createContext<IRegisterContext>(
@@ -22,31 +25,22 @@ export const RegisterContext = createContext<IRegisterContext>(
 
 const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>(defaultUser)
+  const [token, setToken] = useState<string | null>(null)
 
-  return (
-    <RegisterContext.Provider
-      value={{
-        user,
-        setUser,
-      }}
-    >
-      {children}
-    </RegisterContext.Provider>
-  )
-}
+  const userAuth = () => {
+    const userToken = localStorage.getItem('access_token')
 
-const getUserData = async (): Promise<UserData> => {
-  let userData: UserData = {
-    collaboratorId: '',
-    companyId: '',
-    userId: '',
-    clientId: '',
-    token: '',
+    setToken(userToken)
   }
 
-  if (typeof window !== 'undefined') {
-    const localStorage = window.localStorage
-    const token = localStorage.getItem('access_token')
+  const getUserData = async (): Promise<UserData> => {
+    let userData: UserData = {
+      collaboratorId: '',
+      companyId: '',
+      userId: '',
+      clientId: '',
+      token: '',
+    }
 
     await axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/user/data`, {
@@ -60,9 +54,27 @@ const getUserData = async (): Promise<UserData> => {
           token,
         })
       })
+
+    return userData
   }
 
-  return userData
+  useEffect(() => {
+    userAuth()
+  }, [])
+
+  return (
+    <RegisterContext.Provider
+      value={{
+        user,
+        setUser,
+        token,
+        getUserData,
+        setToken,
+      }}
+    >
+      {children}
+    </RegisterContext.Provider>
+  )
 }
 
 const useRegister = () => {
@@ -71,4 +83,4 @@ const useRegister = () => {
   return context
 }
 
-export { RegisterProvider, useRegister, getUserData }
+export { RegisterProvider, useRegister }

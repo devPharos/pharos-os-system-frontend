@@ -11,32 +11,27 @@ import {
   validateCNPJ,
   validateCPF,
 } from '@/functions/auxiliar'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
-import { Client } from '@/types/client'
-import { Company } from '@/types/company'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
 import { Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+
 import { ChangeEvent, useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateClient() {
-  const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : null
-  const [companies, setCompanies] = useState<Company[]>([])
   const [cep, setCep] = useState<string>('')
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
   const id = params[0]
-  const [client, setClient] = useState<Client>()
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
   const [banks, setBanks] = useState<Bank[]>([])
+  const { token } = useRegister()
 
   const clientFormSchema = z.object({
     account: z.string(),
@@ -81,7 +76,6 @@ export default function CreateClient() {
           },
         })
         .then((response) => {
-          setClient(response.data)
           return response.data
         })
         .catch(function (error) {
@@ -108,46 +102,41 @@ export default function CreateClient() {
       setLoading(false)
     }
 
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
+    if (!id) {
+      axios
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function () {
+          setLoading(false)
+          router.back()
+        })
+        .catch(function (error) {
+          console.error(error)
+          setLoading(false)
+          setError('cnpj', {
+            message: 'Já existe um cliente com o mesmo CPF/CNPJ',
+          })
+        })
+    }
 
-      if (!id) {
-        axios
-          .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then(function () {
-            setLoading(false)
-            router.push('/clients')
-          })
-          .catch(function (error) {
-            console.error(error)
-            setLoading(false)
-            setError('cnpj', {
-              message: 'Já existe um cliente com o mesmo CPF/CNPJ',
-            })
-          })
-      }
-
-      if (id) {
-        axios
-          .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then(function () {
-            setLoading(false)
-            router.push('/clients')
-          })
-          .catch(function (error) {
-            console.error(error)
-            setLoading(false)
-          })
-      }
+    if (id) {
+      axios
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function () {
+          setLoading(false)
+          router.push('/clients')
+        })
+        .catch(function (error) {
+          console.error(error)
+          setLoading(false)
+        })
     }
   }
 
@@ -155,27 +144,21 @@ export default function CreateClient() {
     setLoading(true)
     getBanks()
 
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setCompanies(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-        })
-    }
-  }, [id])
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(function (response) {
+        const data = response.data
+        setLoading(false)
+      })
+      .catch(function (error) {
+        console.error(error)
+        setLoading(false)
+      })
+  }, [id, token])
 
   const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value

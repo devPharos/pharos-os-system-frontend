@@ -57,13 +57,13 @@ import {
 } from 'react'
 import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
-import { getUserData } from '@/hooks/useRegister'
 import { UserData } from '@/types/user'
 import { Client } from '@/types/client'
 import { Projects } from '@/types/projects'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
@@ -75,6 +75,7 @@ export default function ServiceOrders() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
   const [selectedOs, setSelectedOs] = useState('')
   const [user, setUser] = useState<UserData>()
+  const { getUserData } = useRegister()
   const [items, setItems] = useState<
     {
       key: string

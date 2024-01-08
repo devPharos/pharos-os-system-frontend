@@ -1,40 +1,18 @@
 'use client'
 
-import { getUserData, useRegister } from '@/hooks/useRegister'
-import DatePicker from 'react-datepicker'
-import Header from '@/layouts/header'
-import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
-import {
-  AlertCircle,
-  Calendar,
-  CircleDollarSign,
-  ClipboardCheck,
-  Clock,
-  DollarSign,
-  FileUp,
-  PencilLine,
-  PlusCircle,
-  Save,
-  Search,
-  User,
-} from 'lucide-react'
+import { Button, Input, Select, SelectItem } from '@nextui-org/react'
+import { CircleDollarSign, Clock, PencilLine, Save, Search } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { ChangeEvent, Key, MouseEventHandler, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Client } from '@/types/client'
 import CreateOSDetails from './details'
-import {
-  ServiceOrder,
-  ServiceOrderCreation,
-  ServiceOrderDetail,
-  ServiceOrderDetails,
-} from '@/types/service-order'
+import { ServiceOrder, ServiceOrderDetail } from '@/types/service-order'
 import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import Loading from '@/components/Loading'
 
 interface OsFormProps {

@@ -4,7 +4,7 @@ import HTMLRenderer from '@/components/HTMLRenderer'
 import Loading from '@/components/Loading'
 import TipTap from '@/components/TipTap'
 import Toast from '@/components/Toast'
-import { getUserData } from '@/hooks/useRegister'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
@@ -14,7 +14,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
 import { format } from 'date-fns'
-import { register } from 'module'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -31,6 +30,7 @@ export default function SupportTicket() {
   const [showToast, setShowToast] = useState(false)
   const params = Array.from(searchParams.values())
   const [ticket, setTicket] = useState<Ticket>()
+  const { getUserData } = useRegister()
   const priorities: string[] = ['Alta', 'Media', 'Baixa']
   const status: string[] = ['Atraso', 'NaoIniciado', 'Iniciado', 'Finalizado']
   const helpers: string[] = [

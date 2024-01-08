@@ -1,7 +1,7 @@
 'use client'
 
 import TipTap from '@/components/TipTap'
-import { getUserData } from '@/hooks/useRegister'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
@@ -20,6 +20,7 @@ export default function CreateTicket() {
   const [projects, setProjects] = useState<Project[]>([])
   const [coordinatorId, setCoordinatorId] = useState<string>()
   const router = useRouter()
+  const { getUserData } = useRegister()
 
   const [user, setUser] = useState<UserData>()
   const priorities = ['Alta', 'Media', 'Baixa']

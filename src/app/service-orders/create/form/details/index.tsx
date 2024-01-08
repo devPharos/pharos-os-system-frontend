@@ -1,25 +1,19 @@
 'use client'
 
-import { getUserData, useRegister } from '@/hooks/useRegister'
-import Header from '@/layouts/header'
-import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Clock, DollarSign, Save, Search, Trash2 } from 'lucide-react'
-import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Projects, ProjectServices, ProjectDetails } from '@/types/projects'
+import { Projects, ProjectServices } from '@/types/projects'
 import CreateOSExpenses from '../expenses'
 import {
-  ServiceOrder,
   ServiceOrderDetail,
-  ServiceOrderExpense,
   ProjectExpenses,
   ServiceOrderExpenses,
 } from '@/types/service-order'
-import { parseDate } from '@/functions/auxiliar'
 import { format, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
 import { useSearchParams } from 'next/navigation'

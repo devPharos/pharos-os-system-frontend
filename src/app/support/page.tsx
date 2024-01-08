@@ -1,9 +1,7 @@
 'use client'
 import { Card } from '@/components/Card'
-import SupportTable from '@/components/tables/support'
-import { getUserData } from '@/hooks/useRegister'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
-import PageHeader from '@/layouts/page-header'
 import { SupportTicket } from '@/types/support'
 import { UserData } from '@/types/user'
 import {
@@ -25,12 +23,10 @@ import {
   Building2,
   CheckCircle2,
   Eraser,
-  Flag,
   GaugeCircle,
   PlusCircle,
   Search,
   Trash,
-  User,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -40,6 +36,7 @@ export default function Support() {
   const router = useRouter()
   const [user, setUser] = useState<UserData>()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const { getUserData } = useRegister()
 
   const handleUserData = async () => {
     const user = await getUserData()
