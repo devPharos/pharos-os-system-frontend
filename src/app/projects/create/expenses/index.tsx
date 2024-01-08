@@ -1,6 +1,6 @@
 import { ProjectExpenses } from '@/types/projects'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button, Checkbox, Input, Select } from '@nextui-org/react'
+import { Button, Checkbox, Input } from '@nextui-org/react'
 
 import { Save } from 'lucide-react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'

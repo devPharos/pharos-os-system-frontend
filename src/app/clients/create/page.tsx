@@ -151,7 +151,6 @@ export default function CreateClient() {
         },
       })
       .then(function (response) {
-        const data = response.data
         setLoading(false)
       })
       .catch(function (error) {
