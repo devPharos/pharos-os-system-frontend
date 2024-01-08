@@ -38,7 +38,7 @@ export default function CreateClient() {
       : null
 
   const collaboratorFormSchema = z.object({
-    supervisorId: z.string().uuid().optional(),
+    supervisorId: z.optional(z.string().uuid().nullable()),
     name: z.string().min(1, 'Campo obrigatório'),
     lastName: z.string().min(1, 'Campo obrigatório'),
     account: z.string().min(1, 'Campo obrigatório'),
@@ -264,6 +264,7 @@ export default function CreateClient() {
                       <Select
                         label="Supervisor"
                         {...field}
+                        value={field.value || ''}
                         classNames={{
                           trigger:
                             'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',

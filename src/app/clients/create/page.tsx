@@ -30,16 +30,10 @@ export default function CreateClient() {
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const [banks, setBanks] = useState<Bank[]>([])
   const { token } = useRegister()
 
   const clientFormSchema = z.object({
-    account: z.string(),
-    accountDigit: z.string().max(1, 'No máximo um dígito').optional(),
     address: z.string().min(1, 'Campo obrigatório'),
-    agency: z.string().min(1, 'Campo obrigatório'),
-    agencyDigit: z.optional(z.string().max(1, 'No máximo um dígito')),
-    bank: z.string().min(1, 'Campo obrigatório'),
     businessName: z.string().min(1, 'Campo obrigatório'),
     cep: z.string().min(1, 'Campo obrigatório'),
     city: z.string().min(1, 'Campo obrigatório'),
@@ -53,7 +47,6 @@ export default function CreateClient() {
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
-    pixKey: z.string().optional(),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -142,7 +135,6 @@ export default function CreateClient() {
 
   useEffect(() => {
     setLoading(true)
-    getBanks()
 
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
@@ -150,7 +142,7 @@ export default function CreateClient() {
           Authorization: `Bearer ${token}`,
         },
       })
-      .then(function (response) {
+      .then(function () {
         setLoading(false)
       })
       .catch(function (error) {
@@ -169,12 +161,6 @@ export default function CreateClient() {
     e.target.value = formattedCEP
 
     setCep(e.target.value)
-  }
-
-  const getBanks = async () => {
-    const banks = await getBanksData()
-
-    setBanks(banks)
   }
 
   const buscarCep = async () => {
@@ -439,107 +425,6 @@ export default function CreateClient() {
                     }}
                     {...register('complement')}
                     placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
-                </section>
-              </section>
-
-              <section className="flex flex-col gap-2 w-full">
-                <span className="text-gray-200">Dados bancários</span>
-
-                <section className="flex flex-wrap gap-6">
-                  <Select
-                    id="bank"
-                    label="Banco"
-                    classNames={{
-                      trigger:
-                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                      listboxWrapper: 'max-h-[400px] rounded-lg',
-                      popover: 'bg-gray-700 rounded-lg ',
-                      base: 'max-w-sm',
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                      },
-                    }}
-                    {...register('bank')}
-                    errorMessage={errors.bank?.message}
-                    validationState={errors.bank && 'invalid'}
-                  >
-                    {banks.map((bank) => (
-                      <SelectItem key={bank.code}>
-                        {bank.code} - {bank.fullName}
-                      </SelectItem>
-                    ))}
-                  </Select>
-
-                  <Input
-                    id="agency"
-                    label="Agência"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('agency')}
-                    errorMessage={errors.agency?.message}
-                    validationState={errors.agency && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="agencyDigit"
-                    label="Dígito"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('agencyDigit')}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="account"
-                    label="Conta"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('account')}
-                    errorMessage={errors.account?.message}
-                    validationState={errors.account && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="accountDigit"
-                    label="Dígito"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('accountDigit')}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="pixKey"
-                    label="Chave PIX"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('pixKey')}
-                    placeholder={id && ' '}
                   />
                 </section>
               </section>
