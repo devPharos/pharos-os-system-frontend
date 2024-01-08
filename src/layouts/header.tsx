@@ -14,10 +14,30 @@ import {
 import logo from '../../public/assets/logo-negative-yellow.svg'
 import { usePathname, useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
+import { useRegister } from '@/hooks/useRegister'
+import { useEffect, useState } from 'react'
+import { HomeData } from '@/types/home'
+import axios from 'axios'
 
 export default function Header() {
   const path = usePathname()
   const router = useRouter()
+  const [data, setData] = useState<HomeData>()
+  const { token } = useRegister()
+
+  useEffect(() => {
+    if (token) {
+      axios
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/home/data`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setData(response.data)
+        })
+    }
+  }, [token])
 
   const handleUserLogOut = () => {
     if (typeof window !== 'undefined') {
@@ -134,13 +154,13 @@ export default function Header() {
             onClick={() => router.push('/profile')}
           >
             <Avatar
-              src="https://www.github.com/gitirana.png"
               imgProps={{
                 loading: 'eager',
               }}
             />
             <span>
-              Olá, <span className="font-medium text-yellow-500">Thayná</span>!
+              Olá,{' '}
+              <span className="font-medium text-yellow-500">{data?.name}</span>!
             </span>
           </Button>
 
