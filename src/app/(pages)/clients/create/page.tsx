@@ -16,7 +16,7 @@ import Header from '@/layouts/header'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Save } from 'lucide-react'
+import { Save, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { ChangeEvent, useEffect, useState } from 'react'
@@ -69,6 +69,7 @@ export default function CreateClient() {
           },
         })
         .then((response) => {
+          console.log(response.data)
           return response.data
         })
         .catch(function (error) {
@@ -304,11 +305,13 @@ export default function CreateClient() {
                     placeholder={id && ' '}
                     value={cep}
                     onChange={handleCepChange}
+                    //  defaultValue={}
                     endContent={
                       <Button
                         onClick={buscarCep}
-                        className="disabled:border-none items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                        className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
                         disabled={cep.length !== 10}
+                        startContent={<Search size={18} />}
                       >
                         Buscar CEP
                       </Button>
