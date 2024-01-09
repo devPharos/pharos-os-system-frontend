@@ -28,6 +28,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
   const token = localStorage.getItem('access_token')
   const [status, setStatus] = useState('')
+  const [hasError, setHasError] = useState(false)
 
   const serviceTypes: string[] = ['Remoto', 'Presencial']
 
@@ -101,11 +102,13 @@ export default function CreateOSForm({ id }: OsFormProps) {
           })
           .then(() => {
             setLoading(false)
-            router.push('/service-orders')
+            // router.push('/service-orders')
           })
           .catch((error) => {
-            console.log(error)
             setLoading(false)
+            if (error.message === 'Request failed with status code 409') {
+              setHasError(true)
+            }
           })
       }
 
@@ -127,11 +130,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
           )
           .then(() => {
             setLoading(false)
-            router.push('/service-orders')
-          })
-          .catch((error) => {
-            console.log(error)
-            setLoading(false)
+            // router.push('/service-orders')
           })
       }
     }
@@ -327,6 +326,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
               osExpenses={serviceOrder?.serviceOrderExpenses?.filter(
                 (expense) => expense.projectId === osDetail?.project?.id,
               )}
+              hasError={hasError}
             />
           )}
 

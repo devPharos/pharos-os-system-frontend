@@ -23,6 +23,7 @@ interface OSDetailsProps {
   handleOSDetailsSave: (osDetails: ServiceOrderDetail) => void
   osDetail?: ServiceOrderDetail
   osExpenses?: ServiceOrderExpenses[]
+  hasError?: boolean
 }
 
 const osFormSchema = z.object({
@@ -39,6 +40,7 @@ export default function CreateOSDetails({
   clientId,
   handleOSDetailsSave,
   osDetail,
+  hasError = false,
   osExpenses,
 }: OSDetailsProps) {
   const token: string | null =
@@ -59,6 +61,7 @@ export default function CreateOSDetails({
   const {
     register,
     handleSubmit,
+    setError,
     reset,
     formState: { errors },
   } = useForm<TOsDetailsFormData>({
@@ -108,8 +111,6 @@ export default function CreateOSDetails({
     }
 
     handleOSDetailsSave(osDetails)
-
-    reset()
   }
 
   useEffect(() => {
@@ -121,6 +122,16 @@ export default function CreateOSDetails({
     setLoading(true)
     const body = {
       clientId,
+    }
+
+    if (hasError) {
+      setError('startDate', {
+        message: 'Já existe uma OS nesse horário',
+      })
+
+      setError('endDate', {
+        message: 'Já existe uma OS nesse horário',
+      })
     }
 
     axios
@@ -136,7 +147,7 @@ export default function CreateOSDetails({
         setLoading(false)
         setProjects(response.data.projects)
       })
-  }, [clientId, token, osDetail])
+  }, [clientId, token, osDetail, hasError])
 
   const handleProjectServices = (projectId: string) => {
     setLoading(true)

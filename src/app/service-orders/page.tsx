@@ -73,9 +73,11 @@ export default function ServiceOrders() {
   const [dates, setDates] = useState<ServiceOrderDate[]>([])
   const [loading, setLoading] = useState(false)
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
+  const [noOs, setNoOs] = useState(true)
+
   const [selectedOs, setSelectedOs] = useState('')
   const [user, setUser] = useState<UserData>()
-  const { getUserData } = useRegister()
+  const { getUserData, token } = useRegister()
   const [items, setItems] = useState<
     {
       key: string
@@ -165,14 +167,11 @@ export default function ServiceOrders() {
     }
 
     if (key === 'delete') {
-      if (typeof window !== 'undefined') {
-        const localStorage = window.localStorage
-        const userToken: string = localStorage.getItem('access_token') || ''
-
+      if (typeof window !== 'undefined' && token) {
         axios
           .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/service-order`, {
             headers: {
-              Authorization: `Bearer ${userToken}`,
+              Authorization: `Bearer ${token}`,
               id,
             },
           })
@@ -205,9 +204,7 @@ export default function ServiceOrders() {
     id: string,
     status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho',
   ) => {
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
+    if (typeof window !== 'undefined' && token) {
       const body = {
         id,
         status,
@@ -219,7 +216,7 @@ export default function ServiceOrders() {
           body,
           {
             headers: {
-              Authorization: `Bearer ${userToken}`,
+              Authorization: `Bearer ${token}`,
             },
           },
         )
@@ -242,43 +239,42 @@ export default function ServiceOrders() {
   }
 
   useEffect(() => {
-    handleUserData()
-
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
-
+    if (typeof window !== 'undefined' && token) {
+      handleUserData()
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
-          setServiceOrderData(response.data)
-          const os = [
-            ...response.data.serviceOrders,
-            ...response.data.serviceOrdersSupervisedByMe,
-          ]
-          const allOs: ServiceOrderCard[] = os
-          allOs.forEach((os) => {
-            os.selected = false
-          })
+          if (response.data !== '') {
+            setNoOs(false)
+            setServiceOrderData(response.data)
+            const os = [
+              ...response.data.serviceOrders,
+              ...response.data.serviceOrdersSupervisedByMe,
+            ]
+            const allOs: ServiceOrderCard[] = os
+            allOs.forEach((os) => {
+              os.selected = false
+            })
 
-          os.sort((a, b) => {
-            const dataA = new Date(a.date).getTime()
-            const dataB = new Date(b.date).getTime()
+            os.sort((a, b) => {
+              const dataA = new Date(a.date).getTime()
+              const dataB = new Date(b.date).getTime()
 
-            return dataA - dataB
-          })
+              return dataA - dataB
+            })
 
-          setServiceOrders(os)
+            setServiceOrders(os)
+          }
         })
 
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders/filters`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
@@ -288,7 +284,7 @@ export default function ServiceOrders() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
@@ -299,7 +295,7 @@ export default function ServiceOrders() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
@@ -307,7 +303,7 @@ export default function ServiceOrders() {
           setProjects(response.data)
         })
     }
-  }, [])
+  }, [token])
 
   useEffect(() => {
     const items: {
@@ -413,8 +409,10 @@ export default function ServiceOrders() {
           label="Adicionar OS"
         />
 
-        {loading ? (
-          <Loading />
+        {noOs ? (
+          <section className="flex justify-center">
+            <span className="text-gray-300">Nenhuma OS criada.</span>
+          </section>
         ) : (
           <>
             <Select
