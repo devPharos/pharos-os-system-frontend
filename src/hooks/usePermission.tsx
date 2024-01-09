@@ -17,13 +17,15 @@ export function useVerifyPathPermission() {
 
   const isPublic = Object.values(APP_ROUTES.public).includes(pathName)
 
+  const isHome = pathName === '/'
+
   useEffect(() => {
     if (!isPublic && !token) {
       router.push('/login')
     }
 
-    if (isPublic && token) {
-      router.push('/')
+    if ((isPublic || isHome) && token) {
+      router.push('/home')
     }
-  }, [isPublic, token, router])
+  }, [isPublic, token, router, isHome])
 }
