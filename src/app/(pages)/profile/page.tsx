@@ -8,18 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, Button, Input } from '@nextui-org/react'
 import axios from 'axios'
 import { Camera, Save } from 'lucide-react'
-import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function Profile() {
-  const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : ''
   const [loading, setLoading] = useState(true)
   const [showToast, setShowToast] = useState(false)
+  const { token } = useRegister()
 
   const editProfileFormSchema = z.object({
     firstName: z.string().min(1, 'Insira seu primeiro nome'),

@@ -13,13 +13,10 @@ import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User } from '@/types/user'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
-  const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : null
   const [collaboratorsId, setCollaboratorsId] = useState<Collaborator[]>([])
   const [showToast, setShowToast] = useState(false)
   const [user, setUser] = useState<User>()
@@ -27,6 +24,7 @@ export default function Users() {
   const params = Array.from(searchParams.values())
   const id = params[0]
   const router = useRouter()
+  const { token } = useRegister()
 
   const createUserSchema = z.object({
     collaboratorId: z.string().uuid('Selecione um colaborador'),
@@ -61,9 +59,6 @@ export default function Users() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators`, {
           headers: {
@@ -74,7 +69,7 @@ export default function Users() {
           setCollaboratorsId(response.data)
         })
     }
-  }, [])
+  }, [token])
 
   const handleChangePasswordVisibility = () => {
     setPasswordVisible(!isPasswordVisible)
@@ -84,9 +79,6 @@ export default function Users() {
     data: CreateUserSchema,
   ) => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       if (!user) {
         const body = {
           collaboratorId: data.collaboratorId,

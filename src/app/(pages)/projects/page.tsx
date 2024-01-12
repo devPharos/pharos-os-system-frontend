@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/Card'
 import { onFilter } from '@/functions/auxiliar'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Project } from '@/types/projects'
@@ -28,18 +29,16 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Key, useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const { token } = useRegister()
   const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
+    if (typeof window !== 'undefined' && token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
@@ -60,7 +59,7 @@ export default function Projects() {
           setClients(response.data)
         })
     }
-  }, [])
+  }, [token])
 
   return (
     <div className="min-h-screen flex flex-col items-center">
@@ -214,9 +213,10 @@ export default function Projects() {
                         id: project.id,
                       },
                     }}
+                    className="bg-gray-700 rounded-lg w-full flex-1"
                     key={index}
                   >
-                    <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm p-4">
+                    <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit">
                       <Card.Header>
                         <section className="flex items-center gap-2">
                           <Card.Title label={project.name} />

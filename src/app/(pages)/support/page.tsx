@@ -34,18 +34,9 @@ import { Key, useEffect, useState } from 'react'
 
 export default function Support() {
   const router = useRouter()
-  const [user, setUser] = useState<UserData>()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
-  const { getUserData } = useRegister()
-
-  const handleUserData = async () => {
-    const user = await getUserData()
-    setUser(user)
-  }
 
   useEffect(() => {
-    handleUserData()
-
     if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')
