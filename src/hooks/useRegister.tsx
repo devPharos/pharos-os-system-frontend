@@ -36,6 +36,10 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
       typeof window !== 'undefined' &&
       window.sessionStorage.getItem('access_token')
 
+    if (!userToken) {
+      setLoading(false)
+    }
+
     if (userToken) {
       setToken(userToken)
       getUserData(userToken)

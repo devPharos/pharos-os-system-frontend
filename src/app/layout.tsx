@@ -5,6 +5,8 @@ import localFont from 'next/font/local'
 import { Providers } from './providers'
 import { useVerifyPathPermission } from '@/hooks/usePermission'
 import metadata from './metadata'
+import Loading from './loading'
+import { useRegister } from '@/hooks/useRegister'
 
 const roboto = localFont({
   src: [
@@ -29,7 +31,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // useVerifyPathPermission()
+  const { loading, currentUser, token } = useRegister()
+  useVerifyPathPermission(loading)
+
+  if (loading && !currentUser && !token) {
+    return <Loading />
+  }
 
   return (
     <html lang="en">
