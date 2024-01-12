@@ -41,9 +41,9 @@ export default function Header() {
 
   const handleUserLogOut = () => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
+      const sessionStorage = window.sessionStorage
 
-      localStorage.clear()
+      sessionStorage.clear()
       router.push('/login')
     }
   }

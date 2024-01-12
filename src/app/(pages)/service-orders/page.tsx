@@ -329,13 +329,11 @@ export default function ServiceOrders() {
     event: ChangeEvent<HTMLSelectElement>,
   ) => {
     const selectedValue = event.target.value
-    const localStorage = window.localStorage
-    const userToken: string = localStorage.getItem('access_token') || ''
 
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
         headers: {
-          Authorization: `Bearer ${userToken}`,
+          Authorization: `Bearer ${token}`,
           filterDate: selectedValue,
         },
       })
@@ -364,15 +362,13 @@ export default function ServiceOrders() {
     setLoading(true)
 
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
       const { collaboratorId, clientId, endDate, projectId, startDate } = data
 
       const response2 = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/pdf`,
         {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
             clientid: clientId,
             collaboratorid: collaboratorId,
             enddate: endDate,
