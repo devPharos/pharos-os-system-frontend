@@ -24,27 +24,27 @@ import { useRouter } from 'next/navigation'
 import { Key, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Collaborator } from '@/types/collaborator'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function Company() {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const router = useRouter()
+  const { token } = useRegister()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          setCollaborators(response.data)
-        })
+      token &&
+        axios
+          .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            setCollaborators(response.data)
+          })
     }
-  }, [])
+  }, [token])
 
   const onStatusFilter = ({
     status = null,

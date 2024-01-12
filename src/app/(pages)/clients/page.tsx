@@ -25,9 +25,13 @@ import {
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
 import Link from 'next/link'
+import { useRegister } from '@/hooks/useRegister'
+import Loading from '@/app/loading'
 
 export default function Clients() {
   const router = useRouter()
+  const { token } = useRegister()
+  const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState<Client[]>([])
 
   const onStatusFilter = ({
@@ -67,10 +71,7 @@ export default function Clients() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
+    if (typeof window !== 'undefined' && token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
@@ -80,12 +81,14 @@ export default function Clients() {
         .then(function (response) {
           const data = response.data
           setClients(data)
+          setLoading(false)
         })
         .catch(function (error) {
           console.error(error)
+          setLoading(false)
         })
     }
-  }, [])
+  }, [token])
 
   const handleChangeClientStatus = (
     key: Key,
@@ -93,8 +96,6 @@ export default function Clients() {
     active: boolean | undefined,
   ) => {
     if (key === 'status' && typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
       const body = {
         clientId: id,
         active: !active,
@@ -109,10 +110,30 @@ export default function Clients() {
         .then(function (response) {
           const data = response.data
           setClients(data)
+          setLoading(false)
         })
         .catch(function (error) {
           console.error(error)
+          setLoading(false)
         })
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    router.push(`/clients/create?id=${id}`)
+  }
+
+  const handleClientCardClick = (
+    key: Key,
+    id: string,
+    active: boolean | undefined,
+  ) => {
+    if (key === 'edit') {
+      handleEdit(id)
+    }
+
+    if (key === 'status') {
+      handleChangeClientStatus(key, id, active)
     }
   }
 
@@ -228,94 +249,98 @@ export default function Clients() {
           </Button>
         </header>
 
-        <section className="flex flex-wrap w-full gap-6">
-          {clients.map((client) => {
-            if (!client.hide) {
-              return (
-                <Dropdown
-                  classNames={{
-                    base: 'bg-gray-700 rounded-lg w-full flex-1',
-                  }}
-                  backdrop="opaque"
-                  key={client.cnpj}
-                >
-                  <DropdownTrigger>
-                    <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
-                      <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
-                        <Card.Header>
-                          <Card.Title label={client.fantasyName} />
-                          <Card.Badge
-                            className={
-                              client.active
-                                ? 'text-green-500 bg-green-500/10'
-                                : 'text-red-500 bg-red-500/10'
-                            }
-                            status={client.active ? 'Ativo' : 'Inativo'}
-                          />
-                        </Card.Header>
-                        <Card.Content>
-                          <Card.Info icon={Building2} info={client.cnpj} />
-                          {!client.userId && (
-                            <Card.Badge
-                              className="text-gray-300/80 bg-gray-500/10"
-                              status={'Sem acesso'}
-                            />
-                          )}
-                        </Card.Content>
-                      </Card.Root>
-                    </Button>
-                  </DropdownTrigger>
-
-                  <DropdownMenu
-                    itemClasses={{
-                      base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+        {loading ? (
+          <Loading />
+        ) : (
+          <section className="flex flex-wrap w-full gap-6">
+            {clients.map((client) => {
+              if (!client.hide) {
+                return (
+                  <Dropdown
+                    classNames={{
+                      base: 'bg-gray-700 rounded-lg w-full flex-1',
                     }}
-                    onAction={(key: Key) =>
-                      handleChangeClientStatus(key, client.id, client?.active)
-                    }
+                    backdrop="opaque"
+                    key={client.cnpj}
                   >
-                    <DropdownItem
-                      startContent={
-                        <Card.Badge
-                          status=""
-                          className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
-                          icon={PencilLine}
-                        />
+                    <DropdownTrigger>
+                      <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
+                        <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
+                          <Card.Header>
+                            <Card.Title label={client.fantasyName} />
+                            <Card.Badge
+                              className={
+                                client.active
+                                  ? 'text-green-500 bg-green-500/10'
+                                  : 'text-red-500 bg-red-500/10'
+                              }
+                              status={client.active ? 'Ativo' : 'Inativo'}
+                            />
+                          </Card.Header>
+                          <Card.Content>
+                            <Card.Info icon={Building2} info={client.cnpj} />
+                            {!client.userId && (
+                              <Card.Badge
+                                className="text-gray-300/80 bg-gray-500/10"
+                                status={'Sem acesso'}
+                              />
+                            )}
+                          </Card.Content>
+                        </Card.Root>
+                      </Button>
+                    </DropdownTrigger>
+
+                    <DropdownMenu
+                      itemClasses={{
+                        base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                      }}
+                      onAction={(key: Key) =>
+                        handleClientCardClick(key, client.id, client?.active)
                       }
-                      key={'edit'}
                     >
-                      <Link
-                        href={{
-                          pathname: '/clients/create',
-                          query: {
-                            id: client.id,
-                          },
-                        }}
+                      <DropdownItem
+                        startContent={
+                          <Card.Badge
+                            status=""
+                            className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                            icon={PencilLine}
+                          />
+                        }
+                        key={'edit'}
                       >
-                        Editar cliente
-                      </Link>
-                    </DropdownItem>
+                        <Link
+                          href={{
+                            pathname: '/clients/create',
+                            query: {
+                              id: client.id,
+                            },
+                          }}
+                        >
+                          Editar cliente
+                        </Link>
+                      </DropdownItem>
 
-                    <DropdownItem
-                      startContent={
-                        <Card.Badge
-                          status=""
-                          className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
-                          icon={CircleDashed}
-                        />
-                      }
-                      key={'status'}
-                    >
-                      Alterar status do cliente
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              )
-            }
+                      <DropdownItem
+                        startContent={
+                          <Card.Badge
+                            status=""
+                            className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                            icon={CircleDashed}
+                          />
+                        }
+                        key={'status'}
+                      >
+                        Alterar status do cliente
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                )
+              }
 
-            return null
-          })}
-        </section>
+              return null
+            })}
+          </section>
+        )}
       </main>
     </div>
   )

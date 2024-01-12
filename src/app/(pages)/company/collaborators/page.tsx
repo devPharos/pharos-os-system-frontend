@@ -11,12 +11,13 @@ import {
   validateCNPJ,
   validateCPF,
 } from '@/functions/auxiliar'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Save } from 'lucide-react'
+import { Save, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChangeEvent, useEffect, useState } from 'react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
@@ -32,13 +33,12 @@ export default function CreateClient() {
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : null
+  const { token } = useRegister()
+  const [state, setState] = useState<string>()
 
   const collaboratorFormSchema = z.object({
-    supervisorId: z.optional(z.string().uuid().nullable()),
+    bank: z.string().min(1, 'Campo obrigatório'),
+    supervisorId: z.optional(z.string().nullable()),
     name: z.string().min(1, 'Campo obrigatório'),
     lastName: z.string().min(1, 'Campo obrigatório'),
     account: z.string().min(1, 'Campo obrigatório'),
@@ -46,7 +46,6 @@ export default function CreateClient() {
     address: z.string().min(1, 'Campo obrigatório'),
     agency: z.string().min(1, 'Campo obrigatório'),
     agencyDigit: z.string().max(1, 'No máximo um dígito'),
-    bank: z.string().min(1, 'Campo obrigatório'),
     cep: z.string().min(1, 'Campo obrigatório'),
     city: z.string().min(1, 'Campo obrigatório'),
     cnpj: z.string().min(1, 'Campo obrigatório'),
@@ -71,6 +70,8 @@ export default function CreateClient() {
   } = useForm<CollaboratorFormSchema>({
     resolver: zodResolver(collaboratorFormSchema),
     defaultValues: async () =>
+      token &&
+      id &&
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/find/collaborator`, {
           headers: {
@@ -119,6 +120,7 @@ export default function CreateClient() {
     setValue('complement', cepData?.complemento || '')
     setValue('neighborhood', cepData?.bairro || '')
     setValue('address', cepData?.logradouro || '')
+    setState(cepData?.uf)
   }
 
   const handleCollaboratorFormSubmit: SubmitHandler<CollaboratorFormSchema> = (
@@ -140,15 +142,18 @@ export default function CreateClient() {
       setLoading(false)
     }
 
-    if (typeof window !== 'undefined' && isAValidCNPJOrCPF) {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
+    if (typeof window !== 'undefined' && isAValidCNPJOrCPF && token) {
       if (!id) {
+        console.log(data)
+        setLoading(false)
+        const body = {
+          ...data,
+          supervisorId: data.supervisorId ? data.supervisorId : null,
+        }
         axios
           .post(
             `${process.env.NEXT_PUBLIC_API_URL}/accounts/collaborator`,
-            data,
+            body,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -195,25 +200,27 @@ export default function CreateClient() {
     getBanks()
 
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/supervisors`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setCollaborators(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
+      token &&
+        axios
+          .get(`${process.env.NEXT_PUBLIC_API_URL}/list/supervisors`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then(function (response) {
+            const data = response.data
+            setCollaborators(data)
+            setLoading(false)
+          })
+          .catch(function (error) {
+            console.error(error)
+          })
     }
-  }, [id])
+  }, [id, token])
+
+  const handleSelectsData = (keys: any) => {
+    setValue('bank', keys.currentKey)
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-14">
@@ -377,8 +384,9 @@ export default function CreateClient() {
                       !id && (
                         <Button
                           onClick={buscarCep}
-                          className="disabled:border-none items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                          className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
                           disabled={cep.length !== 10}
+                          startContent={<Search size={18} />}
                         >
                           Buscar CEP
                         </Button>
@@ -419,9 +427,23 @@ export default function CreateClient() {
                     {...register('state')}
                     errorMessage={errors.state?.message}
                     validationState={errors.state && 'invalid'}
+                    defaultSelectedKeys={
+                      collaborator
+                        ? [
+                            states.find(
+                              (state) => state.name === collaborator?.state,
+                            )?.key || '',
+                          ]
+                        : state
+                        ? [
+                            states.find((findState) => findState.key === state)
+                              ?.key || '',
+                          ]
+                        : []
+                    }
                   >
                     {states.map((state) => (
-                      <SelectItem key={state}>{state}</SelectItem>
+                      <SelectItem key={state.key}>{state.name}</SelectItem>
                     ))}
                   </Select>
 
@@ -522,10 +544,14 @@ export default function CreateClient() {
                     {...register('bank')}
                     errorMessage={errors.bank?.message}
                     validationState={errors.bank && 'invalid'}
+                    defaultSelectedKeys={
+                      collaborator ? [collaborator.bank || ''] : []
+                    }
+                    onSelectionChange={(keys) => handleSelectsData(keys)}
                   >
                     {banks.map((bank) => (
-                      <SelectItem key={bank.code}>
-                        {bank.code} - {bank.fullName}
+                      <SelectItem key={bank.fullName} value={bank.fullName}>
+                        {bank.fullName}
                       </SelectItem>
                     ))}
                   </Select>

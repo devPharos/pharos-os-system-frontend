@@ -1,11 +1,9 @@
 'use client'
 
 import TipTap from '@/components/TipTap'
-import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
-import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
@@ -20,9 +18,6 @@ export default function CreateTicket() {
   const [projects, setProjects] = useState<Project[]>([])
   const [coordinatorId, setCoordinatorId] = useState<string>()
   const router = useRouter()
-  const { getUserData } = useRegister()
-
-  const [user, setUser] = useState<UserData>()
   const priorities = ['Alta', 'Media', 'Baixa']
   const helpers = [
     'Desenvolvimento',
@@ -82,14 +77,7 @@ export default function CreateTicket() {
     }
   }
 
-  const handleUserData = async () => {
-    const user = await getUserData()
-    setUser(user)
-  }
-
   useEffect(() => {
-    handleUserData()
-
     if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')

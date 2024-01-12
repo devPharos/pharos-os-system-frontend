@@ -16,7 +16,6 @@ import { Card } from '@/components/Card'
 import { Project, ProjectExpenses, ProjectServices } from '@/types/projects'
 import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
-import { UserData } from '@/types/user'
 import { compareDesc, parseISO } from 'date-fns'
 import { useRegister } from '@/hooks/useRegister'
 
@@ -33,11 +32,9 @@ export default function CreateProject() {
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
   const router = useRouter()
-  const [user, setUser] = useState<UserData>()
   const [project, setProject] = useState<Project>()
   const localStorage = window.localStorage
   const token = localStorage.getItem('access_token')
-  const { getUserData } = useRegister()
 
   const projectFormSchema = z.object({
     clientId: z.string().uuid('Selecione uma opção'),
@@ -175,15 +172,8 @@ export default function CreateProject() {
     }
   }
 
-  const handleUserData = async () => {
-    const user = await getUserData()
-    setUser(user)
-  }
-
   useEffect(() => {
     setLoading(true)
-    handleUserData()
-
     if (typeof window !== 'undefined') {
       const localStorage = window.localStorage
       const token = localStorage.getItem('access_token')

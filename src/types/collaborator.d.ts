@@ -4,4 +4,6 @@ export interface Collaborator {
   name: string
   lastName: string
   hide?: boolean
+  state?: string
+  bank?: string
 }

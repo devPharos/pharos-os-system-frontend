@@ -16,9 +16,9 @@ interface IRegisterContext {
   setUser: React.Dispatch<React.SetStateAction<User>>
   token: string | null
   setToken: React.Dispatch<React.SetStateAction<string | null>>
-  getUserData: () => UserData
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  currentUser: UserData | null
 }
 
 export const RegisterContext = createContext<IRegisterContext>(
@@ -27,48 +27,57 @@ export const RegisterContext = createContext<IRegisterContext>(
 
 const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>(defaultUser)
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const userAuth = () => {
-    const userToken = localStorage.getItem('access_token')
+    const userToken =
+      typeof window !== 'undefined' &&
+      window.sessionStorage.getItem('access_token')
 
-    setToken(userToken)
+    if (userToken) {
+      setToken(userToken)
+      getUserData(userToken)
+    }
   }
 
-  const getUserData = (): UserData => {
+  const getUserData = (userToken: string): UserData => {
     let userData: UserData = {
       collaboratorId: '',
       companyId: '',
       userId: '',
       clientId: '',
       token: '',
+      fantasyName: '',
+      name: '',
     }
 
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/user/data`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        setLoading(false)
-        return (userData = {
-          ...response.data,
-          token,
+    userToken &&
+      axios
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/user/data`, {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
         })
-      })
-      .catch((error) => {
-        if (error) {
+        .then((response) => {
           setLoading(false)
-        }
-      })
+          setCurrentUser(response.data)
+          return (userData = {
+            ...response.data,
+            token,
+          })
+        })
+        .catch((error) => {
+          if (error) {
+            setLoading(false)
+          }
+        })
 
     return userData
   }
 
   useEffect(() => {
-    getUserData()
     userAuth()
   }, [])
 
@@ -78,10 +87,10 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         setUser,
         token,
-        getUserData,
         setToken,
         setLoading,
         loading,
+        currentUser,
       }}
     >
       {children}

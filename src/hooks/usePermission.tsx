@@ -1,11 +1,10 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export function useVerifyPathPermission(loading: boolean) {
+export function useVerifyPathPermission(loading?: boolean) {
   const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : ''
+    typeof window !== 'undefined' &&
+    window.sessionStorage.getItem('access_token')
   const pathName = usePathname()
 
   const APP_ROUTES = {

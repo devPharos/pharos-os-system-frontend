@@ -55,9 +55,7 @@ import {
   useEffect,
   useState,
 } from 'react'
-import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
-import { UserData } from '@/types/user'
 import { Client } from '@/types/client'
 import { Projects } from '@/types/projects'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
@@ -76,8 +74,7 @@ export default function ServiceOrders() {
   const [noOs, setNoOs] = useState(true)
 
   const [selectedOs, setSelectedOs] = useState('')
-  const [user, setUser] = useState<UserData>()
-  const { getUserData, token } = useRegister()
+  const { currentUser, token } = useRegister()
   const [items, setItems] = useState<
     {
       key: string
@@ -120,7 +117,7 @@ export default function ServiceOrders() {
         }
 
         if (supervisor === 'me') {
-          if (serviceOrder.collaborator.id === user?.collaboratorId) {
+          if (serviceOrder.collaborator.id === currentUser?.collaboratorId) {
             serviceOrder.hide = false
           }
         }
@@ -233,14 +230,8 @@ export default function ServiceOrders() {
     setSelectedOs(id)
   }
 
-  const handleUserData = async () => {
-    const user = await getUserData()
-    setUser(user)
-  }
-
   useEffect(() => {
     if (typeof window !== 'undefined' && token) {
-      handleUserData()
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
           headers: {
@@ -321,7 +312,7 @@ export default function ServiceOrders() {
     ]
 
     serviceOrders.forEach((os) => {
-      if (os.collaborator.supervisorId === user?.collaboratorId) {
+      if (os.collaborator.supervisorId === currentUser?.collaboratorId) {
         if (!items.find((item) => item.key === os.collaborator.id)) {
           items.push({
             key: os.collaborator.id,
@@ -332,7 +323,7 @@ export default function ServiceOrders() {
     })
 
     setItems(items)
-  }, [serviceOrders, user?.collaboratorId])
+  }, [serviceOrders, currentUser?.collaboratorId])
 
   const getServiceOrdersByMonth: ChangeEventHandler<HTMLSelectElement> = (
     event: ChangeEvent<HTMLSelectElement>,
@@ -808,7 +799,7 @@ export default function ServiceOrders() {
                         key={serviceOrder.id}
                         isDisabled={
                           serviceOrder.collaborator?.supervisorId !==
-                            user?.collaboratorId &&
+                            currentUser?.collaboratorId &&
                           serviceOrder.status !== 'Aberto' &&
                           serviceOrder.status !== 'Rascunho'
                         }
@@ -892,7 +883,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId ===
-                              user?.collaboratorId
+                              currentUser?.collaboratorId
                                 ? ''
                                 : 'hidden'
                             }
@@ -937,7 +928,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId !==
-                                user?.collaboratorId &&
+                                currentUser?.collaboratorId &&
                               serviceOrder.status === 'Aberto'
                                 ? ''
                                 : 'hidden'
@@ -973,7 +964,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId !==
-                                user?.collaboratorId &&
+                                currentUser?.collaboratorId &&
                               serviceOrder.status === 'Rascunho'
                                 ? ''
                                 : 'hidden'

@@ -10,10 +10,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { loading } = useRegister()
+  const { loading, currentUser, token } = useRegister()
   useVerifyPathPermission(loading)
 
-  if (loading) {
+  if (loading && !currentUser && !token) {
     return <Loading />
   }
 

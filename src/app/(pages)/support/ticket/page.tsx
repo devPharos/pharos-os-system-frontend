@@ -30,7 +30,6 @@ export default function SupportTicket() {
   const [showToast, setShowToast] = useState(false)
   const params = Array.from(searchParams.values())
   const [ticket, setTicket] = useState<Ticket>()
-  const { getUserData } = useRegister()
   const priorities: string[] = ['Alta', 'Media', 'Baixa']
   const status: string[] = ['Atraso', 'NaoIniciado', 'Iniciado', 'Finalizado']
   const helpers: string[] = [
@@ -164,13 +163,7 @@ export default function SupportTicket() {
     }
   }
 
-  const handleUserData = async () => {
-    const user = await getUserData()
-    setUser(user)
-  }
-
   useEffect(() => {
-    handleUserData()
     setLoading(true)
     if (typeof window !== 'undefined') {
       const localStorage = window.localStorage

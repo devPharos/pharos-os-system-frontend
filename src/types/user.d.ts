@@ -12,6 +12,8 @@ export interface UserData {
   collaboratorId: string
   clientId: string
   token?: string
+  name: string
+  fantasyName: string
 }
 
 export interface Profile {
