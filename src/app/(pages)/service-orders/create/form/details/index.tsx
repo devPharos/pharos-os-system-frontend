@@ -195,15 +195,12 @@ export default function CreateOSDetails({
 
   const handleDeleteExpense = (expenseid: string | undefined) => {
     if (expenseid && typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
-
       axios
         .delete(
           `${process.env.NEXT_PUBLIC_API_URL}/delete/service-order/expense`,
           {
             headers: {
-              Authorization: `Bearer ${userToken}`,
+              Authorization: `Bearer ${token}`,
               serviceorderexpenseid: expenseid,
               serviceorderid: id,
             },

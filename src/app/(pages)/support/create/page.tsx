@@ -1,6 +1,7 @@
 'use client'
 
 import TipTap from '@/components/TipTap'
+import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
@@ -17,6 +18,7 @@ export default function CreateTicket() {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [coordinatorId, setCoordinatorId] = useState<string>()
+  const { token } = useRegister()
   const router = useRouter()
   const priorities = ['Alta', 'Media', 'Baixa']
   const helpers = [
@@ -57,8 +59,6 @@ export default function CreateTicket() {
     data: SupportFormSchema,
   ) => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
       const body = {
         ...data,
       }
@@ -79,9 +79,6 @@ export default function CreateTicket() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/project/collaborators`, {
           headers: {

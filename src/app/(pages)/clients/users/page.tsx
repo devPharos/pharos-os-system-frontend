@@ -12,10 +12,12 @@ import axios from 'axios'
 import Toast from '@/components/Toast'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function Users() {
   const [clients, setClients] = useState<Client[]>([])
   const [showToast, setShowToast] = useState(false)
+  const { token } = useRegister()
   const router = useRouter()
 
   const createUserSchema = z.object({
@@ -37,9 +39,6 @@ export default function Users() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
@@ -56,8 +55,6 @@ export default function Users() {
     data: CreateUserSchema,
   ) => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
       const body = {
         clientId: data.clientId,
         email: data.email,
