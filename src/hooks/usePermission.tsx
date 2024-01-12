@@ -1,11 +1,10 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export function useVerifyPathPermission() {
+export function useVerifyPathPermission(loading?: boolean) {
   const token =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : ''
+    typeof window !== 'undefined' &&
+    window.sessionStorage.getItem('access_token')
   const pathName = usePathname()
 
   const APP_ROUTES = {
@@ -17,13 +16,15 @@ export function useVerifyPathPermission() {
 
   const isPublic = Object.values(APP_ROUTES.public).includes(pathName)
 
+  const isHome = pathName === '/'
+
   useEffect(() => {
-    if (!isPublic && !token) {
+    if (!isPublic && !token && !loading) {
       router.push('/login')
     }
 
-    if (isPublic && token) {
-      router.push('/')
+    if ((isPublic || isHome) && token && !loading) {
+      router.push('/home')
     }
-  }, [isPublic, token, router])
+  }, [isPublic, token, router, isHome, loading])
 }

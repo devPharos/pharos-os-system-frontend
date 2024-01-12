@@ -29,7 +29,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  useVerifyPathPermission()
+  // useVerifyPathPermission()
 
   return (
     <html lang="en">
