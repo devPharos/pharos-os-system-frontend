@@ -35,12 +35,10 @@ import { Key, useEffect, useState } from 'react'
 export default function Support() {
   const router = useRouter()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const { token } = useRegister()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/tickets`, {
           headers: {

@@ -9,7 +9,6 @@ import Header from '@/layouts/header'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
 import { SupportTicketMessage, Ticket } from '@/types/support'
-import { UserData } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
@@ -24,7 +23,6 @@ export default function SupportTicket() {
   const [loading, setLoading] = useState(false)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [projects, setProjects] = useState<Project[]>([])
-  const [user, setUser] = useState<UserData>()
   const [messages, setMessages] = useState<SupportTicketMessage[]>([])
   const searchParams = useSearchParams()
   const [showToast, setShowToast] = useState(false)
@@ -41,7 +39,7 @@ export default function SupportTicket() {
   ]
   const id = params[0]
   const router = useRouter()
-  const token = localStorage.getItem('access_token')
+  const { token, currentUser } = useRegister()
 
   const supportUpdateFormSchema = z.object({
     collaboratorId: z.string().uuid('Selecione uma opção'),
@@ -83,8 +81,6 @@ export default function SupportTicket() {
     SupportUpdateFormSchema
   > = (data: SupportUpdateFormSchema) => {
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
       const body = {
         id,
         ...data,
@@ -138,11 +134,9 @@ export default function SupportTicket() {
   ) => {
     setLoading(true)
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
       const body = {
         ...data,
-        userId: user?.userId,
+        userId: currentUser?.userId,
         supportId: id,
       }
       axios
@@ -166,9 +160,6 @@ export default function SupportTicket() {
   useEffect(() => {
     setLoading(true)
     if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/ticket`, {
           headers: {
@@ -206,7 +197,7 @@ export default function SupportTicket() {
           setProjects(response.data)
         })
     }
-  }, [id])
+  }, [id, token])
 
   console.log(ticket)
 
@@ -242,7 +233,7 @@ export default function SupportTicket() {
             <Select
               id="status"
               label="Status"
-              disabled={!!user?.clientId}
+              disabled={!!currentUser?.clientId}
               classNames={{
                 trigger:
                   'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
@@ -292,7 +283,7 @@ export default function SupportTicket() {
               id="endDate"
               label="Data de vencimento"
               type="date"
-              disabled={!!user?.clientId}
+              disabled={!!currentUser?.clientId}
               placeholder=" "
               classNames={{
                 label: 'text-gray-300',
@@ -403,7 +394,7 @@ export default function SupportTicket() {
             {messages &&
               messages.map((message) => (
                 <>
-                  {message.user.id === user?.userId ? (
+                  {message.user.id === currentUser?.userId ? (
                     <section
                       className="flex gap-2 w-full justify-end"
                       key={message.id}

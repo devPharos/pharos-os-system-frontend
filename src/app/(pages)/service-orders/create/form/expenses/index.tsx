@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ProjectExpenses, ServiceOrderExpenses } from '@/types/service-order'
+import { useRegister } from '@/hooks/useRegister'
 
 interface OSExpensesProps {
   projectId: string
@@ -21,11 +22,7 @@ export default function CreateOSExpenses({
   expense,
   osExpenses,
 }: OSExpensesProps) {
-  const token: string | null =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : null
-
+  const { token } = useRegister()
   const [loading, setLoading] = useState(false)
   const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])
   const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()

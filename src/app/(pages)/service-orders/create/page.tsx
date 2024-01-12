@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ServiceOrder } from '@/types/service-order'
 import Loading from '@/components/Loading'
+import { useRegister } from '@/hooks/useRegister'
 
 export default function CreateOS() {
   const searchParams = useSearchParams()
@@ -14,12 +15,11 @@ export default function CreateOS() {
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
+  const { token } = useRegister()
 
   useEffect(() => {
     if (typeof window !== undefined && id) {
       setLoading(true)
-      const localStorage = window.localStorage
-      const token = localStorage.getItem('access_token')
 
       const body = {
         serviceOrderId: id,
@@ -36,7 +36,7 @@ export default function CreateOS() {
           setServiceOrder(response.data)
         })
     }
-  }, [id])
+  }, [id, token])
 
   return (
     <div className="min-h-screen flex flex-col items-center">

@@ -17,6 +17,7 @@ import {
 import { format, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
 import { useSearchParams } from 'next/navigation'
+import { useRegister } from '@/hooks/useRegister'
 
 interface OSDetailsProps {
   clientId: string
@@ -43,10 +44,6 @@ export default function CreateOSDetails({
   hasError = false,
   osExpenses,
 }: OSDetailsProps) {
-  const token: string | null =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem('access_token')
-      : null
   const [loading, setLoading] = useState(false)
   const [newExpense, setNewExpense] = useState(false)
   const [projects, setProjects] = useState<Projects[]>([])
@@ -56,13 +53,13 @@ export default function CreateOSDetails({
   const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
+  const { token } = useRegister()
   const id = params[0]
 
   const {
     register,
     handleSubmit,
     setError,
-    reset,
     formState: { errors },
   } = useForm<TOsDetailsFormData>({
     resolver: zodResolver(osFormSchema),

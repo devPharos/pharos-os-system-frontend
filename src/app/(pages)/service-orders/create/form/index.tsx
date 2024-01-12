@@ -14,6 +14,7 @@ import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import Loading from '@/components/Loading'
+import { useRegister } from '@/hooks/useRegister'
 
 interface OsFormProps {
   id?: string
@@ -26,7 +27,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const [osDetails, setOsDetails] = useState<ServiceOrderDetail[]>([])
   const [osDetail, setOsDetail] = useState<ServiceOrderDetail>()
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
-  const token = localStorage.getItem('access_token')
+  const { token } = useRegister()
   const [status, setStatus] = useState('')
   const [hasError, setHasError] = useState(false)
 
@@ -81,9 +82,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const handleCreateNewOS = (data: TOsFormData) => {
     setLoading(true)
 
-    if (typeof window !== 'undefined') {
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
+    if (typeof window !== 'undefined' && token) {
       const serviceOrderDetails = osDetails
       const body = {
         clientId: data.clientId,
@@ -97,12 +96,12 @@ export default function CreateOSForm({ id }: OsFormProps) {
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order`, body, {
             headers: {
-              Authorization: `Bearer ${userToken}`,
+              Authorization: `Bearer ${token}`,
             },
           })
           .then(() => {
             setLoading(false)
-            // router.push('/service-orders')
+            router.push('/service-orders')
           })
           .catch((error) => {
             setLoading(false)
@@ -124,13 +123,13 @@ export default function CreateOSForm({ id }: OsFormProps) {
             updateBody,
             {
               headers: {
-                Authorization: `Bearer ${userToken}`,
+                Authorization: `Bearer ${token}`,
               },
             },
           )
           .then(() => {
             setLoading(false)
-            // router.push('/service-orders')
+            router.push('/service-orders')
           })
       }
     }
@@ -149,13 +148,10 @@ export default function CreateOSForm({ id }: OsFormProps) {
 
     if (typeof window !== 'undefined') {
       setLoading(true)
-      const localStorage = window.localStorage
-      const userToken: string = localStorage.getItem('access_token') || ''
-
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
@@ -163,7 +159,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
           setLoading(false)
         })
     }
-  }, [id, serviceOrder])
+  }, [id, serviceOrder, token])
 
   const handleClientProjects = (selectedKey: any) => {
     const selectedClientId = selectedKey.currentKey
