@@ -212,7 +212,6 @@ export default function CreateOSDetails({
         })
     }
   }
-  console.log(osDetail)
 
   return (
     <div className="flex flex-col items-center w-full gap-2 pb-6">

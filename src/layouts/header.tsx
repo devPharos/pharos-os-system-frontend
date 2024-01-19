@@ -68,14 +68,14 @@ export default function Header() {
       </NavbarBrand>
 
       <NavbarContent>
-        <NavbarItem isActive={path === '/'}>
+        <NavbarItem isActive={path === '/home'}>
           <Link
             className={
               path === '/'
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
-            href="/"
+            href="/home"
           >
             Home
           </Link>
@@ -143,6 +143,19 @@ export default function Header() {
             href="/support"
           >
             Suporte
+          </Link>
+        </NavbarItem>
+
+        <NavbarItem isActive={path === '/closing'}>
+          <Link
+            className={
+              path === '/closing'
+                ? 'text-gray-100 font-semibold cursor-pointer'
+                : 'text-gray-300 cursor-pointer'
+            }
+            href="/closing"
+          >
+            Fechamento
           </Link>
         </NavbarItem>
       </NavbarContent>

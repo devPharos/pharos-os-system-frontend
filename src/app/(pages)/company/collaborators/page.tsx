@@ -144,7 +144,6 @@ export default function CreateClient() {
 
     if (typeof window !== 'undefined' && isAValidCNPJOrCPF && token) {
       if (!id) {
-        console.log(data)
         setLoading(false)
         const body = {
           ...data,

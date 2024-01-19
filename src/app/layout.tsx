@@ -5,8 +5,9 @@ import localFont from 'next/font/local'
 import { Providers } from './providers'
 import { useVerifyPathPermission } from '@/hooks/usePermission'
 import metadata from './metadata'
-import Loading from './loading'
 import { useRegister } from '@/hooks/useRegister'
+import Loading from '@/components/Loading'
+import { Toaster } from 'sonner'
 
 const roboto = localFont({
   src: [
@@ -43,7 +44,10 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} font-sans bg-gray-900 text-gray-100`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Toaster richColors />
+        </Providers>
       </body>
     </html>
   )

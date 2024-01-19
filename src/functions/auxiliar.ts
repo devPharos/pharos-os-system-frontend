@@ -244,8 +244,6 @@ export const getCEPData = async (cep: string): Promise<AddressData | null> => {
       console.error(error)
     })
 
-  console.log(data)
-
   return data
 }
 

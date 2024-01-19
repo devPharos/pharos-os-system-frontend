@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react'
 export default function Home() {
   const [data, setData] = useState<HomeData>()
   const { token } = useRegister()
-  console.log(token)
 
   useEffect(() => {
     if (token) {
@@ -27,7 +26,6 @@ export default function Home() {
           },
         })
         .then((response) => {
-          console.log(response.data)
           setData(response.data)
         })
     }

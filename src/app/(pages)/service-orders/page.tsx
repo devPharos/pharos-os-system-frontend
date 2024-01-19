@@ -137,8 +137,8 @@ export default function ServiceOrders() {
     clientId: z.optional(z.string().uuid().nullable()),
     collaboratorId: z.optional(z.string().uuid().nullable()),
     projectId: z.optional(z.string().uuid().nullable()),
-    startDate: z.optional(z.string()),
-    endDate: z.optional(z.string()),
+    startDate: z.string(),
+    endDate: z.string(),
   })
 
   type ServiceOrderReportSchema = z.infer<typeof serviceOrderReportSchema>
@@ -604,7 +604,6 @@ export default function ServiceOrders() {
                   <PopoverTrigger>
                     <Button
                       className="rounded-lg min-w-fit px-6 py-4 text-gray-200 font-bold bg-zinc-800 hover:bg-zinc-700"
-                      // onClick={MakeReporting}
                       disabled={loading}
                     >
                       {loading && <Spinner size="sm" color="default" />}
@@ -723,7 +722,7 @@ export default function ServiceOrders() {
                         <Controller
                           name="startDate"
                           control={control}
-                          rules={{ required: false }}
+                          rules={{ required: true }}
                           render={({ field }) => (
                             <>
                               <Input
@@ -748,7 +747,7 @@ export default function ServiceOrders() {
                         <Controller
                           name="endDate"
                           control={control}
-                          rules={{ required: false }}
+                          rules={{ required: true }}
                           render={({ field }) => (
                             <>
                               <Input

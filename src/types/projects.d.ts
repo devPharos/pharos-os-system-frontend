@@ -39,6 +39,11 @@ export interface ProjectDetails {
   totalHours: number
 }
 
+export interface ProjectCollaborator {
+  id: string
+  name: string
+}
+
 export interface Project {
   id?: string
   clientId: string
@@ -54,6 +59,8 @@ export interface Project {
   hourValue: string
   projectExpenses: Partial<ProjectExpenses>[]
   projectServices: Partial<ProjectServices>[]
+  collaborator: ProjectCollaborator
+  hoursToBeBilled: number
 }
 
 export interface ProjectClient {

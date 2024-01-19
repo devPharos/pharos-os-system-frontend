@@ -18,7 +18,7 @@ import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { compareDesc, parseISO } from 'date-fns'
 import { useRegister } from '@/hooks/useRegister'
-import Loading from '@/app/loading'
+import Loading from '@/components/Loading'
 
 export default function CreateProject() {
   const [showToast, setShowToast] = useState(false)
@@ -247,8 +247,6 @@ export default function CreateProject() {
       setServices(newExpenseList)
     }
   }
-
-  console.log(project)
 
   const handleDeleteService = (
     serviceId: string | undefined,
