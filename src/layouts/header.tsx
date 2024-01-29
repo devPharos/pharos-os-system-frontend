@@ -23,7 +23,7 @@ export default function Header() {
   const path = usePathname()
   const router = useRouter()
   const [data, setData] = useState<HomeData>()
-  const { token } = useRegister()
+  const { token, currentUser } = useRegister()
 
   useEffect(() => {
     if (token) {
@@ -167,6 +167,7 @@ export default function Header() {
             onClick={() => router.push('/profile')}
           >
             <Avatar
+              src={currentUser?.url}
               imgProps={{
                 loading: 'eager',
               }}

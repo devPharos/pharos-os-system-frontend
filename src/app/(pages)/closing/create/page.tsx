@@ -1,6 +1,7 @@
 'use client'
 
 import Loading from '@/components/Loading'
+import { handleCreateClosingPdf } from '@/functions/auxiliar'
 import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
@@ -24,6 +25,17 @@ import { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+
+const createMonthlyClosingSchema = z.object({
+  clientId: z.string().uuid(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+})
+
+export type CreateMonthlyClosingSchema = z.infer<
+  typeof createMonthlyClosingSchema
+>
+
 export default function CreateMonthlyClosing() {
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState<Client[]>([])
@@ -31,14 +43,6 @@ export default function CreateMonthlyClosing() {
   const [selected, setSelected] = useState<string[]>([])
   const { token } = useRegister()
   const router = useRouter()
-
-  const createMonthlyClosingSchema = z.object({
-    clientId: z.string().uuid(),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
-  })
-
-  type CreateMonthlyClosingSchema = z.infer<typeof createMonthlyClosingSchema>
 
   const {
     register,
@@ -99,30 +103,70 @@ export default function CreateMonthlyClosing() {
     }
   }
 
-  interface PDFProps extends CreateMonthlyClosingSchema {
-    selectedProjects: string[]
-  }
+  // interface PDFProps extends CreateMonthlyClosingSchema {
+  //   selectedProjects: string[]
+  // }
 
-  const handleCreateClosingPdf = async (body: PDFProps) => {
-    const response2 = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/create/closing`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        responseType: 'blob',
-      },
-    )
+  // const handleCreateClosingPdf = async (body: PDFProps) => {
+  //   const response = await axios.post(
+  //     `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
+  //     body,
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     },
+  //   )
 
-    const pdfBlob = new Blob([response2.data], { type: 'application/pdf' })
-    saveAs(pdfBlob)
-  }
+  //   const pdfsPaths: {
+  //     path: string
+  //     pathName: string
+  //   }[] = response.data
+
+  //   toast.info('Fechamento em andamento...', {
+  //     icon: (
+  //       <CircularProgress
+  //         classNames={{
+  //           svg: 'w-4 h=4',
+  //         }}
+  //       />
+  //     ),
+  //   })
+
+  //   pdfsPaths.forEach(async (file) => {
+  //     const downloadResponse = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           fileName: file.pathName,
+  //         },
+  //         responseType: 'blob',
+  //       },
+  //     )
+
+  //     const pdfBlob = new Blob([downloadResponse.data], {
+  //       type: 'application/pdf',
+  //     })
+  //     saveAs(pdfBlob, `${file.pathName}.pdf`)
+
+  //     await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         fileName: file.pathName,
+  //       },
+  //     })
+  //   })
+
+  //   toast.success('Fechamento concluído')
+  // }
 
   const handleSubmitNewMonthlyClosing: SubmitHandler<
     CreateMonthlyClosingSchema
   > = (data: CreateMonthlyClosingSchema) => {
-    const selectedProjects = selected.filter((select) => select !== '')
+    const selectedProjects: string[] = selected.filter(
+      (select) => select !== '',
+    )
     const body = {
       ...data,
       selectedProjects,
@@ -135,7 +179,7 @@ export default function CreateMonthlyClosing() {
     }
 
     if (token) {
-      handleCreateClosingPdf(body)
+      handleCreateClosingPdf(body, token)
     }
   }
 
@@ -252,6 +296,8 @@ export default function CreateMonthlyClosing() {
                     label="Selecione os projetos"
                     classNames={{
                       label: 'text-gray-100 mb-6',
+                      base: 'gap-2',
+                      wrapper: 'gap-6',
                     }}
                     orientation="horizontal"
                     value={selected}
@@ -268,15 +314,20 @@ export default function CreateMonthlyClosing() {
                             wrapper:
                               'border-gray-300 before:border-gray-300 group-data-[hover=true]:before:bg-gray-500 after:bg-gray-500 text-gray-100',
                           }}
+                          isDisabled={!project.hoursToBeBilled}
                           key={project.id}
                           value={project.id}
                         >
                           <div className="w-full flex justify-between gap-14">
                             <div className="flex flex-col">
                               <span className="text-sm">{project.name}</span>
-                              {project.hoursToBeBilled && (
+                              {project.hoursToBeBilled ? (
                                 <span className="text-sm text-yellow-600">
                                   {project.hoursToBeBilled}h a faturar
+                                </span>
+                              ) : (
+                                <span className="text-sm text-yellow-600">
+                                  sem horas a faturar
                                 </span>
                               )}
                             </div>

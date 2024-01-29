@@ -93,6 +93,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
       }
 
       if (!id) {
+        console.log(body)
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order`, body, {
             headers: {
@@ -108,6 +109,8 @@ export default function CreateOSForm({ id }: OsFormProps) {
             if (error.message === 'Request failed with status code 409') {
               setHasError(true)
             }
+
+            console.log(error)
           })
       }
 

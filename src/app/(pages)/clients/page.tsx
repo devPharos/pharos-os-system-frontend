@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
 import Link from 'next/link'
 import { useRegister } from '@/hooks/useRegister'
-import Loading from '@/app/loading'
+import Loading from '@/components/Loading'
 
 export default function Clients() {
   const router = useRouter()

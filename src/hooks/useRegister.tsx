@@ -55,6 +55,7 @@ const RegisterProvider = ({ children }: { children: React.ReactNode }) => {
       token: '',
       fantasyName: '',
       name: '',
+      url: '',
     }
 
     userToken &&

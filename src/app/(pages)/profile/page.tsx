@@ -3,19 +3,21 @@ import Loading from '@/components/Loading'
 import Toast from '@/components/Toast'
 import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
+import { PharosFile } from '@/types/file'
 import { Profile } from '@/types/user'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, Button, Input } from '@nextui-org/react'
 import axios from 'axios'
 import { Camera, Save } from 'lucide-react'
-import { useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 export default function Profile() {
   const [loading, setLoading] = useState(true)
-  const [showToast, setShowToast] = useState(false)
-  const { token } = useRegister()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const { token, currentUser } = useRegister()
 
   const editProfileFormSchema = z.object({
     firstName: z.string().min(1, 'Insira seu primeiro nome'),
@@ -52,25 +54,88 @@ export default function Profile() {
         }),
   })
 
-  const handleEditProfileFormSubmit: SubmitHandler<EditProfileFormSchema> = (
+  const handleUpdateProfile = (
     data: EditProfileFormSchema,
+    file?: PharosFile,
   ) => {
+    const body = {
+      ...data,
+      file,
+    }
+
+    console.log(body)
+
     axios
-      .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, data, {
+      .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, body, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       .then(function () {
-        setShowToast(true)
-
-        setInterval(() => {
-          setShowToast(!showToast)
-        }, 3000)
+        toast.success('Perfil atualizado com sucesso')
       })
       .catch(function (error) {
         console.error(error)
       })
+  }
+
+  const handleUploadFile = async (
+    formData: FormData,
+    data: EditProfileFormSchema,
+  ) => {
+    setLoading(true)
+    await axios
+      .post(
+        `${process.env.NEXT_PUBLIC_API_URL}/storage/upload/file`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+          params: {
+            type: 'miscelaneous',
+          },
+        },
+      )
+      .then((response) => {
+        if (response.data.status === 200 && selectedFile) {
+          const avatarImgFileSchema: PharosFile = {
+            fileId: response.data.fileId,
+            fileName: selectedFile?.name,
+            fileSize: selectedFile.size.toString(),
+            fileUrl: response.data.downloadUrl,
+          }
+
+          handleUpdateProfile(data, avatarImgFileSchema)
+
+          setLoading(false)
+          return
+        }
+
+        toast.error('Erro ao tentar enviar o arquivo')
+      })
+  }
+
+  const handleEditProfileFormSubmit: SubmitHandler<EditProfileFormSchema> = (
+    data: EditProfileFormSchema,
+  ) => {
+    if (selectedFile) {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      handleUploadFile(formData, data)
+    }
+
+    if (!selectedFile) {
+      handleUpdateProfile(data)
+    }
+  }
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const file = event.target.files && event.target.files[0]
+      setSelectedFile(file)
+    }
   }
 
   return (
@@ -85,13 +150,25 @@ export default function Profile() {
             onSubmit={handleSubmit(handleEditProfileFormSubmit)}
             className="flex flex-col items-end gap-8"
           >
-            <section className="relative m-auto">
-              <Avatar alt="" className="rounded-full w-[100px] h-[100px]" />
+            <label htmlFor="avatar_pic" className="relative m-auto">
+              <Avatar
+                alt=""
+                className="rounded-full w-[100px] h-[100px]"
+                src={currentUser?.url}
+              />
 
               <div className="cursor-pointer z-50 hover:bg-yellow-600 absolute right-0 bottom-0 w-8 h-8 flex rounded-full bg-yellow-500 items-center justify-center">
                 <Camera size={20} className="text-gray-500" />
               </div>
-            </section>
+            </label>
+
+            <input
+              type="file"
+              accept=".png,.jpg"
+              id="avatar_pic"
+              className="sr-only"
+              onChange={handleFileChange}
+            />
 
             <section className="w-full flex items-center justify-center gap-6 flex-wrap">
               <Input
@@ -215,10 +292,6 @@ export default function Profile() {
             </Button>
           </form>
         </main>
-      )}
-
-      {showToast && (
-        <Toast message="Seus dados foram atualizados com sucesso" />
       )}
     </div>
   )

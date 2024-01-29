@@ -1,3 +1,4 @@
+import { File } from './file'
 import { ProjectDetails } from './projects'
 
 export interface ServiceOrderExpense {
@@ -73,7 +74,9 @@ export interface ProjectExpenses {
   requireReceipt?: string
   value: string
   description?: string
-  serviceOrderExpenseId?: id
+  serviceOrderExpenseId?: string
+  serviceOrderProjectExpensesFile?: File
+  fileId?: string
 }
 
 export interface ProjectServices {

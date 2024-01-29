@@ -14,6 +14,7 @@ export interface UserData {
   token?: string
   name: string
   fantasyName: string
+  url?: string
 }
 
 export interface Profile {
