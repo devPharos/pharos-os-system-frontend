@@ -12,12 +12,12 @@ import axios from 'axios'
 import Toast from '@/components/Toast'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 export default function Users() {
   const [clients, setClients] = useState<Client[]>([])
   const [showToast, setShowToast] = useState(false)
-  const { token } = useRegister()
+  const { auth } = useUser()
   const router = useRouter()
 
   const createUserSchema = z.object({
@@ -42,7 +42,7 @@ export default function Users() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then((response) => {
@@ -64,7 +64,7 @@ export default function Users() {
       axios
         .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user/client`, body, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then(() => {
@@ -86,8 +86,7 @@ export default function Users() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center gap-14">
-      <Header />
+    <>
 
       <div className="flex flex-col items-center w-full gap-2 pb-6">
         <form
@@ -178,6 +177,6 @@ export default function Users() {
       </div>
 
       {showToast && <Toast message="Usuário criado com sucesso" />}
-    </div>
+    </>
   )
 }

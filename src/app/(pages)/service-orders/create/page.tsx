@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { ServiceOrder } from '@/types/service-order'
 import Loading from '@/components/Loading'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 export default function CreateOS() {
   const searchParams = useSearchParams()
@@ -15,7 +15,7 @@ export default function CreateOS() {
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(false)
-  const { token } = useRegister()
+  const { auth } = useUser()
 
   useEffect(() => {
     if (typeof window !== undefined && id) {
@@ -28,7 +28,7 @@ export default function CreateOS() {
       axios
         .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order/data`, body, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then((response) => {
@@ -36,17 +36,16 @@ export default function CreateOS() {
           setServiceOrder(response.data)
         })
     }
-  }, [id, token])
+  }, [id, auth.token])
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
+    <>
 
       {loading ? (
         <Loading />
       ) : (
         <CreateOSForm id={id} serviceOrder={serviceOrder} />
       )}
-    </div>
+    </>
   )
 }

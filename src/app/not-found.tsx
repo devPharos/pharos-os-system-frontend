@@ -1,16 +1,6 @@
 'use client'
-import Loading from '@/components/Loading'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { redirect } from 'next/navigation'
 
-const NotFoundPage = () => {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.push('/home')
-  }, [router])
-
-  return <Loading />
+export default function NotFoundPage() {
+  redirect('/home')
 }
-
-export default NotFoundPage

@@ -1,10 +1,17 @@
 'use client'
-
 import Loading from '@/components/Loading'
-import { useVerifyPathPermission } from '@/hooks/usePermission'
+import { UserState, useUser } from './contexts/useUser'
+import { redirect } from 'next/navigation'
 
 export default function HomePage() {
-  useVerifyPathPermission()
+  const { auth }: { auth: UserState } = useUser()
 
-  return <Loading />
+  if(!auth.authenticated) {
+    redirect('/login')
+  } else {
+    redirect('/home')
+  }
+
+  return null
+
 }
