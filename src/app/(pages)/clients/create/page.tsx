@@ -1,18 +1,15 @@
 'use client'
 
+import { useUser } from '@/app/contexts/useUser'
 import Loading from '@/components/Loading'
 import { states } from '@/data/states'
 import {
-  Bank,
-  getBanksData,
   getCEPData,
   handleFormatCPForCNPJ,
   handleFormatPhone,
   validateCNPJ,
   validateCPF,
 } from '@/functions/auxiliar'
-import { useRegister } from '@/hooks/useRegister'
-import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
@@ -32,7 +29,7 @@ export default function CreateClient() {
   const id = params[0]
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
-  const { token } = useRegister()
+  const { auth } = useUser()
   const [state, setState] = useState<string>()
 
   const clientFormSchema = z.object({
@@ -64,11 +61,11 @@ export default function CreateClient() {
   } = useForm<ClientFormSchema>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: async () =>
-      token &&
+      auth?.token &&
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/client/data`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
             id,
           },
         })
@@ -100,11 +97,11 @@ export default function CreateClient() {
     }
 
     if (!id && typeof window !== 'undefined') {
-      token &&
+      auth?.token &&
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth.token}`,
             },
           })
           .then(function () {
@@ -121,11 +118,11 @@ export default function CreateClient() {
     }
 
     if (id && typeof window !== 'undefined') {
-      token &&
+      auth?.token &&
         axios
           .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth.token}`,
             },
           })
           .then(function () {
@@ -141,11 +138,11 @@ export default function CreateClient() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      token &&
+      auth?.token &&
         axios
           .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth.token}`,
             },
           })
           .then(function () {
@@ -156,7 +153,7 @@ export default function CreateClient() {
             setLoading(false)
           })
     }
-  }, [token])
+  }, [auth.token])
 
   const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
@@ -188,9 +185,7 @@ export default function CreateClient() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center gap-14">
-      <Header />
-
+    <>
       {loading ? (
         <Loading />
       ) : (
@@ -454,6 +449,6 @@ export default function CreateClient() {
           </form>
         </div>
       )}
-    </div>
+    </>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
+import { useUser } from '@/app/contexts/useUser'
 import Loading from '@/components/Loading'
 import { handleCreateClosingPdf } from '@/functions/auxiliar'
-import { useRegister } from '@/hooks/useRegister'
 import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Project } from '@/types/projects'
@@ -12,13 +12,11 @@ import {
   Checkbox,
   CheckboxGroup,
   Chip,
-  CircularProgress,
   Input,
   Select,
   SelectItem,
 } from '@nextui-org/react'
 import axios from 'axios'
-import saveAs from 'file-saver'
 import { ArrowRightCircle, Save } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -41,7 +39,7 @@ export default function CreateMonthlyClosing() {
   const [clients, setClients] = useState<Client[]>([])
   const [projects, setProjects] = useState<Project[] | null>(null)
   const [selected, setSelected] = useState<string[]>([])
-  const { token } = useRegister()
+  const { auth } = useUser()
   const router = useRouter()
 
   const {
@@ -53,11 +51,11 @@ export default function CreateMonthlyClosing() {
   })
 
   useEffect(() => {
-    if (token) {
+    if (auth?.token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -71,16 +69,16 @@ export default function CreateMonthlyClosing() {
           }
         })
     }
-  }, [token])
+  }, [auth?.token])
 
   const handleGetClientProjects = (keys: any) => {
-    if (token) {
+    if (auth?.token) {
       const clientId = keys.currentKey
 
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
             clientId,
           },
         })
@@ -103,64 +101,6 @@ export default function CreateMonthlyClosing() {
     }
   }
 
-  // interface PDFProps extends CreateMonthlyClosingSchema {
-  //   selectedProjects: string[]
-  // }
-
-  // const handleCreateClosingPdf = async (body: PDFProps) => {
-  //   const response = await axios.post(
-  //     `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
-  //     body,
-  //     {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     },
-  //   )
-
-  //   const pdfsPaths: {
-  //     path: string
-  //     pathName: string
-  //   }[] = response.data
-
-  //   toast.info('Fechamento em andamento...', {
-  //     icon: (
-  //       <CircularProgress
-  //         classNames={{
-  //           svg: 'w-4 h=4',
-  //         }}
-  //       />
-  //     ),
-  //   })
-
-  //   pdfsPaths.forEach(async (file) => {
-  //     const downloadResponse = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           fileName: file.pathName,
-  //         },
-  //         responseType: 'blob',
-  //       },
-  //     )
-
-  //     const pdfBlob = new Blob([downloadResponse.data], {
-  //       type: 'application/pdf',
-  //     })
-  //     saveAs(pdfBlob, `${file.pathName}.pdf`)
-
-  //     await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //         fileName: file.pathName,
-  //       },
-  //     })
-  //   })
-
-  //   toast.success('Fechamento concluído')
-  // }
-
   const handleSubmitNewMonthlyClosing: SubmitHandler<
     CreateMonthlyClosingSchema
   > = (data: CreateMonthlyClosingSchema) => {
@@ -178,185 +118,175 @@ export default function CreateMonthlyClosing() {
       return
     }
 
-    if (token) {
-      handleCreateClosingPdf(body, token)
+    if (auth?.token) {
+      handleCreateClosingPdf(body, auth?.token)
     }
   }
 
   return (
-    <div className="flex flex-col items-center w-full gap-14 pb-6 min-h-screen">
-      <Header />
+    <form
+      id="closing"
+      onSubmit={handleSubmit(handleSubmitNewMonthlyClosing)}
+      action=""
+      className="max-w-7xl w-full space-y-10 px-6"
+    >
+      <header className="flex items-center justify-between">
+        <section className="flex flex-col">
+          <span className="font-bold text-2xl text-white">
+            Criação de fechamento
+          </span>
+        </section>
 
-      {loading ? (
-        <Loading />
-      ) : (
-        <form
-          id="closing"
-          onSubmit={handleSubmit(handleSubmitNewMonthlyClosing)}
-          action=""
-          className="max-w-7xl w-full space-y-10 px-6"
+        <section className="space-x-6">
+          <Button
+            className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+            onClick={() => router.back()}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+            type="submit"
+            form="closing"
+          >
+            <Save size={18} className="text-gray-700" />
+            Salvar fechamento
+          </Button>
+        </section>
+      </header>
+
+      <section className="w-full flex gap-6 flex-wrap">
+        <Select
+          id="clientId"
+          label="Cliente"
+          classNames={{
+            trigger: 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+            listboxWrapper: 'max-h-[400px] rounded-lg',
+            popover: 'bg-gray-700 rounded-lg',
+            base: 'min-w-fit max-w-sm',
+          }}
+          listboxProps={{
+            itemClasses: {
+              base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+            },
+          }}
+          onSelectionChange={(keys) => handleGetClientProjects(keys)}
+          {...register('clientId')}
+          errorMessage={errors.clientId?.message}
         >
-          <header className="flex items-center justify-between">
-            <section className="flex flex-col">
-              <span className="font-bold text-2xl text-white">
-                Criação de fechamento
-              </span>
-            </section>
+          {clients &&
+            clients.map((client) => {
+              return (
+                <SelectItem key={client.id}>{client.fantasyName}</SelectItem>
+              )
+            })}
+        </Select>
 
-            <section className="space-x-6">
-              <Button
-                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
-                onClick={() => router.back()}
+        <Input
+          id="startDate"
+          type="date"
+          label="Início do período"
+          placeholder=" "
+          classNames={{
+            label: 'text-gray-300 font-normal',
+            inputWrapper:
+              'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
+            input: '[color-scheme]:dark',
+            base: 'min-w-fit max-w-sm',
+          }}
+          {...register('startDate')}
+          errorMessage={errors.startDate?.message}
+        />
+
+        <Input
+          id="endDate"
+          type="date"
+          label="Fim do período"
+          placeholder=" "
+          classNames={{
+            label: 'text-gray-300 font-normal',
+            inputWrapper:
+              'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
+            input: '[color-scheme]:dark',
+            base: 'min-w-fit max-w-sm',
+          }}
+          {...register('endDate')}
+          errorMessage={errors.endDate?.message}
+        />
+
+        {projects && (
+          <>
+            {projects.length === 0 ? (
+              <section>
+                <span className="text-gray-300">
+                  O cliente selecionado não tem nenhum projeto em andamento.
+                </span>
+              </section>
+            ) : (
+              <CheckboxGroup
+                label="Selecione os projetos"
+                classNames={{
+                  label: 'text-gray-100 mb-6',
+                  base: 'gap-2',
+                  wrapper: 'gap-6',
+                }}
+                orientation="horizontal"
+                value={selected}
+                onValueChange={setSelected}
               >
-                Cancelar
-              </Button>
-
-              <Button
-                className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
-                type="submit"
-                form="closing"
-              >
-                <Save size={18} className="text-gray-700" />
-                Salvar fechamento
-              </Button>
-            </section>
-          </header>
-
-          <section className="w-full flex gap-6 flex-wrap">
-            <Select
-              id="clientId"
-              label="Cliente"
-              classNames={{
-                trigger: 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
-                listboxWrapper: 'max-h-[400px] rounded-lg',
-                popover: 'bg-gray-700 rounded-lg',
-                base: 'min-w-fit max-w-sm',
-              }}
-              listboxProps={{
-                itemClasses: {
-                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                },
-              }}
-              onSelectionChange={(keys) => handleGetClientProjects(keys)}
-              {...register('clientId')}
-              errorMessage={errors.clientId?.message}
-            >
-              {clients &&
-                clients.map((client) => {
+                {projects?.map((project) => {
                   return (
-                    <SelectItem key={client.id}>
-                      {client.fantasyName}
-                    </SelectItem>
+                    <Checkbox
+                      classNames={{
+                        base: [
+                          'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg gap-2 p-4',
+                        ],
+                        label: 'w-full text-gray-100',
+                        wrapper:
+                          'border-gray-300 before:border-gray-300 group-data-[hover=true]:before:bg-gray-500 after:bg-gray-500 text-gray-100',
+                      }}
+                      isDisabled={!project.hoursToBeBilled}
+                      key={project.id}
+                      value={project.id}
+                    >
+                      <div className="w-full flex justify-between gap-14">
+                        <div className="flex flex-col">
+                          <span className="text-sm">{project.name}</span>
+                          {project.hoursToBeBilled ? (
+                            <span className="text-sm text-yellow-600">
+                              {project.hoursToBeBilled}h a faturar
+                            </span>
+                          ) : (
+                            <span className="text-sm text-yellow-600">
+                              sem horas a faturar
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-tiny text-default-500">
+                            {project.collaborator && project?.collaborator.name}
+                          </span>
+                          <Chip
+                            classNames={{
+                              base: 'text-orange-600 bg-orange-500/10 py-2 px-2 gap-1',
+                            }}
+                            startContent={<ArrowRightCircle size={15} />}
+                            size="sm"
+                            variant="flat"
+                          >
+                            {project.status}
+                          </Chip>
+                        </div>
+                      </div>
+                    </Checkbox>
                   )
                 })}
-            </Select>
-
-            <Input
-              id="startDate"
-              type="date"
-              label="Início do período"
-              placeholder=" "
-              classNames={{
-                label: 'text-gray-300 font-normal',
-                inputWrapper:
-                  'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
-                input: '[color-scheme]:dark',
-                base: 'min-w-fit max-w-sm',
-              }}
-              {...register('startDate')}
-              errorMessage={errors.startDate?.message}
-            />
-
-            <Input
-              id="endDate"
-              type="date"
-              label="Fim do período"
-              placeholder=" "
-              classNames={{
-                label: 'text-gray-300 font-normal',
-                inputWrapper:
-                  'bg-gray-700 rounded-lg text-gray-100 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 color-scheme:dark',
-                input: '[color-scheme]:dark',
-                base: 'min-w-fit max-w-sm',
-              }}
-              {...register('endDate')}
-              errorMessage={errors.endDate?.message}
-            />
-
-            {projects && (
-              <>
-                {projects.length === 0 ? (
-                  <section>
-                    <span className="text-gray-300">
-                      O cliente selecionado não tem nenhum projeto em andamento.
-                    </span>
-                  </section>
-                ) : (
-                  <CheckboxGroup
-                    label="Selecione os projetos"
-                    classNames={{
-                      label: 'text-gray-100 mb-6',
-                      base: 'gap-2',
-                      wrapper: 'gap-6',
-                    }}
-                    orientation="horizontal"
-                    value={selected}
-                    onValueChange={setSelected}
-                  >
-                    {projects?.map((project) => {
-                      return (
-                        <Checkbox
-                          classNames={{
-                            base: [
-                              'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg gap-2 p-4',
-                            ],
-                            label: 'w-full text-gray-100',
-                            wrapper:
-                              'border-gray-300 before:border-gray-300 group-data-[hover=true]:before:bg-gray-500 after:bg-gray-500 text-gray-100',
-                          }}
-                          isDisabled={!project.hoursToBeBilled}
-                          key={project.id}
-                          value={project.id}
-                        >
-                          <div className="w-full flex justify-between gap-14">
-                            <div className="flex flex-col">
-                              <span className="text-sm">{project.name}</span>
-                              {project.hoursToBeBilled ? (
-                                <span className="text-sm text-yellow-600">
-                                  {project.hoursToBeBilled}h a faturar
-                                </span>
-                              ) : (
-                                <span className="text-sm text-yellow-600">
-                                  sem horas a faturar
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-tiny text-default-500">
-                                {project.collaborator.name}
-                              </span>
-                              <Chip
-                                classNames={{
-                                  base: 'text-orange-600 bg-orange-500/10 py-2 px-2 gap-1',
-                                }}
-                                startContent={<ArrowRightCircle size={15} />}
-                                size="sm"
-                                variant="flat"
-                              >
-                                {project.status}
-                              </Chip>
-                            </div>
-                          </div>
-                        </Checkbox>
-                      )
-                    })}
-                  </CheckboxGroup>
-                )}
-              </>
+              </CheckboxGroup>
             )}
-          </section>
-        </form>
-      )}
-    </div>
+          </>
+        )}
+      </section>
+    </form>
   )
 }

@@ -13,7 +13,7 @@ import { Collaborator } from '@/types/collaborator'
 import Toast from '@/components/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User } from '@/types/user'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
@@ -24,7 +24,7 @@ export default function Users() {
   const params = Array.from(searchParams.values())
   const id = params[0]
   const router = useRouter()
-  const { token } = useRegister()
+  const { auth } = useUser()
 
   const createUserSchema = z.object({
     collaboratorId: z.string().uuid('Selecione um colaborador'),
@@ -44,7 +44,7 @@ export default function Users() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/find/user`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
             id,
           },
         })
@@ -62,14 +62,14 @@ export default function Users() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
           setCollaboratorsId(response.data)
         })
     }
-  }, [token])
+  }, [auth?.token])
 
   const handleChangePasswordVisibility = () => {
     setPasswordVisible(!isPasswordVisible)
@@ -88,7 +88,7 @@ export default function Users() {
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user`, body, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth?.token}`,
             },
           })
           .then(() => {
@@ -114,7 +114,7 @@ export default function Users() {
         axios
           .put(`${process.env.NEXT_PUBLIC_API_URL}/update/user`, body, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth?.token}`,
             },
           })
           .then(() => {
@@ -135,83 +135,96 @@ export default function Users() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center gap-14">
-      <Header />
+    <div className="flex flex-col items-center w-full gap-2 pb-6">
+      <form
+        onSubmit={handleSubmit(handleCreateUserFormSubmit)}
+        className="max-w-7xl w-full space-y-10 px-6"
+      >
+        <header className={'flex items-center justify-between'}>
+          <span className="text-2xl font-bold text-white">
+            Criação de Usuário
+          </span>
 
-      <div className="flex flex-col items-center w-full gap-2 pb-6">
-        <form
-          onSubmit={handleSubmit(handleCreateUserFormSubmit)}
-          className="max-w-7xl w-full space-y-10 px-6"
-        >
-          <header className={'flex items-center justify-between'}>
-            <span className="text-2xl font-bold text-white">
-              Criação de Usuário
-            </span>
-
-            <section className="flex items-center gap-6">
-              <Button
-                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
-                onClick={() => router.push('/company')}
-              >
-                Cancelar
-              </Button>
-
-              <Button
-                // disabled={loading}
-                type="submit"
-                className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
-              >
-                <Save size={16} />
-                Salvar usuário
-              </Button>
-            </section>
-          </header>
-
-          <section className="flex flex-wrap gap-6">
-            <Select
-              id="collaboratorId"
-              label="Colaborador"
-              classNames={{
-                trigger: [
-                  user
-                    ? 'bg-gray-700 cursor-not-allowed data-[hover=true]:bg-gray-600 rounded-lg'
-                    : 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
-                ],
-                listboxWrapper: 'max-h-[400px] rounded-lg',
-                popover: 'bg-gray-700 rounded-lg ',
-                base: 'max-w-sm',
-              }}
-              listboxProps={{
-                itemClasses: {
-                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                },
-              }}
-              {...register('collaboratorId')}
-              errorMessage={errors.collaboratorId?.message}
-              validationState={errors.collaboratorId && 'invalid'}
-              selectedKeys={user ? [user?.collaboratorId || ''] : []}
-              isOpen={false}
+          <section className="flex items-center gap-6">
+            <Button
+              className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+              onClick={() => router.push('/company')}
             >
-              {collaboratorsId.map((collaborator) => {
-                if (user) {
-                  return (
-                    <SelectItem key={user?.collaboratorId || ''}>
-                      {user?.name + ' ' + user?.lastName}
-                    </SelectItem>
-                  )
-                }
+              Cancelar
+            </Button>
 
+            <Button
+              // disabled={loading}
+              type="submit"
+              className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
+            >
+              <Save size={16} />
+              Salvar usuário
+            </Button>
+          </section>
+        </header>
+
+        <section className="flex flex-wrap gap-6">
+          <Select
+            id="collaboratorId"
+            label="Colaborador"
+            classNames={{
+              trigger: [
+                user
+                  ? 'bg-gray-700 cursor-not-allowed data-[hover=true]:bg-gray-600 rounded-lg'
+                  : 'bg-gray-700 data-[hover=true]:bg-gray-600 rounded-lg',
+              ],
+              listboxWrapper: 'max-h-[400px] rounded-lg',
+              popover: 'bg-gray-700 rounded-lg ',
+              base: 'max-w-sm',
+            }}
+            listboxProps={{
+              itemClasses: {
+                base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+              },
+            }}
+            {...register('collaboratorId')}
+            errorMessage={errors.collaboratorId?.message}
+            validationState={errors.collaboratorId && 'invalid'}
+            selectedKeys={user ? [user?.collaboratorId || ''] : []}
+            isOpen={false}
+          >
+            {collaboratorsId.map((collaborator) => {
+              if (user) {
                 return (
-                  <SelectItem key={collaborator.id}>
-                    {collaborator.name + ' ' + collaborator.lastName}
+                  <SelectItem key={user?.collaboratorId || ''}>
+                    {user?.name + ' ' + user?.lastName}
                   </SelectItem>
                 )
-              })}
-            </Select>
+              }
 
+              return (
+                <SelectItem key={collaborator.id}>
+                  {collaborator.name + ' ' + collaborator.lastName}
+                </SelectItem>
+              )
+            })}
+          </Select>
+
+          <Input
+            id="email"
+            label="E-mail"
+            placeholder={id && ' '}
+            classNames={{
+              label: 'text-gray-300',
+              base: 'max-w-sm',
+              inputWrapper:
+                'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+            }}
+            {...register('email')}
+            errorMessage={errors.email?.message}
+            validationState={errors.email && 'invalid'}
+          />
+
+          {!id && (
             <Input
-              id="email"
-              label="E-mail"
+              id="password"
+              label="Senha"
               placeholder={id && ' '}
               classNames={{
                 label: 'text-gray-300',
@@ -219,48 +232,29 @@ export default function Users() {
                 inputWrapper:
                   'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
               }}
-              {...register('email')}
-              errorMessage={errors.email?.message}
-              validationState={errors.email && 'invalid'}
+              {...register('password')}
+              type={isPasswordVisible ? 'text' : 'password'}
+              errorMessage={errors.password?.message}
+              validationState={errors.password && 'invalid'}
+              endContent={
+                isPasswordVisible ? (
+                  <Eye
+                    className="text-gray-300 cursor-pointer"
+                    size={20}
+                    onClick={handleChangePasswordVisibility}
+                  />
+                ) : (
+                  <EyeOff
+                    className="text-gray-300 cursor-pointer"
+                    size={20}
+                    onClick={handleChangePasswordVisibility}
+                  />
+                )
+              }
             />
-
-            {!id && (
-              <Input
-                id="password"
-                label="Senha"
-                placeholder={id && ' '}
-                classNames={{
-                  label: 'text-gray-300',
-                  base: 'max-w-sm',
-                  inputWrapper:
-                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                }}
-                {...register('password')}
-                type={isPasswordVisible ? 'text' : 'password'}
-                errorMessage={errors.password?.message}
-                validationState={errors.password && 'invalid'}
-                endContent={
-                  isPasswordVisible ? (
-                    <Eye
-                      className="text-gray-300 cursor-pointer"
-                      size={20}
-                      onClick={handleChangePasswordVisibility}
-                    />
-                  ) : (
-                    <EyeOff
-                      className="text-gray-300 cursor-pointer"
-                      size={20}
-                      onClick={handleChangePasswordVisibility}
-                    />
-                  )
-                }
-              />
-            )}
-          </section>
-        </form>
-      </div>
-
-      {showToast && <Toast message="Usuário criado com sucesso" />}
+          )}
+        </section>
+      </form>
     </div>
   )
 }

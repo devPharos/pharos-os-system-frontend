@@ -1,10 +1,9 @@
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { usePathname, redirect } from 'next/navigation'
 
-export function useVerifyPathPermission(loading?: boolean) {
-  const token =
-    typeof window !== 'undefined' &&
-    window.sessionStorage.getItem('access_token')
+export function useVerifyPathPermission(
+  loading?: boolean,
+  token?: string | null,
+) {
   const pathName = usePathname()
 
   const APP_ROUTES = {
@@ -12,19 +11,16 @@ export function useVerifyPathPermission(loading?: boolean) {
       login: '/login',
     },
   }
-  const router = useRouter()
 
   const isPublic = Object.values(APP_ROUTES.public).includes(pathName)
 
   const isHome = pathName === '/'
 
-  useEffect(() => {
-    if (!isPublic && !token && !loading) {
-      router.push('/login')
-    }
+  if (!isPublic && !token && !loading) {
+    redirect('/login')
+  }
 
-    if ((isPublic || isHome) && token && !loading) {
-      router.push('/home')
-    }
-  }, [isPublic, token, router, isHome, loading])
+  if ((isPublic || isHome) && token && !loading) {
+    redirect('/home')
+  }
 }

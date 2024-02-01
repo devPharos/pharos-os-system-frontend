@@ -1,5 +1,4 @@
 'use client'
-import Header from '@/layouts/header'
 import { Card } from '@/components/Card'
 import axios from 'axios'
 import {
@@ -25,12 +24,12 @@ import {
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
 import Link from 'next/link'
-import { useRegister } from '@/hooks/useRegister'
 import Loading from '@/components/Loading'
+import { UserState, useUser } from '@/app/contexts/useUser'
 
 export default function Clients() {
   const router = useRouter()
-  const { token } = useRegister()
+  const { auth }: { auth: UserState } = useUser()
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState<Client[]>([])
 
@@ -71,24 +70,22 @@ export default function Clients() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && token) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setClients(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-        })
-    }
-  }, [token])
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
+        headers: {
+          Authorization: `Bearer ${auth?.token}`,
+        },
+      })
+      .then(function (response) {
+        const data = response.data
+        setClients(data)
+        setLoading(false)
+      })
+      .catch(function (error) {
+        console.error(error)
+        setLoading(false)
+      })
+  }, [auth?.token])
 
   const handleChangeClientStatus = (
     key: Key,
@@ -104,7 +101,7 @@ export default function Clients() {
       axios
         .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client/status`, body, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then(function (response) {
@@ -138,9 +135,7 @@ export default function Clients() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="max-w-7xl w-full  flex flex-col px-6 py-14 gap-16 flex-1">
         <header className="flex items-center justify-between">
           <section className="flex flex-col">
@@ -342,6 +337,6 @@ export default function Clients() {
           </section>
         )}
       </main>
-    </div>
+    </>
   )
 }

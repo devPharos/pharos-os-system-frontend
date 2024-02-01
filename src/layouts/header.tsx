@@ -1,52 +1,23 @@
 'use client'
-
 import {
   Avatar,
   Button,
-  Image,
   Link,
   Navbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
 } from '@nextui-org/react'
+import Image from 'next/image'
 
 import logo from '../../public/assets/logo-negative-yellow.svg'
-import { usePathname, useRouter } from 'next/navigation'
+import { redirect, usePathname } from 'next/navigation'
 import { LogOut } from 'lucide-react'
-import { useRegister } from '@/hooks/useRegister'
-import { useEffect, useState } from 'react'
-import { HomeData } from '@/types/home'
-import axios from 'axios'
+import { UserState, useUser } from '@/app/contexts/useUser'
 
-export default function Header() {
+export default function Header({ auth }: { auth: UserState }) {
+  const { logOut }: { logOut: any } = useUser()
   const path = usePathname()
-  const router = useRouter()
-  const [data, setData] = useState<HomeData>()
-  const { token, currentUser } = useRegister()
-
-  useEffect(() => {
-    if (token) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/home/data`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          setData(response.data)
-        })
-    }
-  }, [token])
-
-  const handleUserLogOut = () => {
-    if (typeof window !== 'undefined') {
-      const sessionStorage = window.sessionStorage
-
-      sessionStorage.clear()
-      router.push('/login')
-    }
-  }
 
   return (
     <Navbar
@@ -58,20 +29,14 @@ export default function Header() {
       maxWidth="xl"
     >
       <NavbarBrand>
-        <Image
-          src={logo.src}
-          alt=""
-          className="rounded-none h-5"
-          loading="eager"
-          height={20}
-        />
+        <Image src={logo} alt="" className="rounded-none h-5" height={20} />
       </NavbarBrand>
 
       <NavbarContent>
         <NavbarItem isActive={path === '/home'}>
           <Link
             className={
-              path === '/'
+              path === '/home'
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -160,28 +125,30 @@ export default function Header() {
         </NavbarItem>
       </NavbarContent>
 
-      <NavbarContent data-justify="end">
+      <NavbarContent data-justify="end" suppressHydrationWarning>
         <NavbarItem>
           <Button
             className="bg-transparent p-0 text-gray-100"
-            onClick={() => router.push('/profile')}
+            onClick={() => redirect('/profile')}
           >
             <Avatar
-              src={currentUser?.url}
               imgProps={{
                 loading: 'eager',
               }}
             />
             <span>
               Olá,{' '}
-              <span className="font-medium text-yellow-500">{data?.name}</span>!
+              <span className="font-medium text-yellow-500">
+                {auth.user.name}
+              </span>
+              !
             </span>
           </Button>
 
           <Button
             className="bg-red-500/10 text-red-500"
             isIconOnly
-            onClick={handleUserLogOut}
+            onClick={() => logOut()}
           >
             <LogOut size={18} />
           </Button>

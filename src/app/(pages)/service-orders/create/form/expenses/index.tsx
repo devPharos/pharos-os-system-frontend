@@ -13,9 +13,9 @@ import { z } from 'zod'
 import { ChangeEvent, useEffect, useState } from 'react'
 import axios from 'axios'
 import { ProjectExpenses, ServiceOrderExpenses } from '@/types/service-order'
-import { useRegister } from '@/hooks/useRegister'
 import { toast } from 'sonner'
 import { PharosFile } from '@/types/file'
+import { useUser } from '@/app/contexts/useUser'
 
 interface OSExpensesProps {
   projectId: string
@@ -30,7 +30,7 @@ export default function CreateOSExpenses({
   expense,
   osExpenses,
 }: OSExpensesProps) {
-  const { token } = useRegister()
+  const { auth } = useUser()
   const [loading, setLoading] = useState(false)
   const [projectExpenses, setProjectExpenses] = useState<ProjectExpenses[]>([])
   const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()
@@ -68,7 +68,7 @@ export default function CreateOSExpenses({
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
             'Content-Type': 'multipart/form-data',
           },
           params: {
@@ -150,14 +150,14 @@ export default function CreateOSExpenses({
           body,
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.auth?.token}`,
         },
       })
       .then((response) => {
         setLoading(false)
         setProjectExpenses(response.data.projectExpenses)
       })
-  }, [projectId, token])
+  }, [projectId, auth.auth?.token])
 
   const handleSelectProject = (selectedKey: any) => {
     setLoading(true)

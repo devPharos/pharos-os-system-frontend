@@ -2,10 +2,10 @@
 
 import Image from 'next/image'
 
-import img1 from '../../../public/assets/img/auth-1.png'
-import img2 from '../../../public/assets/img/auth-2.png'
-import img3 from '../../../public/assets/img/auth-3.png'
-import logo from '../../../public/assets/logo-negative-yellow.svg'
+import img1 from '@/../public/assets/img/auth-1.png'
+import img2 from '@/../public/assets/img/auth-2.png'
+import img3 from '@/../public/assets/img/auth-3.png'
+import logo from '@/../public/assets/logo-negative-yellow.svg'
 
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button, Input } from '@nextui-org/react'
@@ -13,17 +13,14 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
-import { useRouter } from 'next/navigation'
 import Toast from '@/components/Toast'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 export default function Login() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(false)
+  const [authLoading, setAuthLoading] = useState<boolean>(false)
   const [showToast, setShowToast] = useState<boolean>(false)
-  const router = useRouter()
-  const { setToken } = useRegister()
+  const { logIn } = useUser()
 
   const loginFormSchema = z.object({
     email: z.string().email({
@@ -45,38 +42,13 @@ export default function Login() {
   const handleLoginSubmit: SubmitHandler<TLoginFormData> = (
     data: TLoginFormData,
   ) => {
-    setLoading(true)
+    setAuthLoading(true)
     const userLoginData: TLoginFormData = {
       email: data.email,
       password: data.password,
     }
 
-    axios
-      .post(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
-        email: userLoginData.email,
-        password: userLoginData.password,
-      })
-      .then(function (response) {
-        const data = response.data
-
-        sessionStorage.setItem('access_token', data.access_token)
-
-        if (typeof window !== 'undefined') {
-          setToken(data.access_token)
-        }
-
-        router.push('/')
-      })
-      .catch(function (error) {
-        setShowToast(true)
-
-        setTimeout(() => {
-          setShowToast(false)
-        }, 3000)
-
-        setLoading(false)
-        console.error(error)
-      })
+    logIn(userLoginData)
   }
 
   const handleChangePasswordVisibility = () => {
@@ -168,7 +140,7 @@ export default function Login() {
             radius="full"
             type="submit"
             size="lg"
-            isLoading={loading}
+            isLoading={authLoading}
             className="bg-yellow-500 w-full text-normal outline-none font-bold text-gray-700 hover:bg-yellow-600 uppercase"
           >
             Acessar

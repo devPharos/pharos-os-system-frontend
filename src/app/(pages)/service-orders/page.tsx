@@ -2,7 +2,6 @@
 import { Card } from '@/components/Card'
 import { saveAs } from 'file-saver'
 
-import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import {
   ServiceOrderCard,
@@ -61,7 +60,7 @@ import { Projects } from '@/types/projects'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
@@ -74,7 +73,7 @@ export default function ServiceOrders() {
   const [noOs, setNoOs] = useState(true)
 
   const [selectedOs, setSelectedOs] = useState('')
-  const { currentUser, token } = useRegister()
+  const { auth } = useUser()
   const [items, setItems] = useState<
     {
       key: string
@@ -117,7 +116,7 @@ export default function ServiceOrders() {
         }
 
         if (supervisor === 'me') {
-          if (serviceOrder.collaborator.id === currentUser?.collaboratorId) {
+          if (serviceOrder.collaborator.id === auth?.user?.collaboratorId) {
             serviceOrder.hide = false
           }
         }
@@ -164,11 +163,11 @@ export default function ServiceOrders() {
     }
 
     if (key === 'delete') {
-      if (typeof window !== 'undefined' && token) {
+      if (typeof window !== 'undefined' && auth?.token) {
         axios
           .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/service-order`, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth?.token}`,
               id,
             },
           })
@@ -201,7 +200,7 @@ export default function ServiceOrders() {
     id: string,
     status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho',
   ) => {
-    if (typeof window !== 'undefined' && token) {
+    if (typeof window !== 'undefined' && auth?.token) {
       const body = {
         id,
         status,
@@ -213,7 +212,7 @@ export default function ServiceOrders() {
           body,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth?.token}`,
             },
           },
         )
@@ -231,11 +230,11 @@ export default function ServiceOrders() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && token) {
+    if (typeof window !== 'undefined' && auth?.token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -265,7 +264,7 @@ export default function ServiceOrders() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders/filters`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -275,7 +274,7 @@ export default function ServiceOrders() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -286,7 +285,7 @@ export default function ServiceOrders() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -294,7 +293,7 @@ export default function ServiceOrders() {
           setProjects(response.data)
         })
     }
-  }, [token])
+  }, [auth?.token])
 
   useEffect(() => {
     const items: {
@@ -312,7 +311,7 @@ export default function ServiceOrders() {
     ]
 
     serviceOrders.forEach((os) => {
-      if (os.collaborator.supervisorId === currentUser?.collaboratorId) {
+      if (os.collaborator.supervisorId === auth?.user?.collaboratorId) {
         if (!items.find((item) => item.key === os.collaborator.id)) {
           items.push({
             key: os.collaborator.id,
@@ -323,7 +322,7 @@ export default function ServiceOrders() {
     })
 
     setItems(items)
-  }, [serviceOrders, currentUser?.collaboratorId])
+  }, [serviceOrders, auth?.user?.collaboratorId])
 
   const getServiceOrdersByMonth: ChangeEventHandler<HTMLSelectElement> = (
     event: ChangeEvent<HTMLSelectElement>,
@@ -333,7 +332,7 @@ export default function ServiceOrders() {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth?.token}`,
           filterDate: selectedValue,
         },
       })
@@ -368,7 +367,7 @@ export default function ServiceOrders() {
         `${process.env.NEXT_PUBLIC_API_URL}/pdf`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
             clientid: clientId,
             collaboratorid: collaboratorId,
             enddate: endDate,
@@ -386,9 +385,7 @@ export default function ServiceOrders() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="max-w-7xl w-full  flex flex-col px-6 py-14 gap-16 flex-1">
         <PageHeader
           title="Ordens de serviço"
@@ -794,7 +791,7 @@ export default function ServiceOrders() {
                         key={serviceOrder.id}
                         isDisabled={
                           serviceOrder.collaborator?.supervisorId !==
-                            currentUser?.collaboratorId &&
+                            auth?.user?.collaboratorId &&
                           serviceOrder.status !== 'Aberto' &&
                           serviceOrder.status !== 'Rascunho'
                         }
@@ -878,7 +875,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId ===
-                              currentUser?.collaboratorId
+                              auth?.user?.collaboratorId
                                 ? ''
                                 : 'hidden'
                             }
@@ -923,7 +920,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId !==
-                                currentUser?.collaboratorId &&
+                                auth?.user?.collaboratorId &&
                               serviceOrder.status === 'Aberto'
                                 ? ''
                                 : 'hidden'
@@ -959,7 +956,7 @@ export default function ServiceOrders() {
                           <DropdownSection
                             className={
                               serviceOrder.collaborator?.supervisorId !==
-                                currentUser?.collaboratorId &&
+                                auth?.user?.collaboratorId &&
                               serviceOrder.status === 'Rascunho'
                                 ? ''
                                 : 'hidden'
@@ -1119,6 +1116,6 @@ export default function ServiceOrders() {
           </>
         )}
       </main>
-    </div>
+    </>
   )
 }
