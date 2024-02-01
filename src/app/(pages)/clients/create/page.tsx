@@ -340,7 +340,6 @@ export default function CreateClient() {
                     classNames={{
                       trigger:
                         'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                      popover: 'bg-gray-700 rounded-lg',
                       listboxWrapper: 'max-h-[400px] rounded-lg',
                       base: 'max-w-sm',
                     }}
