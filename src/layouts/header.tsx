@@ -132,6 +132,7 @@ export default function Header({ auth }: { auth: UserState }) {
             onClick={() => redirect('/profile')}
           >
             <Avatar
+              src={auth?.user?.url}
               imgProps={{
                 loading: 'eager',
               }}
@@ -139,7 +140,7 @@ export default function Header({ auth }: { auth: UserState }) {
             <span>
               Olá,{' '}
               <span className="font-medium text-yellow-500">
-                {auth.user.name}
+                {auth?.user?.name}
               </span>
               !
             </span>
