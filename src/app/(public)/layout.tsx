@@ -26,10 +26,6 @@ export default function AuthLayout({
     return <Loading />;
   }
 
-  if(auth.loading) {
-    return <Loading />
-  }
-
   return (
   <NextUIProvider>
     {children}

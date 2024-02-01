@@ -28,10 +28,6 @@ export default function PageLayout({
     return <Loading />;
   }
 
-  if(auth.loading) {
-    return <Loading />
-  }
-
   return (
     <NextUIProvider>
       <Header auth={auth} />

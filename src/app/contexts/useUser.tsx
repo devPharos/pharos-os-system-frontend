@@ -12,13 +12,11 @@ export const UserContext = createContext<any>({
     fantasyName: ''
   },
   token: '',
-  loading: true,
 })
 export interface UserState {
   authenticated: boolean
   user: UserData
   token: string
-  loading: boolean
 }
 
 const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -28,7 +26,6 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
       name: '',
       fantasyName: ''
     },
-    loading: true,
     token: ''
   }, (initialState) => {
     if (typeof localStorage !== 'undefined') {
@@ -36,10 +33,10 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
       if(storedStateAsJSON) {
         const stored = JSON.parse(storedStateAsJSON);
-        return {...stored, loading: false}
+        return stored
       }
     }
-    return {...initialState, loading: false}
+    return initialState
   })
 
   function logIn(userLoginData: any) {
