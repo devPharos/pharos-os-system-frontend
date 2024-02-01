@@ -348,6 +348,11 @@ export default function CreateClient() {
                         base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
                       },
                     }}
+                    popoverProps={{
+                      classNames: {
+                        base: 'bg-gray-700 rounded-lg',
+                      },
+                    }}
                     {...register('state')}
                     errorMessage={errors.state?.message}
                     validationState={errors.state && 'invalid'}
