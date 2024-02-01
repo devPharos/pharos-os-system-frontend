@@ -1,4 +1,3 @@
-'use client'
 import './global.css'
 import localFont from 'next/font/local'
 import { Toaster } from 'sonner'
@@ -38,12 +37,9 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} font-sans bg-gray-900 text-gray-100`}
       >
-        <UserProvider>
-          <NextUIProvider>
+          <UserProvider>
             {children}
-            <Toaster richColors />
-          </NextUIProvider>
-        </UserProvider>
+          </UserProvider>
       </body>
     </html>
   )

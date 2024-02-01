@@ -1,5 +1,4 @@
 'use client'
-import Loading from '@/components/Loading'
 import { UserState, useUser } from './contexts/useUser'
 import { redirect } from 'next/navigation'
 
@@ -11,7 +10,5 @@ export default function HomePage() {
   } else {
     redirect('/home')
   }
-
-  return null
 
 }

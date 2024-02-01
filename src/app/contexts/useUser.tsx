@@ -5,11 +5,20 @@ import { createContext, useContext, useEffect, useReducer } from 'react'
 import { userReducer } from '../../reducers/user/reducer'
 import { authenticateAction, logoutAction } from '@/reducers/user/actions'
 
-export const UserContext = createContext<any>(null)
+export const UserContext = createContext<any>({
+  authenticated: false,
+  user: {
+    name: '',
+    fantasyName: ''
+  },
+  token: '',
+  loading: true,
+})
 export interface UserState {
   authenticated: boolean
   user: UserData
   token: string
+  loading: boolean
 }
 
 const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -19,17 +28,18 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
       name: '',
       fantasyName: ''
     },
+    loading: true,
     token: ''
   }, (initialState) => {
     if (typeof localStorage !== 'undefined') {
       const storedStateAsJSON = localStorage.getItem('@pharosit:auth-1.0.0');
 
       if(storedStateAsJSON) {
-        return JSON.parse(storedStateAsJSON)
-      } else {
-        return initialState
+        const stored = JSON.parse(storedStateAsJSON);
+        return {...stored, loading: false}
       }
     }
+    return {...initialState, loading: false}
   })
 
   function logIn(userLoginData: any) {

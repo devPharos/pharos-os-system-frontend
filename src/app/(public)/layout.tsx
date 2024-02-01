@@ -1,30 +1,39 @@
 'use client'
-
-import { redirect } from "next/navigation"
-import { useEffect, useState } from 'react';
+import Loading from "@/components/Loading";
 import { useUser } from "../contexts/useUser";
-
-export const useMounted = (): { hasMounted: boolean } => {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  return { hasMounted };
-};
+import { NextUIProvider } from "@nextui-org/react";
+import { useRouter } from "next/navigation";
+import { Toaster } from "sonner";
+import { useEffect, useState } from "react";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const [hasMounted, setHasMounted] = useState(false);
   const { auth } = useUser();
-  const { hasMounted } = useMounted();
+  const router = useRouter();
 
-  if(hasMounted && auth?.authenticated) {
-    redirect('/home')
+  useEffect(() => {
+    setHasMounted(true);
+    if(auth.authenticated) {
+      router.push('/home')
+    }
+  },[])
+
+  if (!hasMounted) {
+    return <Loading />;
   }
 
-  return <>{children}</>
+  if(auth.loading) {
+    return <Loading />
+  }
+
+  return (
+  <NextUIProvider>
+    {children}
+    <Toaster richColors />
+  </NextUIProvider>
+  )
 }
