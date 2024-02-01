@@ -17,7 +17,7 @@ import {
 import { format, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
 import { useSearchParams } from 'next/navigation'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 interface OSDetailsProps {
   clientId: string
@@ -53,7 +53,7 @@ export default function CreateOSDetails({
   const [projectExpense, setProjectExpense] = useState<ProjectExpenses>()
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
-  const { token } = useRegister()
+  const { auth } = useUser()
   const id = params[0]
 
   const {
@@ -137,14 +137,14 @@ export default function CreateOSDetails({
           body,
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.token}`,
         },
       })
       .then((response) => {
         setLoading(false)
         setProjects(response.data.projects)
       })
-  }, [clientId, token, osDetail, hasError])
+  }, [clientId, auth.token, osDetail, hasError])
 
   const handleProjectServices = (projectId: string) => {
     setLoading(true)
@@ -158,7 +158,7 @@ export default function CreateOSDetails({
           body,
         },
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${auth.token}`,
         },
       })
       .then((response) => {
@@ -200,7 +200,7 @@ export default function CreateOSDetails({
           `${process.env.NEXT_PUBLIC_API_URL}/delete/service-order/expense`,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth.token}`,
               serviceorderexpenseid: expenseid,
               serviceorderid: id,
             },
@@ -212,7 +212,6 @@ export default function CreateOSDetails({
         })
     }
   }
-  console.log(osDetail)
 
   return (
     <div className="flex flex-col items-center w-full gap-2 pb-6">

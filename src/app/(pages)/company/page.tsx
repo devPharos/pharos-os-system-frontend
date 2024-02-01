@@ -24,27 +24,24 @@ import { useRouter } from 'next/navigation'
 import { Key, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Collaborator } from '@/types/collaborator'
-import { useRegister } from '@/hooks/useRegister'
+import { UserState, useUser } from '@/app/contexts/useUser'
 
 export default function Company() {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const router = useRouter()
-  const { token } = useRegister()
+  const { auth }: { auth: UserState } = useUser()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      token &&
-        axios
-          .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then((response) => {
-            setCollaborators(response.data)
-          })
-    }
-  }, [token])
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      })
+      .then((response) => {
+        setCollaborators(response.data)
+      })
+  }, [])
 
   const onStatusFilter = ({
     status = null,
@@ -87,9 +84,7 @@ export default function Company() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="max-w-7xl w-full  flex flex-col px-6 py-14 gap-16 flex-1">
         <header className="flex items-center justify-between">
           <section className="flex flex-col">
@@ -282,6 +277,6 @@ export default function Company() {
             })}
         </section>
       </main>
-    </div>
+    </>
   )
 }

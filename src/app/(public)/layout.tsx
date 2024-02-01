@@ -1,14 +1,12 @@
 'use client'
-import Header from '@/layouts/header'
-import '../global.css'
-import { useUser } from '../contexts/useUser'
-import { useRouter } from 'next/navigation'
 import Loading from '@/components/Loading'
+import { useUser } from '../contexts/useUser'
 import { NextUIProvider } from '@nextui-org/react'
+import { useRouter } from 'next/navigation'
 import { Toaster } from 'sonner'
 import { useEffect, useState } from 'react'
 
-export default function PageLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
@@ -19,8 +17,8 @@ export default function PageLayout({
 
   useEffect(() => {
     setHasMounted(true)
-    if (!auth.authenticated) {
-      router.push('/login')
+    if (auth.authenticated) {
+      router.push('/home')
     }
   }, [])
 
@@ -30,7 +28,6 @@ export default function PageLayout({
 
   return (
     <NextUIProvider>
-      <Header auth={auth} />
       {children}
       <Toaster richColors />
     </NextUIProvider>

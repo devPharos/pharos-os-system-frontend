@@ -14,7 +14,7 @@ import { Card } from '@/components/Card'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import Loading from '@/components/Loading'
-import { useRegister } from '@/hooks/useRegister'
+import { useUser } from '@/app/contexts/useUser'
 
 interface OsFormProps {
   id?: string
@@ -27,7 +27,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const [osDetails, setOsDetails] = useState<ServiceOrderDetail[]>([])
   const [osDetail, setOsDetail] = useState<ServiceOrderDetail>()
   const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
-  const { token } = useRegister()
+  const { auth } = useUser()
   const [status, setStatus] = useState('')
   const [hasError, setHasError] = useState(false)
 
@@ -54,7 +54,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/find/service-order`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
             id,
           },
         })
@@ -82,7 +82,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const handleCreateNewOS = (data: TOsFormData) => {
     setLoading(true)
 
-    if (typeof window !== 'undefined' && token) {
+    if (typeof window !== 'undefined' && auth.token) {
       const serviceOrderDetails = osDetails
       const body = {
         clientId: data.clientId,
@@ -93,10 +93,11 @@ export default function CreateOSForm({ id }: OsFormProps) {
       }
 
       if (!id) {
+        console.log(body)
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order`, body, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${auth.token}`,
             },
           })
           .then(() => {
@@ -108,6 +109,8 @@ export default function CreateOSForm({ id }: OsFormProps) {
             if (error.message === 'Request failed with status code 409') {
               setHasError(true)
             }
+
+            console.log(error)
           })
       }
 
@@ -123,7 +126,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
             updateBody,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${auth.token}`,
               },
             },
           )
@@ -151,7 +154,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then((response) => {
@@ -159,7 +162,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
           setLoading(false)
         })
     }
-  }, [id, serviceOrder, token])
+  }, [id, serviceOrder, auth.token])
 
   const handleClientProjects = (selectedKey: any) => {
     const selectedClientId = selectedKey.currentKey

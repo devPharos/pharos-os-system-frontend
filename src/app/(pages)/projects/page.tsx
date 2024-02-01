@@ -1,9 +1,8 @@
 'use client'
 
+import { useUser } from '@/app/contexts/useUser'
 import { Card } from '@/components/Card'
 import { onFilter } from '@/functions/auxiliar'
-import { useRegister } from '@/hooks/useRegister'
-import Header from '@/layouts/header'
 import { Client } from '@/types/client'
 import { Project } from '@/types/projects'
 import {
@@ -34,15 +33,15 @@ import { useEffect, useState } from 'react'
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [clients, setClients] = useState<Client[]>([])
-  const { token } = useRegister()
+  const { auth } = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && token) {
+    if (typeof window !== 'undefined' && auth.token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then((response) => {
@@ -52,19 +51,17 @@ export default function Projects() {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth.token}`,
           },
         })
         .then((response) => {
           setClients(response.data)
         })
     }
-  }, [token])
+  }, [auth.token])
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="max-w-7xl w-full  flex flex-col px-6 py-14 gap-16 flex-1">
         <header className="flex items-center justify-between">
           <section className="flex flex-col">
@@ -269,6 +266,6 @@ export default function Projects() {
             })}
         </section>
       </main>
-    </div>
+    </>
   )
 }

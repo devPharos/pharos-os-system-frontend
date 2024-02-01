@@ -1,6 +1,10 @@
+import { CreateMonthlyClosingSchema } from '@/app/(pages)/closing/create/page'
 import { Project } from '@/types/projects'
+import { CircularProgress } from '@nextui-org/react'
 import axios from 'axios'
+import saveAs from 'file-saver'
 import { ChangeEvent, Key, useState } from 'react'
+import { toast } from 'sonner'
 
 export const parseDate = (date: string): Date => {
   const [hours, minutes] = date.split(':').map(Number)
@@ -244,8 +248,6 @@ export const getCEPData = async (cep: string): Promise<AddressData | null> => {
       console.error(error)
     })
 
-  console.log(data)
-
   return data
 }
 
@@ -271,4 +273,52 @@ export const getBanksData = async (): Promise<Bank[]> => {
     })
 
   return banks
+}
+
+export interface PDFProps extends CreateMonthlyClosingSchema {
+  selectedProjects: string[]
+}
+
+export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  const pdfsPaths: {
+    path: string
+    pathName: string
+  }[] = response.data
+
+  pdfsPaths.forEach(async (file) => {
+    const downloadResponse = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          fileName: file.pathName,
+        },
+        responseType: 'blob',
+      },
+    )
+
+    const pdfBlob = new Blob([downloadResponse.data], {
+      type: 'application/pdf',
+    })
+    saveAs(pdfBlob, `${file.pathName}.pdf`)
+
+    await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        fileName: file.pathName,
+      },
+    })
+  })
+
+  toast.success('Fechamento concluído')
 }

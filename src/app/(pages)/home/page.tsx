@@ -1,6 +1,6 @@
 'use client'
 import { Card } from '@/components/Card'
-import { useRegister } from '@/hooks/useRegister'
+import { UserState, useUser } from '@/app/contexts/useUser'
 import Header from '@/layouts/header'
 import PageHeader from '@/layouts/page-header'
 import { HomeData } from '@/types/home'
@@ -14,33 +14,29 @@ import {
 import { useEffect, useState } from 'react'
 
 export default function Home() {
+  // const [loadedPage, setLoadedPage] = useState(false)
+  const { auth }: { auth: UserState } = useUser()
   const [data, setData] = useState<HomeData>()
-  const { token } = useRegister()
-  console.log(token)
-
   useEffect(() => {
-    if (token) {
+    if (auth?.token) {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/home/data`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
-          console.log(response.data)
           setData(response.data)
         })
     }
-  }, [token])
+  }, [auth?.token])
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="flex flex-col gap-14 max-w-7xl w-full px-6 py-14">
         <PageHeader
           label="Lançar OS de hoje"
-          title={`Bem vindo (a), ${data?.name}!`}
+          title={`Bem vindo (a), ${auth?.user?.name || ''}!`}
         />
 
         <section className="flex gap-6 max-lg:flex-wrap">
@@ -97,6 +93,6 @@ export default function Home() {
           </Card.Root>
         </section>
       </main>
-    </div>
+    </>
   )
 }

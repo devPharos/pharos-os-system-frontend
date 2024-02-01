@@ -1,9 +1,7 @@
 'use client'
+import { useUser } from '@/app/contexts/useUser'
 import { Card } from '@/components/Card'
-import { useRegister } from '@/hooks/useRegister'
-import Header from '@/layouts/header'
 import { SupportTicket } from '@/types/support'
-import { UserData } from '@/types/user'
 import {
   Button,
   Dropdown,
@@ -35,14 +33,14 @@ import { Key, useEffect, useState } from 'react'
 export default function Support() {
   const router = useRouter()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
-  const { token } = useRegister()
+  const { auth } = useUser()
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/tickets`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${auth?.token}`,
           },
         })
         .then((response) => {
@@ -92,9 +90,7 @@ export default function Support() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Header />
-
+    <>
       <main className="max-w-7xl w-full  flex flex-col px-6 py-14 gap-16 flex-1">
         <header className="flex items-center justify-between">
           <section className="flex flex-col">
@@ -383,6 +379,6 @@ export default function Support() {
             })}
         </section>
       </main>
-    </div>
+    </>
   )
 }
