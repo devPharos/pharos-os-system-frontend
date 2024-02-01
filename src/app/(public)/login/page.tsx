@@ -49,6 +49,7 @@ export default function Login() {
     }
 
     logIn(userLoginData)
+    setAuthLoading(false)
   }
 
   const handleChangePasswordVisibility = () => {
