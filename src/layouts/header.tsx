@@ -11,25 +11,26 @@ import {
 import Image from 'next/image'
 
 import logo from '../../public/assets/logo-negative-yellow.svg'
-import { redirect, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import { UserState, useUser } from '@/app/contexts/useUser'
 
 export default function Header({ auth }: { auth: UserState }) {
   const { logOut }: { logOut: any } = useUser()
   const path = usePathname()
+  const router = useRouter()
 
   return (
     <Navbar
       classNames={{
-        base: 'bg-black',
+        base: 'bg-black mb-6',
         content: 'gap-6',
         item: 'flex gap-6',
       }}
       maxWidth="xl"
     >
       <NavbarBrand>
-        <Image src={logo} alt="" className="rounded-none h-5" height={20} />
+        <Image src={logo} alt="" className="mb- rounded-none h-5" height={20} />
       </NavbarBrand>
 
       <NavbarContent>
@@ -129,7 +130,7 @@ export default function Header({ auth }: { auth: UserState }) {
         <NavbarItem>
           <Button
             className="bg-transparent p-0 text-gray-100"
-            onClick={() => redirect('/profile')}
+            onClick={() => router.push('/profile')}
           >
             <Avatar
               src={auth?.user?.url}

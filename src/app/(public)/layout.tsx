@@ -20,7 +20,7 @@ export default function AuthLayout({
     if (auth.authenticated) {
       router.push('/home')
     }
-  }, [])
+  }, [auth.authenticated, router])
 
   if (!hasMounted) {
     return <Loading />
