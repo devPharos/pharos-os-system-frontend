@@ -22,7 +22,7 @@ export default function PageLayout({
     if (!auth.authenticated) {
       router.push('/login')
     }
-  }, [])
+  }, [auth.authenticated, router])
 
   if (!hasMounted) {
     return <Loading />
