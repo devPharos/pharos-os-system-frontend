@@ -49,7 +49,7 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
         email: userLoginData.email,
         password: userLoginData.password,
       })
-      .then(function (response) {
+      .then((response) => {
         const data = response.data
 
         axios
@@ -67,6 +67,7 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
               }),
             )
           })
+          .catch((err) => console.log(err))
       })
   }
 
