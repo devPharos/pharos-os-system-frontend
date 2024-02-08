@@ -2,7 +2,7 @@
 import Header from '@/layouts/header'
 import '../global.css'
 import { useUser } from '../contexts/useUser'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Loading from '@/components/Loading'
 import { NextUIProvider } from '@nextui-org/react'
 import { Toaster } from 'sonner'
@@ -16,13 +16,27 @@ export default function PageLayout({
   const [hasMounted, setHasMounted] = useState(false)
   const { auth } = useUser()
   const router = useRouter()
+  const path = usePathname()
 
   useEffect(() => {
     setHasMounted(true)
     if (!auth.authenticated) {
       router.push('/login')
     }
-  }, [auth.authenticated, router])
+
+    if (auth?.user.groupId !== 1 && auth.authenticated) {
+      if (
+        path.includes('closing') ||
+        path.includes('clients/create') ||
+        path.includes('projects/create') ||
+        path.includes('clients/users') ||
+        path.includes('company/collaborators') ||
+        path.includes('company/users')
+      ) {
+        router.push('/home')
+      }
+    }
+  }, [auth.authenticated, router, path, auth?.user?.groupId])
 
   if (!hasMounted) {
     return <Loading />

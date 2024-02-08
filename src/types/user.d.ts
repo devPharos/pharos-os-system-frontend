@@ -11,6 +11,7 @@ export interface UserData {
   companyId: string
   collaboratorId: string
   clientId: string
+  groupId: number
   token?: string
   name: string
   fantasyName: string

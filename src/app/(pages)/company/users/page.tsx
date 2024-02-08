@@ -14,6 +14,7 @@ import Toast from '@/components/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User } from '@/types/user'
 import { useUser } from '@/app/contexts/useUser'
+import { toast } from 'sonner'
 
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
@@ -119,14 +120,29 @@ export default function Users() {
             },
           })
           .then(() => {
-            console.log('ok')
-            // setShowToast(true)
+            axios
+              .post(
+                `${process.env.NEXT_PUBLIC_API_URL}/mail/user-created`,
+                {
+                  email: data.email,
+                  password: data.password,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${auth.token}`,
+                  },
+                },
+              )
+              .then(() => {
+                toast.success('Usuário criado com sucesso!')
 
-            // setInterval(() => {
-            //   setShowToast(false)
-            // }, 3000)
-
-            // router.push('/company')
+                router.push('/company')
+              })
+              .catch((err) => {
+                if (err) {
+                  toast.error('Um erro inesperado aconteceu!')
+                }
+              })
           })
           .catch((error) => {
             console.log(error)

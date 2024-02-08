@@ -133,6 +133,10 @@ export default function CreateOSExpenses({
         formData.append('file', selectedFile)
         handleUploadFile(formData, expense)
       }
+
+      if (!selectedFile) {
+        handleExpenseSave(expense)
+      }
     }
 
     setLoading(false)
@@ -150,14 +154,14 @@ export default function CreateOSExpenses({
           body,
         },
         headers: {
-          Authorization: `Bearer ${auth.auth?.token}`,
+          Authorization: `Bearer ${auth?.token}`,
         },
       })
       .then((response) => {
         setLoading(false)
         setProjectExpenses(response.data.projectExpenses)
       })
-  }, [projectId, auth.auth?.token])
+  }, [projectId, auth?.token])
 
   const handleSelectProject = (selectedKey: any) => {
     setLoading(true)

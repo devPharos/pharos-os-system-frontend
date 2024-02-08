@@ -61,6 +61,7 @@ import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useUser } from '@/app/contexts/useUser'
+import { toast } from 'sonner'
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
@@ -75,6 +76,12 @@ export default function ServiceOrders() {
   const [selectedOs, setSelectedOs] = useState('')
   const { auth } = useUser()
   const [items, setItems] = useState<
+    {
+      key: string
+      label: string
+    }[]
+  >([])
+  const [collaborators, setCollaborators] = useState<
     {
       key: string
       label: string
@@ -296,7 +303,7 @@ export default function ServiceOrders() {
   }, [auth?.token])
 
   useEffect(() => {
-    const items: {
+    const newItems: {
       key: string
       label: string
     }[] = [
@@ -321,8 +328,23 @@ export default function ServiceOrders() {
       }
     })
 
-    setItems(items)
-  }, [serviceOrders, auth?.user?.collaboratorId])
+    setItems(newItems)
+
+    newItems.splice(0, 2)
+
+    const newCollaborators: {
+      key: string
+      label: string
+    }[] = [
+      {
+        key: auth?.user?.collaboratorId,
+        label: auth?.user?.name,
+      },
+      ...newItems,
+    ]
+
+    setCollaborators(newCollaborators)
+  }, [])
 
   const getServiceOrdersByMonth: ChangeEventHandler<HTMLSelectElement> = (
     event: ChangeEvent<HTMLSelectElement>,
@@ -359,27 +381,49 @@ export default function ServiceOrders() {
 
   async function MakeReporting(data: ServiceOrderReportSchema) {
     setLoading(true)
-
     if (typeof window !== 'undefined') {
-      const { collaboratorId, clientId, endDate, projectId, startDate } = data
-
-      const response2 = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/pdf`,
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/os-report/pdf`,
+        data,
         {
           headers: {
             Authorization: `Bearer ${auth?.token}`,
-            clientid: clientId,
-            collaboratorid: collaboratorId,
-            enddate: endDate,
-            projectid: projectId,
-            startdate: startDate,
+          },
+        },
+      )
+
+      const pdfPath: {
+        path: string
+        pathName: string
+      } = response.data
+
+      console.log(pdfPath)
+
+      const downloadResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/os-report/pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${auth?.token}`,
+            fileName: pdfPath.pathName,
           },
           responseType: 'blob',
         },
       )
 
-      const pdfBlob = new Blob([response2.data], { type: 'application/pdf' })
-      saveAs(pdfBlob)
+      const pdfBlob = new Blob([downloadResponse.data], {
+        type: 'application/pdf',
+      })
+      saveAs(pdfBlob, `${pdfPath.pathName}.pdf`)
+
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/os-report/pdf`, {
+        headers: {
+          Authorization: `Bearer ${auth?.token}`,
+          fileName: pdfPath.pathName,
+        },
+      })
+
+      toast.success('Relatório baixado')
+
       setLoading(false)
     }
   }
@@ -591,10 +635,7 @@ export default function ServiceOrders() {
                 <Popover
                   placement="bottom"
                   classNames={{
-                    base: [
-                      // arrow color
-                      'bg-zinc-800 rounded-lg p-6',
-                    ],
+                    base: ['bg-zinc-800 rounded-lg p-6'],
                   }}
                   backdrop="opaque"
                 >
@@ -675,7 +716,7 @@ export default function ServiceOrders() {
                                 },
                               }}
                             >
-                              {items.map((collaborator) => (
+                              {collaborators.map((collaborator) => (
                                 <SelectItem key={collaborator.key}>
                                   {collaborator.label}
                                 </SelectItem>

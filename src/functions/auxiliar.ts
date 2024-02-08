@@ -293,6 +293,29 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
   const pdfsPaths: {
     path: string
     pathName: string
+    users: {
+      name: string
+      lastName: string
+      value: string
+      userId?: string | null
+    }[]
+    serviceOrders: {
+      date: Date
+      startDate: Date
+      endDate: Date
+      client: {
+        fantasyName: string
+      }
+      collaborator: {
+        name: string
+        lastName: string
+        value: string
+        userId?: string | null
+      }
+      serviceOrderExpenses: {
+        value: string
+      }[]
+    }
   }[] = response.data
 
   pdfsPaths.forEach(async (file) => {
@@ -312,12 +335,35 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
     })
     saveAs(pdfBlob, `${file.pathName}.pdf`)
 
-    await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        fileName: file.pathName,
-      },
-    })
+    await axios
+      .delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          fileName: file.pathName,
+        },
+      })
+      .then(() => {
+        file.users.forEach(async (user) => {
+          await axios
+            .post(
+              `${process.env.NEXT_PUBLIC_API_URL}/mail/monthly-closing`,
+              {
+                user,
+                serviceOrders: file.serviceOrders,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            )
+            .catch((err) => {
+              if (err) {
+                toast.error('Um erro inesperado aconteceu!')
+              }
+            })
+        })
+      })
   })
 
   toast.success('Fechamento concluído')
