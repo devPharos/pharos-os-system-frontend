@@ -4,6 +4,7 @@ import axios from 'axios'
 import { createContext, useContext, useEffect, useReducer } from 'react'
 import { userReducer } from '../../reducers/user/reducer'
 import { authenticateAction, logoutAction } from '@/reducers/user/actions'
+import { toast } from 'sonner'
 
 export const UserContext = createContext<any>({
   authenticated: false,
@@ -67,7 +68,15 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
               }),
             )
           })
-          .catch((err) => console.log(err))
+          .catch((err) => {
+            console.log(err)
+          })
+      })
+      .catch((err) => {
+        if (err) {
+          toast.error('Credenciais incorretas')
+          console.log(err)
+        }
       })
   }
 

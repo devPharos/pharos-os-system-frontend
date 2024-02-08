@@ -181,6 +181,7 @@ export default function CreateClient() {
     setValue('complement', cepData?.complemento || '')
     setValue('neighborhood', cepData?.bairro || '')
     setValue('address', cepData?.logradouro || '')
+    setValue('country', 'Brasil')
     setState(cepData?.uf)
   }
 

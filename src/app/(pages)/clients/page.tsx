@@ -143,13 +143,15 @@ export default function Clients() {
             <span className="text-gray-300">Gerencie todos os clientes</span>
           </section>
 
-          <Button
-            className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
-            onClick={() => router.push('/clients/create')}
-          >
-            <PlusCircle size={18} className="text-gray-700" />
-            Adicionar cliente
-          </Button>
+          {auth?.user.groupId === 1 && (
+            <Button
+              className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
+              onClick={() => router.push('/clients/create')}
+            >
+              <PlusCircle size={18} className="text-gray-700" />
+              Adicionar cliente
+            </Button>
+          )}
         </header>
 
         <header className="flex items-center justify-between gap-6">
@@ -235,13 +237,15 @@ export default function Clients() {
             </DropdownMenu>
           </Dropdown>
 
-          <Button
-            onClick={() => router.push('/clients/users')}
-            className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold border-dashed border-2 min-w-fit bg-transparent border-yellow-500 hover:bg-yellow-500"
-          >
-            <PlusCircle size={18} />
-            Adicionar usuário
-          </Button>
+          {auth?.user.groupId === 1 && (
+            <Button
+              onClick={() => router.push('/clients/users')}
+              className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold border-dashed border-2 min-w-fit bg-transparent border-yellow-500 hover:bg-yellow-500"
+            >
+              <PlusCircle size={18} />
+              Adicionar usuário
+            </Button>
+          )}
         </header>
 
         {loading ? (
@@ -285,49 +289,51 @@ export default function Clients() {
                       </Button>
                     </DropdownTrigger>
 
-                    <DropdownMenu
-                      itemClasses={{
-                        base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
-                      }}
-                      onAction={(key: Key) =>
-                        handleClientCardClick(key, client.id, client?.active)
-                      }
-                    >
-                      <DropdownItem
-                        startContent={
-                          <Card.Badge
-                            status=""
-                            className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
-                            icon={PencilLine}
-                          />
+                    {auth.user.groupId === 1 && (
+                      <DropdownMenu
+                        itemClasses={{
+                          base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',
+                        }}
+                        onAction={(key: Key) =>
+                          handleClientCardClick(key, client.id, client?.active)
                         }
-                        key={'edit'}
                       >
-                        <Link
-                          href={{
-                            pathname: '/clients/create',
-                            query: {
-                              id: client.id,
-                            },
-                          }}
+                        <DropdownItem
+                          startContent={
+                            <Card.Badge
+                              status=""
+                              className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                              icon={PencilLine}
+                            />
+                          }
+                          key={'edit'}
                         >
-                          Editar cliente
-                        </Link>
-                      </DropdownItem>
+                          <Link
+                            href={{
+                              pathname: '/clients/create',
+                              query: {
+                                id: client.id,
+                              },
+                            }}
+                          >
+                            Editar cliente
+                          </Link>
+                        </DropdownItem>
 
-                      <DropdownItem
-                        startContent={
-                          <Card.Badge
-                            status=""
-                            className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
-                            icon={CircleDashed}
-                          />
-                        }
-                        key={'status'}
-                      >
-                        Alterar status do cliente
-                      </DropdownItem>
-                    </DropdownMenu>
+                        <DropdownItem
+                          startContent={
+                            <Card.Badge
+                              status=""
+                              className="text-gray-300/80 bg-gray-500/10  py-2 px-2 rounded-md"
+                              icon={CircleDashed}
+                            />
+                          }
+                          key={'status'}
+                        >
+                          Alterar status do cliente
+                        </DropdownItem>
+                      </DropdownMenu>
+                    )}
                   </Dropdown>
                 )
               }

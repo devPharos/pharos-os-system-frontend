@@ -9,14 +9,13 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import Toast from '@/components/Toast'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
 import { useUser } from '@/app/contexts/useUser'
+import { toast } from 'sonner'
 
 export default function Users() {
   const [clients, setClients] = useState<Client[]>([])
-  const [showToast, setShowToast] = useState(false)
   const { auth } = useUser()
   const router = useRouter()
 
@@ -49,7 +48,7 @@ export default function Users() {
           setClients(response.data)
         })
     }
-  }, [])
+  }, [auth.token])
 
   const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
     data: CreateUserSchema,
@@ -68,13 +67,29 @@ export default function Users() {
           },
         })
         .then(() => {
-          setShowToast(true)
+          axios
+            .post(
+              `${process.env.NEXT_PUBLIC_API_URL}/mail/user-created`,
+              {
+                email: data.email,
+                password: data.password,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${auth.token}`,
+                },
+              },
+            )
+            .then(() => {
+              toast.success('Usuário criado com sucesso!')
 
-          setInterval(() => {
-            setShowToast(false)
-          }, 3000)
-
-          router.push('/clients')
+              router.push('/clients')
+            })
+            .catch((err) => {
+              if (err) {
+                toast.error('Um erro inesperado aconteceu!')
+              }
+            })
         })
         .catch((error) => {
           setError('email', {
@@ -174,8 +189,6 @@ export default function Users() {
           </section>
         </form>
       </div>
-
-      {showToast && <Toast message="Usuário criado com sucesso" />}
     </>
   )
 }

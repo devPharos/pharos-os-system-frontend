@@ -8,15 +8,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, Button, Input } from '@nextui-org/react'
 import axios from 'axios'
 import { Camera, Save } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { ChangeEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
 export default function Profile() {
-  const [loading, setLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const { auth } = useUser()
+  const router = useRouter()
 
   const editProfileFormSchema = z.object({
     firstName: z.string().min(1, 'Insira seu primeiro nome'),
@@ -44,11 +46,9 @@ export default function Profile() {
           },
         })
         .then((response) => {
-          setLoading(false)
           return response.data
         })
         .catch(function (error) {
-          setLoading(false)
           console.error(error)
         }),
   })
@@ -62,8 +62,6 @@ export default function Profile() {
       file,
     }
 
-    console.log(body)
-
     axios
       .post(`${process.env.NEXT_PUBLIC_API_URL}/profile`, body, {
         headers: {
@@ -71,7 +69,19 @@ export default function Profile() {
         },
       })
       .then(function () {
+        auth.user.url =
+          file?.fileUrl +
+          '/file/pharosit-miscelaneous/' +
+          file?.fileName.replace(/ /g, '%20')
+
+        if (typeof localStorage !== 'undefined') {
+          const stateJSON = JSON.stringify(auth)
+          localStorage.setItem('@pharosit:auth-1.0.0', stateJSON)
+        }
+
         toast.success('Perfil atualizado com sucesso')
+
+        router.push('/home')
       })
       .catch(function (error) {
         console.error(error)
@@ -82,7 +92,6 @@ export default function Profile() {
     formData: FormData,
     data: EditProfileFormSchema,
   ) => {
-    setLoading(true)
     await axios
       .post(
         `${process.env.NEXT_PUBLIC_API_URL}/storage/upload/file`,
@@ -108,7 +117,6 @@ export default function Profile() {
 
           handleUpdateProfile(data, avatarImgFileSchema)
 
-          setLoading(false)
           return
         }
 
@@ -133,6 +141,13 @@ export default function Profile() {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files && event.target.files[0]
+      const reader = new FileReader()
+
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string)
+      }
+
+      reader.readAsDataURL(file)
       setSelectedFile(file)
     }
   }
@@ -147,7 +162,7 @@ export default function Profile() {
           <Avatar
             alt=""
             className="rounded-full w-[100px] h-[100px]"
-            src={auth?.user?.url}
+            src={selectedImage || auth?.user?.url}
           />
 
           <div className="cursor-pointer z-50 hover:bg-yellow-600 absolute right-0 bottom-0 w-8 h-8 flex rounded-full bg-yellow-500 items-center justify-center">

@@ -34,10 +34,10 @@ export default function Header({ auth }: { auth: UserState }) {
       </NavbarBrand>
 
       <NavbarContent>
-        <NavbarItem isActive={path === '/home'}>
+        <NavbarItem isActive={path.includes('home')}>
           <Link
             className={
-              path === '/home'
+              path.includes('home')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -47,10 +47,10 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/clients'}>
+        <NavbarItem isActive={path.includes('clients')}>
           <Link
             className={
-              path === '/clients'
+              path.includes('clients')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -60,10 +60,10 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/company'}>
+        <NavbarItem isActive={path.includes('company')}>
           <Link
             className={
-              path === '/company'
+              path.includes('company')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -73,10 +73,10 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/projects'}>
+        <NavbarItem isActive={path.includes('projects')}>
           <Link
             className={
-              path === '/projects'
+              path.includes('projects')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -86,10 +86,10 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/service-orders'}>
+        <NavbarItem isActive={path.includes('service-orders')}>
           <Link
             className={
-              path === ('/service-orders' || '/service-orders/create')
+              path.includes('service-orders')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -99,10 +99,10 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/support'}>
+        <NavbarItem isActive={path.includes('support')}>
           <Link
             className={
-              path === '/support'
+              path.includes('support')
                 ? 'text-gray-100 font-semibold cursor-pointer'
                 : 'text-gray-300 cursor-pointer'
             }
@@ -112,18 +112,20 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        <NavbarItem isActive={path === '/closing'}>
-          <Link
-            className={
-              path === '/closing'
-                ? 'text-gray-100 font-semibold cursor-pointer'
-                : 'text-gray-300 cursor-pointer'
-            }
-            href="/closing"
-          >
-            Fechamento
-          </Link>
-        </NavbarItem>
+        {auth?.user.groupId === 1 && (
+          <NavbarItem isActive={path.includes('closing')}>
+            <Link
+              className={
+                path.includes('closing')
+                  ? 'text-gray-100 font-semibold cursor-pointer'
+                  : 'text-gray-300 cursor-pointer'
+              }
+              href="/closing"
+            >
+              Fechamento
+            </Link>
+          </NavbarItem>
+        )}
       </NavbarContent>
 
       <NavbarContent data-justify="end" suppressHydrationWarning>
