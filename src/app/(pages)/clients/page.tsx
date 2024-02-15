@@ -289,7 +289,7 @@ export default function Clients() {
                       </Button>
                     </DropdownTrigger>
 
-                    {auth.user.groupId === 1 && (
+                    {auth?.user.groupId === 1 && (
                       <DropdownMenu
                         itemClasses={{
                           base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',

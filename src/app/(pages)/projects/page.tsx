@@ -69,7 +69,7 @@ export default function Projects() {
             <span className="text-gray-300">Gerencie todos os projetos</span>
           </section>
 
-          {auth.user.groupId === 1 && (
+          {auth?.user.groupId === 1 && (
             <Button
               className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
               onClick={() => router.push('/projects/create')}

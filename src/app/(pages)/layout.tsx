@@ -20,23 +20,25 @@ export default function PageLayout({
 
   useEffect(() => {
     setHasMounted(true)
+
     if (!auth.authenticated) {
       router.push('/login')
     }
 
-    if (auth.authenticated && auth?.user.groupId !== 1) {
+    if (auth.authenticated) {
       if (
-        path.includes('closing') ||
-        path.includes('clients/create') ||
-        path.includes('projects/create') ||
-        path.includes('clients/users') ||
-        path.includes('company/collaborators') ||
-        path.includes('company/users')
+        auth?.user.groupId !== 1 &&
+        (path.includes('closing') ||
+          path.includes('clients/create') ||
+          path.includes('projects/create') ||
+          path.includes('clients/users') ||
+          path.includes('company/collaborators') ||
+          path.includes('company/users'))
       ) {
         router.push('/home')
       }
     }
-  }, [auth.authenticated, router, path, auth?.user?.groupId])
+  }, [auth.authenticated, router, path])
 
   if (!hasMounted) {
     return <Loading />
