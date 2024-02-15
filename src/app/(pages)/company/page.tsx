@@ -95,7 +95,7 @@ export default function Company() {
           </section>
 
           <section className="space-x-6">
-            {auth?.user.groupId === 1 && (
+            {auth?.user?.groupId === 1 && (
               <Button
                 className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
                 onClick={() => router.push('/company/users')}
@@ -190,7 +190,7 @@ export default function Company() {
             </DropdownMenu>
           </Dropdown>
 
-          {auth.user.groupId === 1 && (
+          {auth.user?.groupId === 1 && (
             <Button
               onClick={() => router.push('/company/collaborators')}
               className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold border-dashed border-2 min-w-fit bg-transparent border-yellow-500 hover:bg-yellow-500"
@@ -238,7 +238,7 @@ export default function Company() {
                       </Button>
                     </DropdownTrigger>
 
-                    {auth.user.groupId === 1 && (
+                    {auth.user?.groupId === 1 && (
                       <DropdownMenu
                         itemClasses={{
                           base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',

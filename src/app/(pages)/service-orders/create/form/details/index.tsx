@@ -117,9 +117,6 @@ export default function CreateOSDetails({
     }
 
     setLoading(true)
-    const body = {
-      clientId,
-    }
 
     if (hasError) {
       setError('startDate', {
@@ -133,11 +130,9 @@ export default function CreateOSDetails({
 
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
-        data: {
-          body,
-        },
         headers: {
           Authorization: `Bearer ${auth.token}`,
+          clientid: clientId,
         },
       })
       .then((response) => {
@@ -148,17 +143,12 @@ export default function CreateOSDetails({
 
   const handleProjectServices = (projectId: string) => {
     setLoading(true)
-    const body = {
-      projectId,
-    }
 
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/project-services`, {
-        data: {
-          body,
-        },
         headers: {
           Authorization: `Bearer ${auth.token}`,
+          projectid: projectId,
         },
       })
       .then((response) => {

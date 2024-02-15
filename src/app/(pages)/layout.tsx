@@ -27,7 +27,7 @@ export default function PageLayout({
 
     if (auth.authenticated) {
       if (
-        auth?.user.groupId !== 1 &&
+        auth?.user?.groupId !== 1 &&
         (path.includes('closing') ||
           path.includes('clients/create') ||
           path.includes('projects/create') ||

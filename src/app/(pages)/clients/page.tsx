@@ -143,7 +143,7 @@ export default function Clients() {
             <span className="text-gray-300">Gerencie todos os clientes</span>
           </section>
 
-          {auth?.user.groupId === 1 && (
+          {auth?.user?.groupId === 1 && (
             <Button
               className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
               onClick={() => router.push('/clients/create')}
@@ -237,7 +237,7 @@ export default function Clients() {
             </DropdownMenu>
           </Dropdown>
 
-          {auth?.user.groupId === 1 && (
+          {auth?.user?.groupId === 1 && (
             <Button
               onClick={() => router.push('/clients/users')}
               className="rounded-full px-6 py-4 hover:text-gray-700 text-yellow-500 font-bold border-dashed border-2 min-w-fit bg-transparent border-yellow-500 hover:bg-yellow-500"
@@ -289,7 +289,7 @@ export default function Clients() {
                       </Button>
                     </DropdownTrigger>
 
-                    {auth?.user.groupId === 1 && (
+                    {auth?.user?.groupId === 1 && (
                       <DropdownMenu
                         itemClasses={{
                           base: 'rounded-lg data-[hover=true]:bg-gray-800 data-[hover=true]:text-gray-200 data-[selected=true]:text-gray-100 data-[selected=true]:font-bold',

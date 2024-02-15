@@ -144,17 +144,12 @@ export default function CreateOSExpenses({
 
   useEffect(() => {
     setLoading(true)
-    const body = {
-      projectId,
-    }
 
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/project-expenses`, {
-        data: {
-          body,
-        },
         headers: {
           Authorization: `Bearer ${auth?.token}`,
+          projectid: projectId,
         },
       })
       .then((response) => {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useUser } from '@/app/contexts/useUser'
+import Loading from '@/components/Loading'
 import { states } from '@/data/states'
 import {
   Bank,
@@ -220,6 +221,10 @@ export default function CreateClient() {
     setValue('bank', keys.currentKey)
   }
 
+  if (id && !collaborator) {
+    return <Loading />
+  }
+
   return (
     <div className="flex flex-col items-center w-full gap-2 pb-6">
       <form
@@ -419,20 +424,7 @@ export default function CreateClient() {
                 {...register('state')}
                 errorMessage={errors.state?.message}
                 validationState={errors.state && 'invalid'}
-                defaultSelectedKeys={
-                  collaborator
-                    ? [
-                        states.find(
-                          (state) => state.name === collaborator?.state,
-                        )?.key || '',
-                      ]
-                    : state
-                    ? [
-                        states.find((findState) => findState.key === state)
-                          ?.key || '',
-                      ]
-                    : []
-                }
+                defaultSelectedKeys={collaborator && [collaborator.state]}
               >
                 {states.map((state) => (
                   <SelectItem key={state.key}>{state.name}</SelectItem>

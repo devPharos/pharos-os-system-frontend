@@ -397,8 +397,6 @@ export default function ServiceOrders() {
         pathName: string
       } = response.data
 
-      console.log(pdfPath)
-
       const downloadResponse = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/os-report/pdf`,
         {

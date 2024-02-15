@@ -522,7 +522,7 @@ export default function CreateProject() {
                   <span className="text-sm text-gray-300">
                     {expense.description}
                   </span>
-                  <span>R$ {expense.value},00</span>
+                  <span>R$ {expense.value}</span>
 
                   <Card.Badge
                     status=""
