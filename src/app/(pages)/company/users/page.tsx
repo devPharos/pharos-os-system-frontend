@@ -10,7 +10,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Collaborator } from '@/types/collaborator'
-import Toast from '@/components/Toast'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { User } from '@/types/user'
 import { useUser } from '@/app/contexts/useUser'
@@ -19,7 +18,6 @@ import { toast } from 'sonner'
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
   const [collaboratorsId, setCollaboratorsId] = useState<Collaborator[]>([])
-  const [showToast, setShowToast] = useState(false)
   const [user, setUser] = useState<User>()
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
@@ -43,7 +41,7 @@ export default function Users() {
     resolver: zodResolver(createUserSchema),
     defaultValues: async () =>
       id &&
-      axios
+      (await axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/find/user`, {
           headers: {
             Authorization: `Bearer ${auth?.token}`,
@@ -56,7 +54,7 @@ export default function Users() {
         })
         .catch(function (error) {
           console.error(error)
-        }),
+        })),
   })
 
   useEffect(() => {
@@ -94,11 +92,7 @@ export default function Users() {
             },
           })
           .then(() => {
-            setShowToast(true)
-
-            setInterval(() => {
-              setShowToast(false)
-            }, 3000)
+            toast.success('Usuário criado com sucesso')
 
             router.push('/company')
           })
@@ -134,7 +128,7 @@ export default function Users() {
                 },
               )
               .then(() => {
-                toast.success('Usuário criado com sucesso!')
+                toast.success('Usuário atualizado com sucesso!')
 
                 router.push('/company')
               })
@@ -201,6 +195,7 @@ export default function Users() {
           }}
           {...register('collaboratorId')}
           errorMessage={errors.collaboratorId?.message}
+          selectedKeys={user && user.collaboratorId && [user.collaboratorId]}
           validationState={errors.collaboratorId && 'invalid'}
         >
           {collaboratorsId.map((collaborator) => {
