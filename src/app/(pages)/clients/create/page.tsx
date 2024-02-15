@@ -61,8 +61,7 @@ export default function CreateClient() {
   } = useForm<ClientFormSchema>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: async () =>
-      auth?.token &&
-      axios
+      await axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/client/data`, {
           headers: {
             Authorization: `Bearer ${auth.token}`,
@@ -97,63 +96,42 @@ export default function CreateClient() {
     }
 
     if (!id && typeof window !== 'undefined') {
-      auth?.token &&
-        axios
-          .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
-            headers: {
-              Authorization: `Bearer ${auth.token}`,
-            },
+      axios
+        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        })
+        .then(function () {
+          setLoading(false)
+          router.back()
+        })
+        .catch(function (error) {
+          console.error(error)
+          setLoading(false)
+          setError('cnpj', {
+            message: 'Já existe um cliente com o mesmo CPF/CNPJ',
           })
-          .then(function () {
-            setLoading(false)
-            router.back()
-          })
-          .catch(function (error) {
-            console.error(error)
-            setLoading(false)
-            setError('cnpj', {
-              message: 'Já existe um cliente com o mesmo CPF/CNPJ',
-            })
-          })
+        })
     }
 
     if (id && typeof window !== 'undefined') {
-      auth?.token &&
-        axios
-          .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
-            headers: {
-              Authorization: `Bearer ${auth.token}`,
-            },
-          })
-          .then(function () {
-            setLoading(false)
-            router.push('/clients')
-          })
-          .catch(function (error) {
-            console.error(error)
-            setLoading(false)
-          })
+      axios
+        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        })
+        .then(function () {
+          setLoading(false)
+          router.push('/clients')
+        })
+        .catch(function (error) {
+          console.error(error)
+          setLoading(false)
+        })
     }
   }
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      auth?.token &&
-        axios
-          .get(`${process.env.NEXT_PUBLIC_API_URL}/companies`, {
-            headers: {
-              Authorization: `Bearer ${auth.token}`,
-            },
-          })
-          .then(function () {
-            setLoading(false)
-          })
-          .catch(function (error) {
-            console.error(error)
-            setLoading(false)
-          })
-    }
-  }, [auth.token])
 
   const handleCepChange = (e: ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value
@@ -177,283 +155,529 @@ export default function CreateClient() {
     }
 
     setValue('city', cepData?.localidade || '')
-    setValue('state', cepData?.uf || '')
     setValue('complement', cepData?.complemento || '')
     setValue('neighborhood', cepData?.bairro || '')
     setValue('address', cepData?.logradouro || '')
+    setValue('state', cepData?.uf || '')
     setValue('country', 'Brasil')
-    setState(cepData?.uf)
+
+    if (cepData && client) {
+      setClient({
+        ...client,
+        state: cepData.uf,
+      })
+
+      setState(cepData.uf)
+    }
   }
 
-  return (
+  return id ? (
     <>
-      {loading ? (
-        <Loading />
-      ) : (
-        <div className="flex flex-col items-center w-full gap-2 pb-6">
-          <form
-            onSubmit={handleSubmit(handleClientFormSubmit)}
-            className="max-w-7xl w-full space-y-10 px-6"
-          >
-            <header className={'flex items-center justify-between'}>
-              <span className="text-2xl font-bold text-white">
-                Cadastro de Cliente
-              </span>
+      {client && (
+        <form
+          onSubmit={handleSubmit(handleClientFormSubmit)}
+          className="max-w-7xl w-full space-y-10 px-6"
+        >
+          <header className={'flex items-center justify-between'}>
+            <span className="text-2xl font-bold text-white">
+              Cadastro de Cliente
+            </span>
 
-              <section className="flex items-center gap-6">
-                <Button
-                  className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
-                  onClick={() => router.push('/clients')}
-                >
-                  Cancelar
-                </Button>
+            <section className="flex items-center gap-6">
+              <Button
+                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+                onClick={() => router.push('/clients')}
+              >
+                Cancelar
+              </Button>
 
-                <Button
-                  disabled={loading}
-                  type="submit"
-                  className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
-                >
-                  <Save size={16} />
-                  Salvar cliente
-                </Button>
-              </section>
-            </header>
+              <Button
+                disabled={loading}
+                type="submit"
+                className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
+              >
+                <Save size={16} />
+                Salvar cliente
+              </Button>
+            </section>
+          </header>
 
-            <section className="flex flex-wrap  gap-6">
-              <section className="flex flex-col gap-2 w-full">
-                <span className="text-gray-200">Informações</span>
+          <section className="flex flex-wrap  gap-6">
+            <section className="flex flex-col gap-2 w-full">
+              <span className="text-gray-200">Informações</span>
 
-                <section className="flex flex-wrap gap-6">
-                  <Input
-                    id="businessName"
-                    label="Razão social"
-                    placeholder={id && ' '}
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('businessName')}
-                    errorMessage={errors.businessName?.message}
-                    validationState={errors.businessName && 'invalid'}
-                  />
+              <section className="flex flex-wrap gap-6">
+                <Input
+                  id="businessName"
+                  label="Razão social"
+                  placeholder={id && ' '}
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('businessName')}
+                  errorMessage={errors.businessName?.message}
+                  validationState={errors.businessName && 'invalid'}
+                />
 
-                  <Input
-                    id="fantasyName"
-                    label="Nome fantasia"
-                    placeholder={id && ' '}
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('fantasyName')}
-                    errorMessage={errors.fantasyName?.message}
-                    validationState={errors.fantasyName && 'invalid'}
-                  />
+                <Input
+                  id="fantasyName"
+                  label="Nome fantasia"
+                  placeholder={id && ' '}
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('fantasyName')}
+                  errorMessage={errors.fantasyName?.message}
+                  validationState={errors.fantasyName && 'invalid'}
+                />
 
-                  <Input
-                    id="cnpj"
-                    label="CNPJ/CPF"
-                    disabled={!!id}
-                    placeholder={id && ' '}
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('cnpj')}
-                    onChange={handleFormatCPForCNPJ}
-                    errorMessage={errors.cnpj?.message}
-                    validationState={errors.cnpj && 'invalid'}
-                  />
+                <Input
+                  id="cnpj"
+                  label="CNPJ/CPF"
+                  disabled={!!id}
+                  placeholder={id && ' '}
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('cnpj')}
+                  onChange={handleFormatCPForCNPJ}
+                  errorMessage={errors.cnpj?.message}
+                  validationState={errors.cnpj && 'invalid'}
+                />
 
-                  <Input
-                    id="phone"
-                    label="Telefone"
-                    placeholder={id && ' '}
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('phone')}
-                    onChange={handleFormatPhone}
-                    errorMessage={errors.phone?.message}
-                    validationState={errors.phone && 'invalid'}
-                  />
-                </section>
-              </section>
-
-              <section className="flex flex-col gap-2 w-full">
-                <span className="text-gray-200">Endereço</span>
-
-                <section className="flex flex-wrap gap-6">
-                  <Input
-                    id="cep"
-                    label="CEP"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('cep')}
-                    errorMessage={errors.cep?.message}
-                    validationState={errors.cep && 'invalid'}
-                    placeholder={id && ' '}
-                    value={cep || (client && client?.cep)}
-                    onChange={handleCepChange}
-                    endContent={
-                      <Button
-                        onClick={buscarCep}
-                        className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
-                        disabled={cep.length !== 10}
-                        startContent={<Search size={18} />}
-                      >
-                        Buscar CEP
-                      </Button>
-                    }
-                  />
-
-                  <Input
-                    id="country"
-                    label="País"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('country')}
-                    errorMessage={errors.country?.message}
-                    validationState={errors.country && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Select
-                    id="state"
-                    label="Estado"
-                    classNames={{
-                      trigger:
-                        'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                      listboxWrapper: 'max-h-[400px] rounded-lg',
-                      base: 'max-w-sm',
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                      },
-                    }}
-                    popoverProps={{
-                      classNames: {
-                        base: 'bg-gray-700 rounded-lg',
-                      },
-                    }}
-                    {...register('state')}
-                    errorMessage={errors.state?.message}
-                    validationState={errors.state && 'invalid'}
-                    defaultSelectedKeys={
-                      client
-                        ? [
-                            states.find((state) => state.name === client.state)
-                              ?.key || '',
-                          ]
-                        : state
-                        ? [
-                            states.find((findState) => findState.key === state)
-                              ?.key || '',
-                          ]
-                        : []
-                    }
-                  >
-                    {states.map((state) => (
-                      <SelectItem key={state.key}>{state.name}</SelectItem>
-                    ))}
-                  </Select>
-
-                  <Input
-                    id="city"
-                    label="Cidade"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('city')}
-                    errorMessage={errors.city?.message}
-                    validationState={errors.city && 'invalid'}
-                    placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
-
-                  <Input
-                    id="neighborhood"
-                    label="Bairro"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('neighborhood')}
-                    errorMessage={errors.neighborhood?.message}
-                    validationState={errors.neighborhood && 'invalid'}
-                    placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
-
-                  <Input
-                    id="address"
-                    label="Endereço"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('address')}
-                    errorMessage={errors.address?.message}
-                    validationState={errors.address && 'invalid'}
-                    placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
-
-                  <Input
-                    id="number"
-                    label="Número"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('number')}
-                    errorMessage={errors.number?.message}
-                    validationState={errors.number && 'invalid'}
-                    placeholder={id && ' '}
-                  />
-
-                  <Input
-                    id="complement"
-                    label="Complemento"
-                    classNames={{
-                      label: 'text-gray-300',
-                      base: 'max-w-sm',
-                      inputWrapper:
-                        'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                    }}
-                    {...register('complement')}
-                    placeholder={id || cep.length === 10 ? ' ' : undefined}
-                  />
-                </section>
+                <Input
+                  id="phone"
+                  label="Telefone"
+                  placeholder={id && ' '}
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('phone')}
+                  onChange={handleFormatPhone}
+                  errorMessage={errors.phone?.message}
+                  validationState={errors.phone && 'invalid'}
+                />
               </section>
             </section>
-          </form>
-        </div>
+
+            <section className="flex flex-col gap-2 w-full">
+              <span className="text-gray-200">Endereço</span>
+
+              <section className="flex flex-wrap gap-6">
+                <Input
+                  id="cep"
+                  label="CEP"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('cep')}
+                  errorMessage={errors.cep?.message}
+                  validationState={errors.cep && 'invalid'}
+                  placeholder={id && ' '}
+                  value={cep || (client && client?.cep)}
+                  onChange={handleCepChange}
+                  endContent={
+                    <Button
+                      onClick={buscarCep}
+                      className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                      disabled={cep.length !== 10}
+                      startContent={<Search size={18} />}
+                    >
+                      Buscar CEP
+                    </Button>
+                  }
+                />
+
+                <Input
+                  id="country"
+                  label="País"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('country')}
+                  errorMessage={errors.country?.message}
+                  validationState={errors.country && 'invalid'}
+                  placeholder={id && ' '}
+                />
+
+                <Select
+                  id="state"
+                  label="Estado"
+                  classNames={{
+                    trigger:
+                      'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                    listboxWrapper: 'max-h-[400px] rounded-lg',
+                    base: 'max-w-sm',
+                  }}
+                  listboxProps={{
+                    itemClasses: {
+                      base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                    },
+                  }}
+                  popoverProps={{
+                    classNames: {
+                      base: 'bg-gray-700 rounded-lg',
+                    },
+                  }}
+                  {...register('state')}
+                  errorMessage={errors.state?.message}
+                  validationState={errors.state && 'invalid'}
+                  defaultSelectedKeys={[state || client?.state]}
+                >
+                  {states.map((state) => (
+                    <SelectItem key={state.key} value={state.key}>
+                      {state.name}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Input
+                  id="city"
+                  label="Cidade"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('city')}
+                  errorMessage={errors.city?.message}
+                  validationState={errors.city && 'invalid'}
+                  placeholder={id || cep.length === 10 ? ' ' : undefined}
+                />
+
+                <Input
+                  id="neighborhood"
+                  label="Bairro"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('neighborhood')}
+                  errorMessage={errors.neighborhood?.message}
+                  validationState={errors.neighborhood && 'invalid'}
+                  placeholder={id || cep.length === 10 ? ' ' : undefined}
+                />
+
+                <Input
+                  id="address"
+                  label="Endereço"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('address')}
+                  errorMessage={errors.address?.message}
+                  validationState={errors.address && 'invalid'}
+                  placeholder={id || cep.length === 10 ? ' ' : undefined}
+                />
+
+                <Input
+                  id="number"
+                  label="Número"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('number')}
+                  errorMessage={errors.number?.message}
+                  validationState={errors.number && 'invalid'}
+                  placeholder={id && ' '}
+                />
+
+                <Input
+                  id="complement"
+                  label="Complemento"
+                  classNames={{
+                    label: 'text-gray-300',
+                    base: 'max-w-sm',
+                    inputWrapper:
+                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  }}
+                  {...register('complement')}
+                  placeholder={id || cep.length === 10 ? ' ' : undefined}
+                />
+              </section>
+            </section>
+          </section>
+        </form>
       )}
     </>
+  ) : (
+    <form
+      onSubmit={handleSubmit(handleClientFormSubmit)}
+      className="max-w-7xl w-full space-y-10 px-6"
+    >
+      <header className={'flex items-center justify-between'}>
+        <span className="text-2xl font-bold text-white">
+          Cadastro de Cliente
+        </span>
+
+        <section className="flex items-center gap-6">
+          <Button
+            className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+            onClick={() => router.push('/clients')}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            disabled={loading}
+            type="submit"
+            className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
+          >
+            <Save size={16} />
+            Salvar cliente
+          </Button>
+        </section>
+      </header>
+
+      <section className="flex flex-wrap  gap-6">
+        <section className="flex flex-col gap-2 w-full">
+          <span className="text-gray-200">Informações</span>
+
+          <section className="flex flex-wrap gap-6">
+            <Input
+              id="businessName"
+              label="Razão social"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('businessName')}
+              errorMessage={errors.businessName?.message}
+              validationState={errors.businessName && 'invalid'}
+            />
+
+            <Input
+              id="fantasyName"
+              label="Nome fantasia"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('fantasyName')}
+              errorMessage={errors.fantasyName?.message}
+              validationState={errors.fantasyName && 'invalid'}
+            />
+
+            <Input
+              id="cnpj"
+              label="CNPJ/CPF"
+              disabled={!!id}
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('cnpj')}
+              onChange={handleFormatCPForCNPJ}
+              errorMessage={errors.cnpj?.message}
+              validationState={errors.cnpj && 'invalid'}
+            />
+
+            <Input
+              id="phone"
+              label="Telefone"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('phone')}
+              onChange={handleFormatPhone}
+              errorMessage={errors.phone?.message}
+              validationState={errors.phone && 'invalid'}
+            />
+          </section>
+        </section>
+
+        <section className="flex flex-col gap-2 w-full">
+          <span className="text-gray-200">Endereço</span>
+
+          <section className="flex flex-wrap gap-6">
+            <Input
+              id="cep"
+              label="CEP"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('cep')}
+              errorMessage={errors.cep?.message}
+              validationState={errors.cep && 'invalid'}
+              placeholder={id && ' '}
+              value={cep || (client && client?.cep)}
+              onChange={handleCepChange}
+              endContent={
+                <Button
+                  onClick={buscarCep}
+                  className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
+                  disabled={cep.length !== 10}
+                  startContent={<Search size={18} />}
+                >
+                  Buscar CEP
+                </Button>
+              }
+            />
+
+            <Input
+              id="country"
+              label="País"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('country')}
+              errorMessage={errors.country?.message}
+              validationState={errors.country && 'invalid'}
+              placeholder={id && ' '}
+            />
+
+            <Select
+              id="state"
+              label="Estado"
+              classNames={{
+                trigger:
+                  'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                listboxWrapper: 'max-h-[400px] rounded-lg',
+                base: 'max-w-sm',
+              }}
+              listboxProps={{
+                itemClasses: {
+                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                },
+              }}
+              popoverProps={{
+                classNames: {
+                  base: 'bg-gray-700 rounded-lg',
+                },
+              }}
+              {...register('state')}
+              errorMessage={errors.state?.message}
+              validationState={errors.state && 'invalid'}
+              defaultSelectedKeys={[client?.state || 'PE']}
+            >
+              {states.map((state) => (
+                <SelectItem key={state.key} value={state.key}>
+                  {state.name}
+                </SelectItem>
+              ))}
+            </Select>
+
+            <Input
+              id="city"
+              label="Cidade"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('city')}
+              errorMessage={errors.city?.message}
+              validationState={errors.city && 'invalid'}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
+            />
+
+            <Input
+              id="neighborhood"
+              label="Bairro"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('neighborhood')}
+              errorMessage={errors.neighborhood?.message}
+              validationState={errors.neighborhood && 'invalid'}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
+            />
+
+            <Input
+              id="address"
+              label="Endereço"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('address')}
+              errorMessage={errors.address?.message}
+              validationState={errors.address && 'invalid'}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
+            />
+
+            <Input
+              id="number"
+              label="Número"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('number')}
+              errorMessage={errors.number?.message}
+              validationState={errors.number && 'invalid'}
+              placeholder={id && ' '}
+            />
+
+            <Input
+              id="complement"
+              label="Complemento"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('complement')}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
+            />
+          </section>
+        </section>
+      </section>
+    </form>
   )
 }

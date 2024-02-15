@@ -279,6 +279,10 @@ export default function CreateProject() {
     }
   }
 
+  if (id && !project) {
+    return <Loading />
+  }
+
   return (
     <div className="flex flex-col items-center w-full gap-6 pb-6">
       <form
@@ -347,12 +351,7 @@ export default function CreateProject() {
             {...register('clientId')}
             errorMessage={errors.clientId?.message}
             validationState={errors.clientId && 'invalid'}
-            defaultSelectedKeys={
-              project && [
-                clients.find((client) => client.id === project?.clientId)?.id ||
-                  '',
-              ]
-            }
+            defaultSelectedKeys={project && [project.clientId]}
           >
             {clients.map((client) => (
               <SelectItem key={client.id} value={client.id}>
@@ -381,7 +380,7 @@ export default function CreateProject() {
             {...register('coordinatorId')}
             errorMessage={errors.coordinatorId?.message}
             validationState={errors.coordinatorId && 'invalid'}
-            defaultSelectedKeys={project && [project.coordinatorId || '']}
+            defaultSelectedKeys={project && [project.coordinatorId]}
           >
             {collaborators.map((collaborator) => (
               <SelectItem key={collaborator.id}>
@@ -567,8 +566,6 @@ export default function CreateProject() {
           </section>
         </section>
       )}
-
-      {showToast && <Toast message="Projeto criado com sucesso" />}
     </div>
   )
 }

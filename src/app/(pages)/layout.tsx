@@ -24,7 +24,7 @@ export default function PageLayout({
       router.push('/login')
     }
 
-    if (auth?.user.groupId !== 1 && auth.authenticated) {
+    if (auth.authenticated && auth?.user.groupId !== 1) {
       if (
         path.includes('closing') ||
         path.includes('clients/create') ||

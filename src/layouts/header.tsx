@@ -112,7 +112,7 @@ export default function Header({ auth }: { auth: UserState }) {
           </Link>
         </NavbarItem>
 
-        {auth?.user.groupId === 1 && (
+        {auth.authenticated && auth?.user?.groupId === 1 && (
           <NavbarItem isActive={path.includes('closing')}>
             <Link
               className={
