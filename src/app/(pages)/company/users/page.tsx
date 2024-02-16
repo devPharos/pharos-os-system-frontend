@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import {
   createCollaboratorUser,
   getCollaboratorsWithNoAccess,
+  sendNewUserEmail,
   updateCollaboratorUser,
 } from '@/functions/requests'
 import Loading from '@/components/Loading'
@@ -89,6 +90,7 @@ export default function Users() {
 
         try {
           await createCollaboratorUser(auth?.token, body)
+          await sendNewUserEmail(auth?.token, body)
           toast.success('Usuário criado com successo!')
 
           router.push('/company')

@@ -1,3 +1,4 @@
+import { CreateUserSchema } from '@/app/(pages)/clients/users/page'
 import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page'
 import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
 import { Client } from '@/types/client'
@@ -76,6 +77,44 @@ export async function updateClient(
   const response = await axios.put(
     `${process.env.NEXT_PUBLIC_API_URL}/update/client`,
     data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function createClientUser(
+  token: string,
+  body: CreateUserSchema,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/accounts/user/client`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+// * USER
+export async function sendNewUserEmail(
+  token: string,
+  data: Partial<CreateUserSchema>,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/mail/user-created`,
+    {
+      email: data.email,
+      password: data.password,
+    },
     {
       headers: {
         Authorization: `Bearer ${token}`,

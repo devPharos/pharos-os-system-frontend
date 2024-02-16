@@ -1,7 +1,5 @@
 'use client'
 
-import Header from '@/layouts/header'
-
 import { Save } from 'lucide-react'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import { z } from 'zod'
@@ -13,19 +11,20 @@ import { useRouter } from 'next/navigation'
 import { Client } from '@/types/client'
 import { useUser } from '@/app/contexts/useUser'
 import { toast } from 'sonner'
+import { createClientUser, sendNewUserEmail } from '@/functions/requests'
+
+const createUserSchema = z.object({
+  clientId: z.string().uuid('Selecione um cliente'),
+  email: z.string().email('Insira um email'),
+  password: z.string().min(8, 'A senha deve conter no mínimo 8 caracteres'),
+})
+
+export type CreateUserSchema = z.infer<typeof createUserSchema>
 
 export default function Users() {
   const [clients, setClients] = useState<Client[]>([])
   const { auth } = useUser()
   const router = useRouter()
-
-  const createUserSchema = z.object({
-    clientId: z.string().uuid('Selecione um cliente'),
-    email: z.string().email('Insira um email'),
-    password: z.string().min(8, 'A senha deve conter no mínimo 8 caracteres'),
-  })
-
-  type CreateUserSchema = z.infer<typeof createUserSchema>
 
   const {
     register,
@@ -50,7 +49,7 @@ export default function Users() {
     }
   }, [auth.token])
 
-  const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
+  const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = async (
     data: CreateUserSchema,
   ) => {
     if (typeof window !== 'undefined') {
@@ -60,43 +59,20 @@ export default function Users() {
         password: data.password,
       }
 
-      axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user/client`, body, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
-        })
-        .then(() => {
-          axios
-            .post(
-              `${process.env.NEXT_PUBLIC_API_URL}/mail/user-created`,
-              {
-                email: data.email,
-                password: data.password,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${auth.token}`,
-                },
-              },
-            )
-            .then(() => {
-              toast.success('Usuário criado com sucesso!')
+      try {
+        await createClientUser(auth?.token, body)
+        await sendNewUserEmail(auth?.token, body)
+        toast.success('Usuário criado com successo!')
 
-              router.push('/clients')
-            })
-            .catch((err) => {
-              if (err) {
-                toast.error('Um erro inesperado aconteceu!')
-              }
-            })
+        router.push('/clients')
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error)
+
+        toast.error('Erro ao tentar criar usuário')
+        setError('email', {
+          message: 'Já existe um usuário cadastrado com esse e-mail',
         })
-        .catch((error) => {
-          setError('email', {
-            message: 'Já existe um usuário cadastrado com esse e-mail',
-          })
-          console.log(error)
-        })
+      }
     }
   }
 
@@ -121,7 +97,6 @@ export default function Users() {
               </Button>
 
               <Button
-                // disabled={loading}
                 type="submit"
                 className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
               >
@@ -149,8 +124,7 @@ export default function Users() {
               }}
               {...register('clientId')}
               errorMessage={errors.clientId?.message}
-              validationState={errors.clientId && 'invalid'}
-              //  defaultSelectedKeys={client ? [client?.companyId] : []}
+              isInvalid={!!errors.clientId}
             >
               {clients.map((client) => (
                 <SelectItem key={client.id}>{client.fantasyName}</SelectItem>
@@ -160,7 +134,6 @@ export default function Users() {
             <Input
               id="email"
               label="E-mail"
-              //  placeholder={id && ' '}
               classNames={{
                 label: 'text-gray-300',
                 base: 'max-w-sm',
@@ -169,13 +142,12 @@ export default function Users() {
               }}
               {...register('email')}
               errorMessage={errors.email?.message}
-              validationState={errors.email && 'invalid'}
+              isInvalid={!!errors.email}
             />
 
             <Input
               id="password"
               label="Senha"
-              //  placeholder={id && ' '}
               classNames={{
                 label: 'text-gray-300',
                 base: 'max-w-sm',
@@ -184,7 +156,7 @@ export default function Users() {
               }}
               {...register('password')}
               errorMessage={errors.password?.message}
-              validationState={errors.password && 'invalid'}
+              isInvalid={!!errors.password}
             />
           </section>
         </form>
