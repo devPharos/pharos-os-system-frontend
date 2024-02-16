@@ -10,6 +10,7 @@ import {
   validateCNPJ,
   validateCPF,
 } from '@/functions/auxiliar'
+import { createClient, updateClient } from '@/functions/requests'
 import { Client } from '@/types/client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
@@ -19,6 +20,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { ChangeEvent, useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 export default function CreateClient() {
@@ -47,6 +49,7 @@ export default function CreateClient() {
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
+    paymentDate: z.string().max(2, 'Campo obrigatório'),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -70,7 +73,6 @@ export default function CreateClient() {
         })
         .then((response) => {
           setClient(response.data)
-          setLoading(false)
           return response.data
         })
         .catch(function (error) {
@@ -78,7 +80,7 @@ export default function CreateClient() {
         }),
   })
 
-  const handleClientFormSubmit: SubmitHandler<ClientFormSchema> = (
+  const handleClientFormSubmit: SubmitHandler<ClientFormSchema> = async (
     data: ClientFormSchema,
   ) => {
     const cnpjOrCpf = data.cnpj.replace(/\D/g, '')
@@ -95,41 +97,32 @@ export default function CreateClient() {
       setLoading(false)
     }
 
-    if (!id && typeof window !== 'undefined') {
-      axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
+    if (!id) {
+      try {
+        await createClient(auth?.token, data)
+        toast.success('Cliente criado com successo!')
+
+        router.push('/clients')
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error)
+
+        toast.error('Erro ao tentar criar cliente')
+        setError('cnpj', {
+          message: 'Já existe um cliente com o mesmo CPF/CNPJ',
         })
-        .then(function () {
-          setLoading(false)
-          router.back()
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-          setError('cnpj', {
-            message: 'Já existe um cliente com o mesmo CPF/CNPJ',
-          })
-        })
+      }
     }
 
     if (id && typeof window !== 'undefined') {
-      axios
-        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
-        })
-        .then(function () {
-          setLoading(false)
-          router.push('/clients')
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-        })
+      try {
+        await updateClient(auth?.token, data)
+        toast.success('Cliente atualizado com successo!')
+
+        router.push('/clients')
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error)
+        toast.error('Erro ao tentar atualizar cliente')
+      }
     }
   }
 
@@ -194,7 +187,6 @@ export default function CreateClient() {
           </Button>
 
           <Button
-            disabled={loading}
             type="submit"
             className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
           >
@@ -221,7 +213,7 @@ export default function CreateClient() {
               }}
               {...register('businessName')}
               errorMessage={errors.businessName?.message}
-              validationState={errors.businessName && 'invalid'}
+              isInvalid={!!errors.businessName}
             />
 
             <Input
@@ -236,7 +228,7 @@ export default function CreateClient() {
               }}
               {...register('fantasyName')}
               errorMessage={errors.fantasyName?.message}
-              validationState={errors.fantasyName && 'invalid'}
+              isInvalid={!!errors.fantasyName}
             />
 
             <Input
@@ -253,7 +245,7 @@ export default function CreateClient() {
               {...register('cnpj')}
               onChange={handleFormatCPForCNPJ}
               errorMessage={errors.cnpj?.message}
-              validationState={errors.cnpj && 'invalid'}
+              isInvalid={!!errors.cnpj}
             />
 
             <Input
@@ -269,7 +261,22 @@ export default function CreateClient() {
               {...register('phone')}
               onChange={handleFormatPhone}
               errorMessage={errors.phone?.message}
-              validationState={errors.phone && 'invalid'}
+              isInvalid={!!errors.phone}
+            />
+
+            <Input
+              id="paymentDate"
+              label="Data de pagamento"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('paymentDate')}
+              errorMessage={errors.paymentDate?.message}
+              isInvalid={!!errors.paymentDate}
             />
           </section>
         </section>
@@ -289,7 +296,7 @@ export default function CreateClient() {
               }}
               {...register('cep')}
               errorMessage={errors.cep?.message}
-              validationState={errors.cep && 'invalid'}
+              isInvalid={!!errors.cep}
               placeholder={id && ' '}
               value={cep || (client && client?.cep)}
               onChange={handleCepChange}
@@ -316,8 +323,8 @@ export default function CreateClient() {
               }}
               {...register('country')}
               errorMessage={errors.country?.message}
-              validationState={errors.country && 'invalid'}
-              placeholder={id && ' '}
+              isInvalid={!!errors.country}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
             <Select
@@ -341,7 +348,7 @@ export default function CreateClient() {
               }}
               {...register('state')}
               errorMessage={errors.state?.message}
-              validationState={errors.state && 'invalid'}
+              isInvalid={!!errors.state}
               defaultSelectedKeys={client && [client.state]}
             >
               {states.map((state) => (
@@ -362,7 +369,7 @@ export default function CreateClient() {
               }}
               {...register('city')}
               errorMessage={errors.city?.message}
-              validationState={errors.city && 'invalid'}
+              isInvalid={!!errors.city}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -377,7 +384,7 @@ export default function CreateClient() {
               }}
               {...register('neighborhood')}
               errorMessage={errors.neighborhood?.message}
-              validationState={errors.neighborhood && 'invalid'}
+              isInvalid={!!errors.neighborhood}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -392,7 +399,7 @@ export default function CreateClient() {
               }}
               {...register('address')}
               errorMessage={errors.address?.message}
-              validationState={errors.address && 'invalid'}
+              isInvalid={!!errors.address}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -407,7 +414,7 @@ export default function CreateClient() {
               }}
               {...register('number')}
               errorMessage={errors.number?.message}
-              validationState={errors.number && 'invalid'}
+              isInvalid={!!errors.number}
               placeholder={id && ' '}
             />
 

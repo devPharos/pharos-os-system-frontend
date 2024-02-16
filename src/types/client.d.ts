@@ -16,4 +16,5 @@ export interface Client {
   number: string
   phone: string
   state: string
+  paymentDate: string
 }
