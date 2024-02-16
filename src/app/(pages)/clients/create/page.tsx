@@ -18,7 +18,7 @@ import axios from 'axios'
 import { Save, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -29,10 +29,8 @@ export default function CreateClient() {
   const [client, setClient] = useState<Client>()
   const params = Array.from(searchParams.values())
   const id = params[0]
-  const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
   const { auth } = useUser()
-  const [state, setState] = useState<string>()
 
   const clientFormSchema = z.object({
     address: z.string().min(1, 'Campo obrigatório'),
@@ -94,7 +92,6 @@ export default function CreateClient() {
       setError('cnpj', {
         message: errorMessage,
       })
-      setLoading(false)
     }
 
     if (!id) {
@@ -159,8 +156,6 @@ export default function CreateClient() {
         ...client,
         state: cepData.uf,
       })
-
-      setState(cepData.uf)
     }
   }
 
