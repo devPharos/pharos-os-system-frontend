@@ -67,8 +67,8 @@ export function ClientCard({ client, setClients }: ClientCardProps) {
       key={client.cnpj}
     >
       <DropdownTrigger>
-        <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
-          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm">
+        <Button className="p-0 rounded-none h-fit flex-1 bg-transparent min-w-fit">
+          <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit">
             <Card.Header>
               <Card.Title label={client.fantasyName} />
               <Card.Badge
