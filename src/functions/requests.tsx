@@ -1,6 +1,7 @@
 import { Client } from '@/types/client'
 import axios, { AxiosResponse } from 'axios'
 
+// * CLIENTS
 export async function getClients(token: string): Promise<Client[]> {
   let clients: Client[] = []
 
