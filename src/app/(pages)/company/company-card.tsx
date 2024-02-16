@@ -34,10 +34,10 @@ export function CompanyCard({ collaborator }: CompanyCardProps) {
       key={collaborator.id}
     >
       <DropdownTrigger>
-        <Button className="p-0 rounded-none h-fit  w-full  bg-transparent min-w-fit max-w-sm">
+        <Button className="p-0 rounded-none h-fit flex-1 bg-transparent min-w-fit">
           <Card.Root
             key={collaborator.id}
-            className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit max-w-sm"
+            className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit"
           >
             <Card.Header>
               <Card.Title

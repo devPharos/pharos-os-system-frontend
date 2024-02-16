@@ -1,3 +1,5 @@
+import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page'
+import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
 import axios, { AxiosResponse } from 'axios'
@@ -104,4 +106,118 @@ export async function getCollaborators(token: string): Promise<Collaborator[]> {
     })
 
   return collaborators
+}
+
+export async function getCollaboratorsWithNoAccess(
+  token: string,
+): Promise<Collaborator[]> {
+  let collaborators: Collaborator[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/no-access`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      collaborators = response.data
+    })
+
+  return collaborators
+}
+
+export async function createCollaboratorUser(
+  token: string,
+  body: CreateCollaboratorUserSchema,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/accounts/user`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function updateCollaboratorUser(
+  token: string,
+  body: {
+    userId: string
+    email: string
+    password: string
+  },
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.put(
+    `${process.env.NEXT_PUBLIC_API_URL}/update/user`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function getSupervisors(token: string): Promise<Collaborator[]> {
+  let supervisors: Collaborator[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/list/supervisors`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then(function (response) {
+      supervisors = response.data
+    })
+    .catch(function (error) {
+      console.error(error)
+      toast.error('Erro ao buscar supervisores')
+    })
+
+  return supervisors
+}
+
+interface CreateCollaboratorType extends CollaboratorFormSchema {
+  supervisorId: string | null
+}
+
+export async function createCollaborator(
+  token: string,
+  body: CreateCollaboratorType,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/accounts/collaborator`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function updateCollaborator(
+  token: string,
+  body: Partial<CreateCollaboratorType>,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.put(
+    `${process.env.NEXT_PUBLIC_API_URL}/update/collaborator`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
 }
