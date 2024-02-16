@@ -3,8 +3,14 @@ import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page
 import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
+import { Project } from '@/types/projects'
 import axios, { AxiosResponse } from 'axios'
 import { toast } from 'sonner'
+
+// * INTERFACES
+interface CreateCollaboratorType extends CollaboratorFormSchema {
+  supervisorId: string | null
+}
 
 // * CLIENTS
 export async function getClients(token: string): Promise<Client[]> {
@@ -223,10 +229,6 @@ export async function getSupervisors(token: string): Promise<Collaborator[]> {
   return supervisors
 }
 
-interface CreateCollaboratorType extends CollaboratorFormSchema {
-  supervisorId: string | null
-}
-
 export async function createCollaborator(
   token: string,
   body: CreateCollaboratorType,
@@ -259,4 +261,25 @@ export async function updateCollaborator(
   )
 
   return response
+}
+
+// * PROJECTS
+export async function getProjects(token: string): Promise<Project[]> {
+  let projects: Project[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      projects = response.data.projects
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error('Erro ao buscar projetos')
+    })
+
+  return projects
 }

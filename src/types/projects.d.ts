@@ -43,6 +43,10 @@ export interface ProjectCollaborator {
   id: string
   name: string
 }
+export interface ProjectClient {
+  id: string
+  fantasyName: string
+}
 
 export interface Project {
   id?: string
@@ -61,11 +65,7 @@ export interface Project {
   projectServices: Partial<ProjectServices>[]
   collaborator?: ProjectCollaborator
   hoursToBeBilled?: number
-}
-
-export interface ProjectClient {
-  id: string
-  fantasyName: string
+  client?: ProjectClient
 }
 
 export interface ProjectFounded extends Project {
