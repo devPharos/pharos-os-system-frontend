@@ -23,7 +23,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           id: project.id,
         },
       }}
-      className="bg-gray-700 rounded-lg w-full flex-1"
+      className="bg-gray-700 rounded-lg w-full flex-1 min-w-fit"
     >
       <Card.Root className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 items-stretch min-w-fit">
         <Card.Header>

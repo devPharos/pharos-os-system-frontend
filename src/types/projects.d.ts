@@ -1,3 +1,6 @@
+import { ProjectExpensesFormSchema } from '@/app/(pages)/projects/create/expenses'
+import { ProjectServicesFormSchema } from '@/app/(pages)/projects/create/services'
+
 export interface Projects {
   id: string
   companyId: string
@@ -53,16 +56,16 @@ export interface Project {
   clientId: string
   coordinatorId: string
   name: string
-  startDate: Date | string
+  startDate: string
   status?: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
   hide?: boolean
-  endDate: Date | undefined | string
-  deliveryForecast: Date | string
+  endDate: undefined | string
+  deliveryForecast: string
   hoursForecast: string
   hoursBalance: string | undefined
   hourValue: string
-  projectExpenses: Partial<ProjectExpenses>[]
-  projectServices: Partial<ProjectServices>[]
+  projectsExpenses: ProjectExpensesFormSchema[]
+  projectsServices: ProjectServicesFormSchema[]
   collaborator?: ProjectCollaborator
   hoursToBeBilled?: number
   client?: ProjectClient

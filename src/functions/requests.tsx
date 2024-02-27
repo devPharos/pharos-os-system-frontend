@@ -1,9 +1,10 @@
 import { CreateUserSchema } from '@/app/(pages)/clients/users/page'
 import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page'
 import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
+import { Project } from '@/app/(pages)/projects/create/page'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
-import { Project } from '@/types/projects'
+import { ServiceOrderCard } from '@/types/service-order'
 import axios, { AxiosResponse } from 'axios'
 import { toast } from 'sonner'
 
@@ -282,4 +283,143 @@ export async function getProjects(token: string): Promise<Project[]> {
     })
 
   return projects
+}
+
+export async function createProject(
+  token: string,
+  body: Project,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/projects`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function findProject(token: string, id: string): Promise<Project> {
+  let project: Project = {
+    clientId: '',
+    coordinatorId: '',
+    deliveryForecast: '',
+    endDate: '',
+    hoursBalance: '',
+    hoursForecast: '',
+    hourValue: '',
+    name: '',
+    projectsExpenses: [],
+    projectsServices: [],
+    startDate: '',
+  }
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/find/project`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        id,
+      },
+    })
+    .then((response) => {
+      console.log('dentro', response.data)
+      project = response.data
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error('Erro ao buscar projeto')
+    })
+
+  return project
+}
+
+export async function updateProject(
+  token: string,
+  body: Project,
+  id: string,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.put(
+    `${process.env.NEXT_PUBLIC_API_URL}/update/project`,
+    {
+      ...body,
+      projectId: id,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function deleteProjectService(
+  token: string,
+  serviceId: string,
+  id: string,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.delete(
+    `${process.env.NEXT_PUBLIC_API_URL}/delete/project/service`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        serviceid: serviceId,
+        projectid: id,
+      },
+    },
+  )
+
+  return response
+}
+
+export async function deleteProjectExpense(
+  token: string,
+  expenseId: string,
+  id: string,
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.delete(
+    `${process.env.NEXT_PUBLIC_API_URL}/delete/project/expense`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        expenseId,
+        projectId: id,
+      },
+    },
+  )
+
+  return response
+}
+
+// * SERVICE ORDERS
+export async function getServiceOrders(
+  token: string,
+): Promise<ServiceOrderCard[]> {
+  let osList: ServiceOrderCard[] = []
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      if (response.data !== '') {
+        const os = [
+          ...response.data.serviceOrders,
+          ...response.data.serviceOrdersSupervisedByMe,
+        ]
+
+        osList = os
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error("Erro ao buscar OS's")
+    })
+
+  return osList
 }

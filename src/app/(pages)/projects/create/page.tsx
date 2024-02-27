@@ -1,281 +1,232 @@
 'use client'
 
-import { Client } from '@/types/client'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
-import axios from 'axios'
-import { PlusCircle, Save, Trash2 } from 'lucide-react'
+import { Save } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ProjectInfoHeader } from './project-info-header'
 import { useEffect, useState } from 'react'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { z } from 'zod'
-import ProjectExpensesForm from './expenses'
-import ProjectServicesForm from './services'
-import { Card } from '@/components/Card'
-import { Project, ProjectExpenses, ProjectServices } from '@/types/projects'
-import { Collaborator } from '@/types/collaborator'
-import Toast from '@/components/Toast'
-import { compareDesc, parseISO } from 'date-fns'
-import Loading from '@/components/Loading'
+import {
+  createProject,
+  deleteProjectExpense,
+  deleteProjectService,
+  findProject,
+  getClients,
+  getCollaborators,
+  updateProject,
+} from '@/functions/requests'
+import { Client } from '@/types/client'
 import { useUser } from '@/app/contexts/useUser'
+import { Collaborator } from '@/types/collaborator'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import ProjectServicesForm, {
+  ProjectServices,
+  ProjectServicesFormSchema,
+} from './services'
+import { ExpenseOpened, ServiceOpened } from '@/app/hooks/useProjects'
+import { ProjectServiceSection } from './services/project-service-section'
+import ProjectExpensesForm, { ProjectExpenses } from './expenses'
+import { ProjectExpensesSection } from './expenses/project-expense-section'
+import { ProjectClient, ProjectCollaborator } from '@/types/projects'
+import { toast } from 'sonner'
+import Loading from '@/components/Loading'
+
+const createProjectSchema = z.object({
+  clientId: z.string().uuid(),
+  coordinatorId: z.string().uuid(),
+  name: z.string().min(1),
+  startDate: z.string(),
+  endDate: z.string().optional().nullable(),
+  deliveryForecast: z.string(),
+  hoursForecast: z.string(),
+  hoursBalance: z.string().optional().nullable(),
+  hourValue: z.string(),
+})
+
+type CreateProjectSchema = z.infer<typeof createProjectSchema>
+
+export interface Project {
+  id?: string
+  clientId: string
+  coordinatorId: string
+  name: string
+  startDate: string
+  status?: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
+  hide?: boolean
+  endDate: undefined | string
+  deliveryForecast: string
+  hoursForecast: string
+  hoursBalance: string | undefined
+  hourValue: string
+  projectsExpenses: ProjectExpenses[]
+  projectsServices: ProjectServices[]
+  collaborator?: ProjectCollaborator
+  hoursToBeBilled?: number
+  client?: ProjectClient
+}
 
 export default function CreateProject() {
-  const [showToast, setShowToast] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
-  const [expenses, setExpenses] = useState<Partial<ProjectExpenses>[]>([])
-  const [services, setServices] = useState<Partial<ProjectServices>[]>([])
-  const [showExpenses, setShowExpenses] = useState(false)
-  const [showServices, setShowServices] = useState(false)
+  const [coordinators, setCoordinators] = useState<Collaborator[]>([])
+  const [openService, setOpenService] = useState(false)
+  const [services, setServices] = useState<ProjectServices[]>([])
+  const [serviceOpened, setServiceOpened] = useState<ServiceOpened>()
+  const [openExpense, setOpenExpense] = useState(false)
+  const [expenses, setExpenses] = useState<ProjectExpenses[]>([])
+  const [expenseOpened, setExpenseOpened] = useState<ExpenseOpened>()
+  const [project, setProject] = useState<Project>()
+
+  const router = useRouter()
+  const { auth } = useUser()
+
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
   const id = params[0]
-  const [loading, setLoading] = useState<boolean>(false)
-  const router = useRouter()
-  const [project, setProject] = useState<Project>()
-  const { auth } = useUser()
 
-  const projectFormSchema = z.object({
-    clientId: z.string().uuid('Selecione uma opção'),
-    coordinatorId: z.string().uuid('Selecione uma opção'),
-    name: z.string().min(1, 'Insira o nome do projeto'),
-    startDate: z.coerce.date(),
-    endDate: z.optional(z.string()),
-    deliveryForecast: z.coerce.date(),
-    hoursForecast: z.string().min(1, 'Insira a previsão de horas'),
-    hoursBalance: z.string(),
-    hourValue: z.string().min(1, 'Insira o valor da hora'),
-  })
+  useEffect(() => {
+    async function fetchData() {
+      const clientsList = await getClients(auth?.token)
+      const coordinatorsList = await getCollaborators(auth?.token)
+      setClients(clientsList)
+      setCoordinators(coordinatorsList)
 
-  type ProjectFormSchema = z.infer<typeof projectFormSchema>
+      if (id) {
+        const projectFounded = await findProject(auth?.token, id)
+        setProject(projectFounded)
+      }
+    }
+
+    fetchData()
+  }, [auth?.token, id])
+
+  useEffect(() => {
+    if (project) {
+      setExpenses(project.projectsExpenses)
+      setServices(project.projectsServices)
+    }
+  }, [project])
 
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
-  } = useForm<ProjectFormSchema>({
-    resolver: zodResolver(projectFormSchema),
-    defaultValues: async () =>
-      id &&
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/find/project`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-            id,
-          },
-        })
-        .then((response) => {
-          setProject(response.data)
-          setExpenses(response.data.projectsExpenses)
-          setServices(response.data.projectsServices)
-
-          setLoading(false)
-
-          return response.data
-        })
-        .catch(function (error) {
-          console.error(error)
-        }),
+  } = useForm<CreateProjectSchema>({
+    resolver: zodResolver(createProjectSchema),
+    values: {
+      clientId: project?.clientId ?? '',
+      coordinatorId: project?.coordinatorId ?? '',
+      deliveryForecast: project?.deliveryForecast ?? '',
+      hoursForecast: project?.hoursForecast ?? '',
+      hourValue: project?.hourValue ?? '',
+      name: project?.name ?? '',
+      startDate: project?.startDate ?? '',
+      endDate: project?.endDate ?? '',
+      hoursBalance: project?.hoursBalance ?? '',
+    },
   })
 
-  const handleProjectFormSubmit: SubmitHandler<ProjectFormSchema> = (
-    data: ProjectFormSchema,
-  ) => {
-    setLoading(true)
+  function onServiceCreation(
+    service: ProjectServicesFormSchema,
+    index?: number,
+  ) {
+    if (services) {
+      if (index || index === 0) {
+        const newServicesList = [...services]
+        newServicesList[index] = service
 
-    const startDate = data.startDate
-    const deliveryForecast = data.deliveryForecast
-    const endDate = parseISO(data?.endDate || '')
+        setServices(newServicesList)
+        setServiceOpened(undefined)
 
-    const compareStartDate = compareDesc(startDate, deliveryForecast)
-    const compareEndDate = compareDesc(startDate, endDate || 0)
+        return
+      }
 
-    if (compareStartDate === -1) {
-      setError('startDate', {
-        message:
-          'A data inicial não pode ser após a data de previsão de entrega',
-      })
+      const newServicesList = [...services]
+      newServicesList.push(service)
+
+      setServices(newServicesList)
     }
+  }
 
-    if (compareEndDate === -1 && endDate) {
-      setError('endDate', {
-        message: 'A data de término não pode ser anterior a data de início',
-      })
+  function onExpenseCreation(expense: ProjectExpenses, index?: number) {
+    if (expenses) {
+      if (index || index === 0) {
+        const newExpensesList = [...expenses]
+        newExpensesList[index] = expense
+
+        setExpenses(newExpensesList)
+        setExpenseOpened(undefined)
+
+        return
+      }
+
+      const newExpensesList = [...expenses]
+      newExpensesList.push(expense)
+
+      setExpenses(newExpensesList)
     }
+  }
 
-    if (
-      typeof window !== 'undefined' &&
-      compareStartDate !== -1 &&
-      compareEndDate !== -1
-    ) {
+  console.log(expenses)
+
+  async function handleProjectSubmit(data: CreateProjectSchema) {
+    try {
       const body: Project = {
-        ...data,
-        projectExpenses: expenses,
-        projectServices: services,
-        endDate: data.endDate ? new Date(data?.endDate) : undefined,
+        clientId: data.clientId,
+        coordinatorId: data.coordinatorId,
+        deliveryForecast: data.deliveryForecast,
+        endDate: data.endDate === null ? undefined : data.endDate,
+        hoursBalance:
+          data.hoursBalance === null ? undefined : data.hoursBalance,
+        hoursForecast: data.hoursForecast,
+        hourValue: data.hourValue,
+        name: data.name,
+        startDate: data.startDate,
+        projectsExpenses: expenses || [],
+        projectsServices: services || [],
       }
 
       if (!id) {
-        axios
-          .post(`${process.env.NEXT_PUBLIC_API_URL}/projects`, body, {
-            headers: {
-              Authorization: `Bearer ${auth?.token}`,
-            },
-          })
-          .then(function () {
-            setShowToast(true)
-
-            setInterval(() => {
-              setShowToast(false)
-            }, 3000)
-            setLoading(false)
-
-            router.push('/projects')
-          })
-          .catch(function (error) {
-            console.error(error)
-          })
+        await createProject(auth?.token, body)
+        toast.success('Projeto criado com sucesso!')
       }
 
       if (id) {
-        axios
-          .put(
-            `${process.env.NEXT_PUBLIC_API_URL}/update/project`,
-            {
-              ...body,
-              projectId: id,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${auth?.token}`,
-              },
-            },
-          )
-          .then(function () {
-            setShowToast(true)
+        body.projectsServices.forEach(async (service) => {
+          if (service.deleted && service.id) {
+            await deleteProjectService(auth?.token, service.id, id)
+          }
+        })
 
-            setInterval(() => {
-              setShowToast(false)
-            }, 3000)
+        body.projectsExpenses.forEach(async (expense) => {
+          if (expense.deleted && expense.id) {
+            await deleteProjectExpense(auth?.token, expense.id, id)
+          }
+        })
 
-            setLoading(false)
+        const projectServiceBody = body.projectsServices.filter(
+          (service) => !service.deleted,
+        )
 
-            router.push('/projects')
-          })
-          .catch(function (error) {
-            console.error(error)
-          })
+        const projectExpenseBody = body.projectsExpenses.filter(
+          (expense) => !expense.deleted,
+        )
+
+        const newBody = {
+          ...body,
+          projectsServices: projectServiceBody,
+          projectsExpenses: projectExpenseBody,
+        }
+
+        await updateProject(auth?.token, newBody, id)
+        toast.success('Projeto atualizado com sucesso!')
       }
-    }
-  }
-
-  useEffect(() => {
-    setLoading(true)
-    if (typeof window !== 'undefined' && auth?.token) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/clients`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setClients(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators/data`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setCollaborators(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-    }
-  }, [id, auth?.token])
-
-  const onNewProjectExpense = (expense: Partial<ProjectExpenses>) => {
-    const newProjectExpenseList: Partial<ProjectExpenses>[] = [...expenses]
-    newProjectExpenseList.push(expense)
-
-    setExpenses(newProjectExpenseList)
-  }
-
-  const onNewProjectService = (service: Partial<ProjectServices>) => {
-    const newProjectServiceList: Partial<ProjectServices>[] = [...services]
-    newProjectServiceList.push(service)
-
-    setServices(newProjectServiceList)
-  }
-
-  const handleDeleteExpense = (
-    expenseId: string | undefined,
-    index: number,
-  ) => {
-    if (typeof window !== 'undefined' && expenseId && auth?.token) {
-      axios
-        .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/project/expense`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-            expenseId,
-            projectId: id,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setExpenses(data)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-    }
-
-    if (!expenseId) {
-      const newExpenseList = expenses.splice(index, 0)
-
-      setServices(newExpenseList)
-    }
-  }
-
-  const handleDeleteService = (
-    serviceId: string | undefined,
-    index: number,
-  ) => {
-    if (typeof window !== 'undefined' && serviceId && auth?.token) {
-      setLoading(true)
-      axios
-        .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/project/service`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-            serviceId,
-            projectId: id,
-          },
-        })
-        .then(function (response) {
-          const data = response.data
-          setServices(data)
-          setLoading(false)
-        })
-        .catch(function (error) {
-          console.error(error)
-        })
-    }
-
-    if (!serviceId) {
-      const newServiceList = services.splice(index, 0)
-
-      setServices(newServiceList)
+      router.push('/projects')
+    } catch (error) {
+      console.log(error)
+      toast.error(
+        `${id ? 'Falha ao atualizar projeto' : 'Falha ao criar projeto'}`,
+      )
     }
   }
 
@@ -284,10 +235,10 @@ export default function CreateProject() {
   }
 
   return (
-    <div className="flex flex-col items-center w-full gap-6 pb-6">
+    <main className="max-w-7xl w-full space-y-10 px-6 pt-10">
       <form
-        onSubmit={handleSubmit(handleProjectFormSubmit)}
-        className="max-w-7xl w-full space-y-10 px-6"
+        onSubmit={handleSubmit(handleProjectSubmit)}
+        className="flex flex-col gap-10"
       >
         <header className={'flex items-center justify-between'}>
           <span className="text-2xl font-bold text-white">
@@ -303,24 +254,6 @@ export default function CreateProject() {
             </Button>
 
             <Button
-              disabled={showExpenses}
-              onClick={() => setShowExpenses(true)}
-              className="disabled:border-none disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 hover:text-gray-700 text-gray-100 font-bold bg-transparent border-2 border-dashed border-gray-100 hover:bg-gray-100"
-            >
-              <PlusCircle size={16} />
-              Incluir despesa
-            </Button>
-
-            <Button
-              disabled={showServices}
-              onClick={() => setShowServices(true)}
-              className="disabled:border-none disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 hover:text-gray-700 text-gray-100 font-bold bg-transparent border-2 border-dashed border-gray-100 hover:bg-gray-100"
-            >
-              <PlusCircle size={16} />
-              Incluir serviço
-            </Button>
-
-            <Button
               type="submit"
               className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
             >
@@ -330,30 +263,38 @@ export default function CreateProject() {
           </section>
         </header>
 
-        <section className="flex flex-wrap  gap-6">
+        <ProjectInfoHeader
+          openExpense={openExpense}
+          openService={openService}
+          setOpenExpense={setOpenExpense}
+          setOpenService={setOpenService}
+        />
+
+        <section className="flex justify-between flex-wrap gap-6">
           <Select
             id="clientId"
             label="Cliente"
             classNames={{
-              trigger:
-                'bg-gray-700 max-w-sm data-[hover=true]:bg-gray-600 rounded-lg',
-              listboxWrapper: 'max-w-sm rounded-lg',
-              popover: 'bg-gray-700 max-w-sm rounded-lg ',
+              trigger: 'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+              listboxWrapper: 'max-h-[400px] rounded-lg',
               base: 'max-w-sm',
-              mainWrapper: 'max-w-sm',
-              innerWrapper: 'max-w-sm',
             }}
             listboxProps={{
               itemClasses: {
                 base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
               },
             }}
+            popoverProps={{
+              classNames: {
+                base: 'bg-gray-700 rounded-lg',
+              },
+            }}
             {...register('clientId')}
             errorMessage={errors.clientId?.message}
-            validationState={errors.clientId && 'invalid'}
+            isInvalid={!!errors.clientId}
             defaultSelectedKeys={project && [project.clientId]}
           >
-            {clients.map((client) => (
+            {clients?.map((client) => (
               <SelectItem key={client.id} value={client.id}>
                 {client.fantasyName}
               </SelectItem>
@@ -364,34 +305,35 @@ export default function CreateProject() {
             id="coordinatorId"
             label="Coordenador"
             classNames={{
-              trigger:
-                'bg-gray-700 max-w-sm data-[hover=true]:bg-gray-600 rounded-lg',
-              listboxWrapper: 'max-w-sm rounded-lg',
-              popover: 'bg-gray-700 max-w-sm rounded-lg ',
+              trigger: 'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+              listboxWrapper: 'max-h-[400px] rounded-lg',
               base: 'max-w-sm',
-              mainWrapper: 'max-w-sm',
-              innerWrapper: 'max-w-sm',
             }}
             listboxProps={{
               itemClasses: {
                 base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
               },
             }}
+            popoverProps={{
+              classNames: {
+                base: 'bg-gray-700 rounded-lg',
+              },
+            }}
             {...register('coordinatorId')}
             errorMessage={errors.coordinatorId?.message}
-            validationState={errors.coordinatorId && 'invalid'}
+            isInvalid={!!errors.coordinatorId}
             defaultSelectedKeys={project && [project.coordinatorId]}
           >
-            {collaborators.map((collaborator) => (
-              <SelectItem key={collaborator.id}>
-                {collaborator.name + ' ' + collaborator.lastName}
+            {coordinators?.map((coordinator) => (
+              <SelectItem key={coordinator.id} value={coordinator.id}>
+                {coordinator.name + ' ' + coordinator.lastName}
               </SelectItem>
             ))}
           </Select>
 
           <Input
             id="name"
-            label="Nome do projeto"
+            label="Nome"
             classNames={{
               label: 'text-gray-300',
               base: 'max-w-sm',
@@ -400,7 +342,7 @@ export default function CreateProject() {
             }}
             {...register('name')}
             errorMessage={errors.name?.message}
-            validationState={errors.name && 'invalid'}
+            isInvalid={!!errors.name}
             placeholder={id && ' '}
           />
 
@@ -408,6 +350,7 @@ export default function CreateProject() {
             id="startDate"
             type="date"
             label="Data de início"
+            placeholder=" "
             classNames={{
               label: 'text-gray-300',
               base: 'max-w-sm',
@@ -416,42 +359,41 @@ export default function CreateProject() {
             }}
             {...register('startDate')}
             errorMessage={errors.startDate?.message}
-            validationState={errors.startDate && 'invalid'}
-            placeholder={' '}
+            isInvalid={!!errors.startDate}
           />
 
-          <Input
-            id="endDate"
-            type="date"
-            label="Data de término"
-            classNames={{
-              label: 'text-gray-300',
-              base: 'max-w-sm min-w-fit',
-              mainWrapper: ' max-w-sm min-w-fit',
-              inputWrapper:
-                'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-            }}
-            {...register('endDate', { required: false })}
-            errorMessage={errors.endDate?.message}
-            validationState={errors.endDate && 'invalid'}
-            placeholder={' '}
-          />
+          {id && (
+            <Input
+              id="endDate"
+              type="date"
+              label="Data de término"
+              placeholder=" "
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('endDate', { required: false })}
+              errorMessage={errors.endDate?.message}
+              isInvalid={!!errors.endDate}
+            />
+          )}
 
           <Input
             id="deliveryForecast"
             type="date"
             label="Previsão de entrega"
+            placeholder=" "
             classNames={{
               label: 'text-gray-300',
-              base: 'max-w-sm min-w-fit',
-              mainWrapper: ' max-w-sm min-w-fit',
+              base: 'max-w-sm',
               inputWrapper:
                 'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
             }}
             {...register('deliveryForecast')}
             errorMessage={errors.deliveryForecast?.message}
-            validationState={errors.deliveryForecast && 'invalid'}
-            placeholder={' '}
+            isInvalid={!!errors.deliveryForecast}
           />
 
           <Input
@@ -459,113 +401,77 @@ export default function CreateProject() {
             label="Previsão de horas"
             classNames={{
               label: 'text-gray-300',
-              base: 'max-w-sm min-w-fit',
-              mainWrapper: ' max-w-sm min-w-fit',
+              base: 'max-w-sm',
               inputWrapper:
                 'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
             }}
             {...register('hoursForecast')}
-            errorMessage={errors.hoursForecast?.message}
-            validationState={errors.hoursForecast && 'invalid'}
             placeholder={id && ' '}
           />
 
-          <Input
-            id="hoursBalance"
-            label="Balanço de horas"
-            classNames={{
-              label: 'text-gray-300',
-              base: 'max-w-sm min-w-fit',
-              mainWrapper: 'max-w-sm min-w-fit',
-              inputWrapper:
-                'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-            }}
-            {...register('hoursBalance')}
-            placeholder={id && ' '}
-          />
+          {id && (
+            <Input
+              id="hoursBalance"
+              label="Total de horas utilizadas"
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('hoursBalance')}
+              placeholder={id && project?.hoursBalance && ' '}
+            />
+          )}
 
           <Input
             id="hourValue"
             label="Valor da hora"
             classNames={{
               label: 'text-gray-300',
-              base: 'max-w-sm min-w-fit',
-              mainWrapper: ' max-w-sm min-w-fit',
+              base: 'max-w-sm',
               inputWrapper:
                 'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
             }}
             {...register('hourValue')}
             errorMessage={errors.hourValue?.message}
-            validationState={errors.hourValue && 'invalid'}
+            isInvalid={!!errors.hourValue}
             placeholder={id && ' '}
           />
         </section>
       </form>
 
-      {showExpenses && (
-        <>
-          <ProjectExpensesForm handleNewProjectExpense={onNewProjectExpense} />
-        </>
+      {openService && (
+        <ProjectServicesForm
+          serviceOpened={serviceOpened}
+          setOpenService={setOpenService}
+          handleCreateProjectService={onServiceCreation}
+        />
+      )}
+      {services && services.length > 0 && (
+        <ProjectServiceSection
+          setServices={setServices}
+          setOpenService={setOpenService}
+          setServiceOpened={setServiceOpened}
+          services={services}
+        />
       )}
 
-      {expenses?.length > 0 && (
-        <section className="w-full flex flex-col gap-4 max-w-7xl px-6">
-          <span className="text-lg font-medium text-gray-300">Despesas</span>
-
-          <section className="flex w-full justify-start items-center gap-6">
-            {expenses?.length > 0 &&
-              expenses.map((expense, index) => (
-                <main
-                  key={index}
-                  className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
-                >
-                  <span className="text-sm text-gray-300">
-                    {expense.description}
-                  </span>
-                  <span>R$ {expense.value}</span>
-
-                  <Card.Badge
-                    status=""
-                    icon={Trash2}
-                    className=" text-red-500 bg-red-500/10 py-2 px-2 cursor-pointer rounded-md"
-                    onClick={() => handleDeleteExpense(expense?.id, index)}
-                  />
-                </main>
-              ))}
-          </section>
-        </section>
+      {openExpense && (
+        <ProjectExpensesForm
+          expenseOpened={expenseOpened}
+          setOpenExpense={setOpenExpense}
+          handleCreateProjectExpense={onExpenseCreation}
+        />
       )}
-
-      {showServices && (
-        <>
-          <ProjectServicesForm handleNewProjectService={onNewProjectService} />
-        </>
+      {expenses && expenses.length > 0 && (
+        <ProjectExpensesSection
+          setExpenseOpened={setExpenseOpened}
+          setExpenses={setExpenses}
+          setOpenExpense={setOpenExpense}
+          expenses={expenses}
+        />
       )}
-
-      {services?.length > 0 && (
-        <section className="w-full flex flex-col gap-4 max-w-7xl px-6">
-          <span className="text-lg font-medium text-gray-300">Serviços</span>
-          <section className="flex w-full justify-start items-center gap-6">
-            {services.length > 0 &&
-              services.map((service, index) => (
-                <main
-                  key={index}
-                  className="flex items-center gap-6 justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
-                >
-                  <span className="text-sm text-gray-300">
-                    {service.description}
-                  </span>
-                  <Card.Badge
-                    status=""
-                    icon={Trash2}
-                    className=" text-red-500 bg-red-500/10 py-2 cursor-pointer px-2 rounded-md"
-                    onClick={() => handleDeleteService(service?.id, index)}
-                  />
-                </main>
-              ))}
-          </section>
-        </section>
-      )}
-    </div>
+    </main>
   )
 }

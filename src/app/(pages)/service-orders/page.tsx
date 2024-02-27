@@ -62,6 +62,17 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useUser } from '@/app/contexts/useUser'
 import { toast } from 'sonner'
+import { getServiceOrders } from '@/functions/requests'
+
+const serviceOrderReportSchema = z.object({
+  clientId: z.optional(z.string().uuid().nullable()),
+  collaboratorId: z.optional(z.string().uuid().nullable()),
+  projectId: z.optional(z.string().uuid().nullable()),
+  startDate: z.string(),
+  endDate: z.string(),
+})
+
+export type ServiceOrderReportSchema = z.infer<typeof serviceOrderReportSchema>
 
 export default function ServiceOrders() {
   const [serviceOrders, setServiceOrders] = useState<ServiceOrderCard[]>([])
@@ -87,6 +98,7 @@ export default function ServiceOrders() {
       label: string
     }[]
   >([])
+
   const router = useRouter()
 
   const onStatusFilter = ({
@@ -138,16 +150,6 @@ export default function ServiceOrders() {
 
     setServiceOrders(newFilteredServiceOrders)
   }
-
-  const serviceOrderReportSchema = z.object({
-    clientId: z.optional(z.string().uuid().nullable()),
-    collaboratorId: z.optional(z.string().uuid().nullable()),
-    projectId: z.optional(z.string().uuid().nullable()),
-    startDate: z.string(),
-    endDate: z.string(),
-  })
-
-  type ServiceOrderReportSchema = z.infer<typeof serviceOrderReportSchema>
 
   const {
     register,
