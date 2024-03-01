@@ -167,8 +167,6 @@ export default function CreateProject() {
     }
   }
 
-  console.log(expenses)
-
   async function handleProjectSubmit(data: CreateProjectSchema) {
     try {
       const body: Project = {

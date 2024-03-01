@@ -19,7 +19,7 @@ import { useUser } from '@/app/contexts/useUser'
 
 interface OSExpensesProps {
   projectId: string
-  handleExpenseSave: (expense: ProjectExpenses) => void
+  handleExpenseSave: (expense: ProjectExpenses, index?: number) => void
   expense?: ProjectExpenses
   osExpenses?: ServiceOrderExpenses
 }
@@ -51,9 +51,9 @@ export default function CreateOSExpenses({
     formState: { errors },
   } = useForm<TOsExpensesFormData>({
     resolver: zodResolver(osExpensesFormSchema),
-    defaultValues: {
-      projectExpenseId: expense?.id,
-      value: expense?.value,
+    values: {
+      projectExpenseId: expense?.id ?? '',
+      value: expense?.value ?? '',
     },
   })
 
@@ -92,7 +92,7 @@ export default function CreateOSExpenses({
             serviceOrderProjectExpensesFile: file,
           }
 
-          handleExpenseSave(newExpense)
+          handleExpenseSave(newExpense, newExpense?.index)
           reset()
           setLoading(false)
           return
@@ -118,6 +118,10 @@ export default function CreateOSExpenses({
       setError('value', {
         message: `Insira um valor até ${projectExpense?.value}`,
       })
+
+      setLoading(false)
+
+      return
     }
 
     if (isValueCorrect) {
@@ -135,11 +139,16 @@ export default function CreateOSExpenses({
       }
 
       if (!selectedFile) {
-        handleExpenseSave(expense)
+        handleExpenseSave(expense, expense?.index)
       }
     }
 
     setLoading(false)
+
+    reset({
+      projectExpenseId: '',
+      value: '',
+    })
   }
 
   useEffect(() => {
@@ -225,7 +234,7 @@ export default function CreateOSExpenses({
             }}
             {...register('projectExpenseId')}
             errorMessage={errors.projectExpenseId?.message}
-            validationState={errors.projectExpenseId && 'invalid'}
+            isInvalid={!!errors.projectExpenseId}
             onSelectionChange={(keys) => handleSelectProject(keys)}
             defaultSelectedKeys={expense ? [expense?.id || ''] : []}
           >
@@ -248,7 +257,7 @@ export default function CreateOSExpenses({
             {...register('value')}
             placeholder={projectExpense?.value || expense?.value}
             errorMessage={errors.value?.message}
-            validationState={errors.value && 'invalid'}
+            isInvalid={!!errors.value}
             endContent={<DollarSign className="text-gray-300" size={20} />}
           />
 

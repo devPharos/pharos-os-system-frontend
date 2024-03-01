@@ -38,7 +38,13 @@ export default function Projects() {
         {projects &&
           projects.map((project) => {
             if (!project.hide) {
-              return <ProjectCard project={project} key={project.id} />
+              return (
+                <ProjectCard
+                  setProjects={setProjects}
+                  project={project}
+                  key={project.id}
+                />
+              )
             }
 
             return null

@@ -62,8 +62,7 @@ export interface ServiceOrderCard {
 }
 
 export interface ServiceOrderPage {
-  serviceOrders: ServiceOrderCard
-  serviceOrdersSupervisedByMe: ServiceOrderCard
+  serviceOrders: ServiceOrderCard[]
   defaultDate: ServiceOrderDate
   formattedDate: string
   date: string
@@ -72,6 +71,7 @@ export interface ServiceOrderPage {
 export interface ProjectExpenses {
   id: string
   requireReceipt?: string
+  index?: number
   value: string
   description?: string
   serviceOrderExpenseId?: string
@@ -97,6 +97,7 @@ export interface ServiceOrderProject {
 }
 export interface ServiceOrderDetail {
   id?: string
+  index?: number
   project: ServiceOrderProject
   projectServices: ProjectServices
   startDate: string

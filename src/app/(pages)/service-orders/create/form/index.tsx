@@ -30,6 +30,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const { auth } = useUser()
   const [status, setStatus] = useState('')
   const [hasError, setHasError] = useState(false)
+  const [openDetails, setOpenDetails] = useState(false)
 
   const serviceTypes: string[] = ['Remoto', 'Presencial']
 
@@ -93,7 +94,6 @@ export default function CreateOSForm({ id }: OsFormProps) {
       }
 
       if (!id) {
-        console.log(body)
         axios
           .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order`, body, {
             headers: {
@@ -167,17 +167,38 @@ export default function CreateOSForm({ id }: OsFormProps) {
   const handleClientProjects = (selectedKey: any) => {
     const selectedClientId = selectedKey.currentKey
     setClientId(selectedClientId)
+    setOpenDetails(true)
   }
 
-  const onOSDetailsSave = (newOsDetails: ServiceOrderDetail) => {
-    const newOsDetailsList = [...osDetails]
+  const onOSDetailsSave = (
+    newOsDetails: ServiceOrderDetail,
+    index?: number,
+  ) => {
+    if (osDetails) {
+      if (index || index === 0) {
+        const newOsDetailsList = [...osDetails]
 
-    newOsDetailsList.push(newOsDetails)
-    setOsDetails(newOsDetailsList)
+        newOsDetailsList[index] = newOsDetails
+
+        setOsDetails(newOsDetailsList)
+
+        return
+      }
+
+      const newOsDetailsList = [...osDetails]
+      newOsDetailsList.push(newOsDetails)
+
+      setOsDetails(newOsDetailsList)
+    }
   }
 
-  const handleCardDetailClick = (detail: ServiceOrderDetail) => {
-    setOsDetail(detail)
+  const handleCardDetailClick = (detail: ServiceOrderDetail, index: number) => {
+    const newDetail = {
+      ...detail,
+      index,
+    }
+
+    setOsDetail(newDetail)
 
     if (serviceOrder) {
       setClientId(serviceOrder?.client.id)
@@ -317,9 +338,11 @@ export default function CreateOSForm({ id }: OsFormProps) {
             </section>
           </form>
 
-          {clientId && (
+          {openDetails && (
             <CreateOSDetails
               clientId={clientId || ''}
+              setOpenDetails={setOpenDetails}
+              setOsDetail={setOsDetail}
               handleOSDetailsSave={onOSDetailsSave}
               osDetail={osDetail}
               osExpenses={serviceOrder?.serviceOrderExpenses?.filter(
@@ -344,7 +367,7 @@ export default function CreateOSForm({ id }: OsFormProps) {
 
                 return (
                   <Card.Root
-                    onClick={() => handleCardDetailClick(detail)}
+                    onClick={() => handleCardDetailClick(detail, index)}
                     className="hover:bg-gray-600 hover:border-2 hover:border-gray-500 min-w-fit max-w-sm"
                     key={index}
                   >

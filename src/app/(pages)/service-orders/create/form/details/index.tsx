@@ -5,7 +5,7 @@ import { Button, Input, Select, SelectItem, Textarea } from '@nextui-org/react'
 import { Clock, DollarSign, Save, Search, Trash2 } from 'lucide-react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import axios from 'axios'
 import { Projects, ProjectServices } from '@/types/projects'
 import CreateOSExpenses from '../expenses'
@@ -14,17 +14,20 @@ import {
   ProjectExpenses,
   ServiceOrderExpenses,
 } from '@/types/service-order'
-import { format, parseISO } from 'date-fns'
+import { differenceInMinutes, format, parse, parseISO } from 'date-fns'
 import { Card } from '@/components/Card'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/app/contexts/useUser'
+import { toast } from 'sonner'
 
 interface OSDetailsProps {
   clientId: string
-  handleOSDetailsSave: (osDetails: ServiceOrderDetail) => void
+  handleOSDetailsSave: (osDetails: ServiceOrderDetail, index?: number) => void
   osDetail?: ServiceOrderDetail
   osExpenses?: ServiceOrderExpenses[]
   hasError?: boolean
+  setOpenDetails: Dispatch<SetStateAction<boolean>>
+  setOsDetail: Dispatch<SetStateAction<ServiceOrderDetail | undefined>>
 }
 
 const osFormSchema = z.object({
@@ -43,6 +46,8 @@ export default function CreateOSDetails({
   osDetail,
   hasError = false,
   osExpenses,
+  setOpenDetails,
+  setOsDetail,
 }: OSDetailsProps) {
   const [loading, setLoading] = useState(false)
   const [newExpense, setNewExpense] = useState(false)
@@ -60,6 +65,7 @@ export default function CreateOSDetails({
     register,
     handleSubmit,
     setError,
+    reset,
     formState: { errors },
   } = useForm<TOsDetailsFormData>({
     resolver: zodResolver(osFormSchema),
@@ -107,7 +113,28 @@ export default function CreateOSDetails({
       },
     }
 
-    handleOSDetailsSave(osDetails)
+    const invalidHour =
+      differenceInMinutes(
+        parse(data.endDate, 'HH:mm', new Date()),
+        parse(data.startDate, 'HH:mm', new Date()),
+      ) < 0
+
+    if (invalidHour) {
+      toast.error('A data de início não pode ser superior à data de término')
+      return
+    }
+
+    handleOSDetailsSave(osDetails, osDetail?.index)
+
+    reset({
+      description: '',
+      endDate: '',
+      projectId: '',
+      projectServiceId: '',
+      startDate: '',
+    })
+
+    setOsDetail(undefined)
   }
 
   useEffect(() => {
@@ -143,7 +170,6 @@ export default function CreateOSDetails({
 
   const handleProjectServices = (projectId: string) => {
     setLoading(true)
-
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/project-services`, {
         headers: {
@@ -166,20 +192,36 @@ export default function CreateOSDetails({
     handleProjectServices(selectedProjectId)
   }
 
-  const onExpenseSave = (expense: ProjectExpenses) => {
-    const newExpensesList: ProjectExpenses[] = [...projectExpenses]
+  const onExpenseSave = (expense: ProjectExpenses, index?: number) => {
+    if (projectExpenses) {
+      if (index || index === 0) {
+        const newExpensesList = [...projectExpenses]
 
-    newExpensesList.push(expense)
-    setProjectExpenses(newExpensesList)
-    setNewExpense(false)
+        newExpensesList[index] = expense
+
+        setProjectExpenses(newExpensesList)
+
+        return
+      }
+
+      const newExpensesList = [...projectExpenses]
+      newExpensesList.push(expense)
+
+      setProjectExpenses(newExpensesList)
+    }
   }
 
-  const handleCardExpenseClick = (expense: ProjectExpenses) => {
+  const handleCardExpenseClick = (expense: ProjectExpenses, index: number) => {
     setNewExpense(true)
+
+    const newExp = {
+      ...expense,
+      index,
+    }
 
     if (osDetail?.project.projectsExpenses) {
       setProjectId(osDetail.project?.id)
-      setProjectExpense(expense)
+      setProjectExpense(newExp)
     }
   }
 
@@ -353,7 +395,7 @@ export default function CreateOSDetails({
       {
         <section className="w-full max-w-7xl px-6 flex gap-6">
           {osExpenses &&
-            osExpenses.map((expense) => (
+            osExpenses.map((expense, index) => (
               <main
                 key={expense.projectExpenses.id}
                 className="flex items-center gap-6 justify-center cursor-pointer bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
@@ -361,7 +403,7 @@ export default function CreateOSDetails({
                 <span
                   className="text-sm text-gray-300"
                   onClick={() =>
-                    handleCardExpenseClick(expense.projectExpenses)
+                    handleCardExpenseClick(expense.projectExpenses, index)
                   }
                 >
                   {expense?.projectExpenses.description}
@@ -382,7 +424,7 @@ export default function CreateOSDetails({
               <main
                 key={expense?.id || index}
                 className="flex items-center gap-6 cursor-pointer justify-center bg-gray-700 px-5 py-4 max-w-fit rounded-lg"
-                onClick={() => handleCardExpenseClick(expense)}
+                onClick={() => handleCardExpenseClick(expense, index)}
               >
                 <span className="text-sm text-gray-300">
                   {expense?.description}

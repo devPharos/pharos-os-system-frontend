@@ -2,9 +2,14 @@ import { CreateUserSchema } from '@/app/(pages)/clients/users/page'
 import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page'
 import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
 import { Project } from '@/app/(pages)/projects/create/page'
+import { Projects as ProjectType } from '@/types/projects'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
-import { ServiceOrderCard } from '@/types/service-order'
+import {
+  ServiceOrderCard,
+  ServiceOrderDate,
+  ServiceOrderPage,
+} from '@/types/service-order'
 import axios, { AxiosResponse } from 'axios'
 import { toast } from 'sonner'
 
@@ -265,17 +270,41 @@ export async function updateCollaborator(
 }
 
 // * PROJECTS
-export async function getProjects(token: string): Promise<Project[]> {
+export async function getProjects(
+  token: string,
+  clientId?: string,
+): Promise<Project[]> {
   let projects: Project[] = []
 
   await axios
     .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
       headers: {
         Authorization: `Bearer ${token}`,
+        clientid: clientId,
       },
     })
     .then((response) => {
       projects = response.data.projects
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error('Erro ao buscar projetos')
+    })
+
+  return projects
+}
+
+export async function listProjects(token: string): Promise<ProjectType[]> {
+  let projects: ProjectType[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      projects = response.data
     })
     .catch((error) => {
       console.log(error)
@@ -357,6 +386,32 @@ export async function updateProject(
   return response
 }
 
+export async function updateProjectStatus(
+  token: string,
+  body: {
+    projectId: string
+    status: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado'
+  },
+): Promise<Project[]> {
+  let projects: Project[] = []
+
+  await axios
+    .put(`${process.env.NEXT_PUBLIC_API_URL}/update/project/status`, body, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then(function (response) {
+      projects = response.data
+    })
+    .catch(function (error) {
+      console.error(error)
+      toast.error('Erro ao atualizar status do projeto')
+    })
+
+  return projects
+}
+
 export async function deleteProjectService(
   token: string,
   serviceId: string,
@@ -422,4 +477,111 @@ export async function getServiceOrders(
     })
 
   return osList
+}
+
+export async function getServiceOrdersFilters(
+  token: string,
+): Promise<ServiceOrderDate[]> {
+  let filters: ServiceOrderDate[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders/filters`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => (filters = res.data))
+
+  return filters
+}
+
+export async function listServiceOrders(
+  token: string,
+  selectedValue?: string,
+): Promise<ServiceOrderPage> {
+  let serviceOrdersPage: ServiceOrderPage = {
+    date: '',
+    defaultDate: {
+      date: '',
+      formattedDate: '',
+    },
+    formattedDate: '',
+    serviceOrders: [],
+  }
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/list/service-orders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        filterDate: selectedValue,
+      },
+    })
+    .then((response) => {
+      const os: ServiceOrderCard[] = response.data.serviceOrders
+
+      if (os) {
+        const allOs: ServiceOrderCard[] = os
+        allOs &&
+          allOs.forEach((os) => {
+            os.selected = false
+          })
+
+        os &&
+          os.sort((a, b) => {
+            const dataA = new Date(a.date).getTime()
+            const dataB = new Date(b.date).getTime()
+
+            return dataA - dataB
+          })
+      }
+
+      serviceOrdersPage = {
+        ...response.data,
+        serviceOrders: os,
+      }
+    })
+
+  return serviceOrdersPage
+}
+
+export async function updateServiceOrderStatus(
+  token: string,
+  status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho',
+  id: string,
+) {
+  const body = {
+    id,
+    status,
+  }
+
+  await axios
+    .put(
+      `${process.env.NEXT_PUBLIC_API_URL}/update/service-order/status`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
+    .then(() => {
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
+    })
+}
+
+export async function deleteServiceOrder(token: string, id: string) {
+  await axios
+    .delete(`${process.env.NEXT_PUBLIC_API_URL}/delete/service-order`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        id,
+      },
+    })
+    .then(() => {
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
+    })
 }
