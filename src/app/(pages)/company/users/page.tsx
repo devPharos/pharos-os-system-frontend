@@ -1,7 +1,5 @@
 'use client'
 
-import Header from '@/layouts/header'
-
 import { Eye, EyeOff, Save } from 'lucide-react'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import { z } from 'zod'
@@ -14,10 +12,27 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { User } from '@/types/user'
 import { useUser } from '@/app/contexts/useUser'
 import { toast } from 'sonner'
+import {
+  createCollaboratorUser,
+  getCollaboratorsWithNoAccess,
+  sendNewUserEmail,
+  updateCollaboratorUser,
+} from '@/functions/requests'
+import Loading from '@/components/Loading'
+
+const createCollaboratorUserSchema = z.object({
+  collaboratorId: z.string().uuid('Selecione um colaborador'),
+  email: z.string().email('Insira um email'),
+  password: z.string().min(1, 'Insira a senha'),
+})
+
+export type CreateCollaboratorUserSchema = z.infer<
+  typeof createCollaboratorUserSchema
+>
 
 export default function Users() {
   const [isPasswordVisible, setPasswordVisible] = useState<boolean>(false)
-  const [collaboratorsId, setCollaboratorsId] = useState<Collaborator[]>([])
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [user, setUser] = useState<User>()
   const searchParams = useSearchParams()
   const params = Array.from(searchParams.values())
@@ -25,20 +40,21 @@ export default function Users() {
   const router = useRouter()
   const { auth } = useUser()
 
-  const createUserSchema = z.object({
-    collaboratorId: z.string().uuid('Selecione um colaborador'),
-    email: z.string().email('Insira um email'),
-    password: z.string().min(1, 'Insira a senha'),
-  })
+  useEffect(() => {
+    async function fetchData() {
+      const response = await getCollaboratorsWithNoAccess(auth?.token)
+      setCollaborators(response)
+    }
 
-  type CreateUserSchema = z.infer<typeof createUserSchema>
+    fetchData()
+  }, [auth?.token])
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateUserSchema>({
-    resolver: zodResolver(createUserSchema),
+  } = useForm<CreateCollaboratorUserSchema>({
+    resolver: zodResolver(createCollaboratorUserSchema),
     defaultValues: async () =>
       id &&
       (await axios
@@ -57,27 +73,13 @@ export default function Users() {
         })),
   })
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/collaborators`, {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        })
-        .then((response) => {
-          setCollaboratorsId(response.data)
-        })
-    }
-  }, [auth?.token])
-
   const handleChangePasswordVisibility = () => {
     setPasswordVisible(!isPasswordVisible)
   }
 
-  const handleCreateUserFormSubmit: SubmitHandler<CreateUserSchema> = (
-    data: CreateUserSchema,
-  ) => {
+  const handleCreateUserFormSubmit: SubmitHandler<
+    CreateCollaboratorUserSchema
+  > = async (data: CreateCollaboratorUserSchema) => {
     if (typeof window !== 'undefined') {
       if (!user) {
         const body = {
@@ -85,20 +87,17 @@ export default function Users() {
           email: data.email,
           password: data.password,
         }
-        axios
-          .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/user`, body, {
-            headers: {
-              Authorization: `Bearer ${auth?.token}`,
-            },
-          })
-          .then(() => {
-            toast.success('Usuário criado com sucesso')
 
-            router.push('/company')
-          })
-          .catch((error) => {
-            console.log(error)
-          })
+        try {
+          await createCollaboratorUser(auth?.token, body)
+          await sendNewUserEmail(auth?.token, body)
+          toast.success('Usuário criado com successo!')
+
+          router.push('/company')
+        } catch (error) {
+          console.error('Erro ao buscar os dados:', error)
+          toast.error('Erro ao tentar criar usuário')
+        }
       }
 
       if (user) {
@@ -107,42 +106,22 @@ export default function Users() {
           email: data.email,
           password: data.password,
         }
-        axios
-          .put(`${process.env.NEXT_PUBLIC_API_URL}/update/user`, body, {
-            headers: {
-              Authorization: `Bearer ${auth?.token}`,
-            },
-          })
-          .then(() => {
-            axios
-              .post(
-                `${process.env.NEXT_PUBLIC_API_URL}/mail/user-created`,
-                {
-                  email: data.email,
-                  password: data.password,
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${auth.token}`,
-                  },
-                },
-              )
-              .then(() => {
-                toast.success('Usuário atualizado com sucesso!')
 
-                router.push('/company')
-              })
-              .catch((err) => {
-                if (err) {
-                  toast.error('Um erro inesperado aconteceu!')
-                }
-              })
-          })
-          .catch((error) => {
-            console.log(error)
-          })
+        try {
+          await updateCollaboratorUser(auth?.token, body)
+          toast.success('Usuário atualizado com successo!')
+
+          router.push('/company')
+        } catch (error) {
+          console.error('Erro ao buscar os dados:', error)
+          toast.error('Erro ao tentar atualizar usuário')
+        }
       }
     }
+  }
+
+  if (id && !user) {
+    return <Loading />
   }
 
   return (
@@ -164,7 +143,6 @@ export default function Users() {
           </Button>
 
           <Button
-            // disabled={loading}
             type="submit"
             className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
           >
@@ -195,24 +173,31 @@ export default function Users() {
           }}
           {...register('collaboratorId')}
           errorMessage={errors.collaboratorId?.message}
-          selectedKeys={user && user.collaboratorId && [user.collaboratorId]}
-          validationState={errors.collaboratorId && 'invalid'}
+          defaultSelectedKeys={
+            collaborators.length === 0 && !user
+              ? ['no-collaborators']
+              : user
+              ? ['user']
+              : undefined
+          }
+          isDisabled={!!(collaborators.length === 0 || user)}
+          isInvalid={!!errors.collaboratorId}
         >
-          {collaboratorsId.map((collaborator) => {
-            if (user) {
-              return (
-                <SelectItem key={user?.collaboratorId || ''}>
-                  {user?.name + ' ' + user?.lastName}
-                </SelectItem>
-              )
-            }
-
-            return (
+          {collaborators.length === 0 && !id ? (
+            <SelectItem key={'no-collaborators'} aria-disabled>
+              Nenhum colaborador sem acesso ao sistema
+            </SelectItem>
+          ) : user ? (
+            <SelectItem key={'user'}>
+              {user.name + ' ' + user.lastName}
+            </SelectItem>
+          ) : (
+            collaborators.map((collaborator) => (
               <SelectItem key={collaborator.id}>
                 {collaborator.name + ' ' + collaborator.lastName}
               </SelectItem>
-            )
-          })}
+            ))
+          )}
         </Select>
 
         <Input
@@ -227,7 +212,7 @@ export default function Users() {
           }}
           {...register('email')}
           errorMessage={errors.email?.message}
-          validationState={errors.email && 'invalid'}
+          isInvalid={!!errors.email}
         />
 
         {!id && (
@@ -244,7 +229,7 @@ export default function Users() {
             {...register('password')}
             type={isPasswordVisible ? 'text' : 'password'}
             errorMessage={errors.password?.message}
-            validationState={errors.password && 'invalid'}
+            isInvalid={!!errors.password}
             endContent={
               isPasswordVisible ? (
                 <Eye

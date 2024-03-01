@@ -1,9 +1,7 @@
 import { CreateMonthlyClosingSchema } from '@/app/(pages)/closing/create/page'
-import { Project } from '@/types/projects'
-import { CircularProgress } from '@nextui-org/react'
 import axios from 'axios'
 import saveAs from 'file-saver'
-import { ChangeEvent, Key, useState } from 'react'
+import { ChangeEvent } from 'react'
 import { toast } from 'sonner'
 
 export const parseDate = (date: string): Date => {
@@ -13,44 +11,6 @@ export const parseDate = (date: string): Date => {
   newDate.setMinutes(minutes)
 
   return newDate
-}
-
-interface FilterProps {
-  status?: Key | null
-  search?: string
-  array: Project[]
-  setArray: React.Dispatch<React.SetStateAction<Project[]>>
-}
-
-export const onFilter = ({
-  status = null,
-  search = '',
-  array,
-  setArray,
-}: FilterProps) => {
-  const filteredItem = array.map((item) => {
-    item.hide = true
-
-    if (status) {
-      if (item.status === status || status === 'Limpar') {
-        item.hide = false
-      }
-    }
-
-    if (search) {
-      if (item.name.includes(search)) {
-        item.hide = false
-      }
-    }
-
-    if (!search && !status) {
-      item.hide = false
-    }
-
-    return item
-  })
-
-  setArray(filteredItem)
 }
 
 export const validateCNPJ = (cnpj: string): boolean => {

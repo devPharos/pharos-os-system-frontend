@@ -10,6 +10,7 @@ import {
   validateCNPJ,
   validateCPF,
 } from '@/functions/auxiliar'
+import { createClient, updateClient } from '@/functions/requests'
 import { Client } from '@/types/client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
@@ -17,8 +18,9 @@ import axios from 'axios'
 import { Save, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 export default function CreateClient() {
@@ -27,10 +29,8 @@ export default function CreateClient() {
   const [client, setClient] = useState<Client>()
   const params = Array.from(searchParams.values())
   const id = params[0]
-  const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
   const { auth } = useUser()
-  const [state, setState] = useState<string>()
 
   const clientFormSchema = z.object({
     address: z.string().min(1, 'Campo obrigatório'),
@@ -47,6 +47,7 @@ export default function CreateClient() {
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
+    paymentDate: z.string().max(2, 'Campo obrigatório'),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -70,7 +71,6 @@ export default function CreateClient() {
         })
         .then((response) => {
           setClient(response.data)
-          setLoading(false)
           return response.data
         })
         .catch(function (error) {
@@ -78,7 +78,7 @@ export default function CreateClient() {
         }),
   })
 
-  const handleClientFormSubmit: SubmitHandler<ClientFormSchema> = (
+  const handleClientFormSubmit: SubmitHandler<ClientFormSchema> = async (
     data: ClientFormSchema,
   ) => {
     const cnpjOrCpf = data.cnpj.replace(/\D/g, '')
@@ -92,44 +92,34 @@ export default function CreateClient() {
       setError('cnpj', {
         message: errorMessage,
       })
-      setLoading(false)
     }
 
-    if (!id && typeof window !== 'undefined') {
-      axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/accounts/client`, data, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
+    if (!id) {
+      try {
+        await createClient(auth?.token, data)
+        toast.success('Cliente criado com successo!')
+
+        router.push('/clients')
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error)
+
+        toast.error('Erro ao tentar criar cliente')
+        setError('cnpj', {
+          message: 'Já existe um cliente com o mesmo CPF/CNPJ',
         })
-        .then(function () {
-          setLoading(false)
-          router.back()
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-          setError('cnpj', {
-            message: 'Já existe um cliente com o mesmo CPF/CNPJ',
-          })
-        })
+      }
     }
 
     if (id && typeof window !== 'undefined') {
-      axios
-        .put(`${process.env.NEXT_PUBLIC_API_URL}/update/client`, data, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
-        })
-        .then(function () {
-          setLoading(false)
-          router.push('/clients')
-        })
-        .catch(function (error) {
-          console.error(error)
-          setLoading(false)
-        })
+      try {
+        await updateClient(auth?.token, data)
+        toast.success('Cliente atualizado com successo!')
+
+        router.push('/clients')
+      } catch (error) {
+        console.error('Erro ao buscar os dados:', error)
+        toast.error('Erro ao tentar atualizar cliente')
+      }
     }
   }
 
@@ -166,268 +156,14 @@ export default function CreateClient() {
         ...client,
         state: cepData.uf,
       })
-
-      setState(cepData.uf)
     }
   }
 
-  return id ? (
-    <>
-      {client && (
-        <form
-          onSubmit={handleSubmit(handleClientFormSubmit)}
-          className="max-w-7xl w-full space-y-10 px-6"
-        >
-          <header className={'flex items-center justify-between'}>
-            <span className="text-2xl font-bold text-white">
-              Cadastro de Cliente
-            </span>
+  if (id && !client) {
+    return <Loading />
+  }
 
-            <section className="flex items-center gap-6">
-              <Button
-                className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
-                onClick={() => router.push('/clients')}
-              >
-                Cancelar
-              </Button>
-
-              <Button
-                disabled={loading}
-                type="submit"
-                className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
-              >
-                <Save size={16} />
-                Salvar cliente
-              </Button>
-            </section>
-          </header>
-
-          <section className="flex flex-wrap  gap-6">
-            <section className="flex flex-col gap-2 w-full">
-              <span className="text-gray-200">Informações</span>
-
-              <section className="flex flex-wrap gap-6">
-                <Input
-                  id="businessName"
-                  label="Razão social"
-                  placeholder={id && ' '}
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('businessName')}
-                  errorMessage={errors.businessName?.message}
-                  validationState={errors.businessName && 'invalid'}
-                />
-
-                <Input
-                  id="fantasyName"
-                  label="Nome fantasia"
-                  placeholder={id && ' '}
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('fantasyName')}
-                  errorMessage={errors.fantasyName?.message}
-                  validationState={errors.fantasyName && 'invalid'}
-                />
-
-                <Input
-                  id="cnpj"
-                  label="CNPJ/CPF"
-                  disabled={!!id}
-                  placeholder={id && ' '}
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('cnpj')}
-                  onChange={handleFormatCPForCNPJ}
-                  errorMessage={errors.cnpj?.message}
-                  validationState={errors.cnpj && 'invalid'}
-                />
-
-                <Input
-                  id="phone"
-                  label="Telefone"
-                  placeholder={id && ' '}
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('phone')}
-                  onChange={handleFormatPhone}
-                  errorMessage={errors.phone?.message}
-                  validationState={errors.phone && 'invalid'}
-                />
-              </section>
-            </section>
-
-            <section className="flex flex-col gap-2 w-full">
-              <span className="text-gray-200">Endereço</span>
-
-              <section className="flex flex-wrap gap-6">
-                <Input
-                  id="cep"
-                  label="CEP"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('cep')}
-                  errorMessage={errors.cep?.message}
-                  validationState={errors.cep && 'invalid'}
-                  placeholder={id && ' '}
-                  value={cep || (client && client?.cep)}
-                  onChange={handleCepChange}
-                  endContent={
-                    <Button
-                      onClick={buscarCep}
-                      className="disabled:border-none min-w-fit items-center disabled:bg-gray-600 disabled:text-gray-500 rounded-lg px-6 py-4 text-gray-700 bg-gray-100 font-bold"
-                      disabled={cep.length !== 10}
-                      startContent={<Search size={18} />}
-                    >
-                      Buscar CEP
-                    </Button>
-                  }
-                />
-
-                <Input
-                  id="country"
-                  label="País"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('country')}
-                  errorMessage={errors.country?.message}
-                  validationState={errors.country && 'invalid'}
-                  placeholder={id && ' '}
-                />
-
-                <Select
-                  id="state"
-                  label="Estado"
-                  classNames={{
-                    trigger:
-                      'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
-                    listboxWrapper: 'max-h-[400px] rounded-lg',
-                    base: 'max-w-sm',
-                  }}
-                  listboxProps={{
-                    itemClasses: {
-                      base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
-                    },
-                  }}
-                  popoverProps={{
-                    classNames: {
-                      base: 'bg-gray-700 rounded-lg',
-                    },
-                  }}
-                  {...register('state')}
-                  errorMessage={errors.state?.message}
-                  validationState={errors.state && 'invalid'}
-                  defaultSelectedKeys={[state || client?.state]}
-                >
-                  {states.map((state) => (
-                    <SelectItem key={state.key} value={state.key}>
-                      {state.name}
-                    </SelectItem>
-                  ))}
-                </Select>
-
-                <Input
-                  id="city"
-                  label="Cidade"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('city')}
-                  errorMessage={errors.city?.message}
-                  validationState={errors.city && 'invalid'}
-                  placeholder={id || cep.length === 10 ? ' ' : undefined}
-                />
-
-                <Input
-                  id="neighborhood"
-                  label="Bairro"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('neighborhood')}
-                  errorMessage={errors.neighborhood?.message}
-                  validationState={errors.neighborhood && 'invalid'}
-                  placeholder={id || cep.length === 10 ? ' ' : undefined}
-                />
-
-                <Input
-                  id="address"
-                  label="Endereço"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('address')}
-                  errorMessage={errors.address?.message}
-                  validationState={errors.address && 'invalid'}
-                  placeholder={id || cep.length === 10 ? ' ' : undefined}
-                />
-
-                <Input
-                  id="number"
-                  label="Número"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('number')}
-                  errorMessage={errors.number?.message}
-                  validationState={errors.number && 'invalid'}
-                  placeholder={id && ' '}
-                />
-
-                <Input
-                  id="complement"
-                  label="Complemento"
-                  classNames={{
-                    label: 'text-gray-300',
-                    base: 'max-w-sm',
-                    inputWrapper:
-                      'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                  }}
-                  {...register('complement')}
-                  placeholder={id || cep.length === 10 ? ' ' : undefined}
-                />
-              </section>
-            </section>
-          </section>
-        </form>
-      )}
-    </>
-  ) : (
+  return (
     <form
       onSubmit={handleSubmit(handleClientFormSubmit)}
       className="max-w-7xl w-full space-y-10 px-6"
@@ -446,7 +182,6 @@ export default function CreateClient() {
           </Button>
 
           <Button
-            disabled={loading}
             type="submit"
             className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
           >
@@ -473,7 +208,7 @@ export default function CreateClient() {
               }}
               {...register('businessName')}
               errorMessage={errors.businessName?.message}
-              validationState={errors.businessName && 'invalid'}
+              isInvalid={!!errors.businessName}
             />
 
             <Input
@@ -488,7 +223,7 @@ export default function CreateClient() {
               }}
               {...register('fantasyName')}
               errorMessage={errors.fantasyName?.message}
-              validationState={errors.fantasyName && 'invalid'}
+              isInvalid={!!errors.fantasyName}
             />
 
             <Input
@@ -505,7 +240,7 @@ export default function CreateClient() {
               {...register('cnpj')}
               onChange={handleFormatCPForCNPJ}
               errorMessage={errors.cnpj?.message}
-              validationState={errors.cnpj && 'invalid'}
+              isInvalid={!!errors.cnpj}
             />
 
             <Input
@@ -521,7 +256,22 @@ export default function CreateClient() {
               {...register('phone')}
               onChange={handleFormatPhone}
               errorMessage={errors.phone?.message}
-              validationState={errors.phone && 'invalid'}
+              isInvalid={!!errors.phone}
+            />
+
+            <Input
+              id="paymentDate"
+              label="Data de pagamento"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('paymentDate')}
+              errorMessage={errors.paymentDate?.message}
+              isInvalid={!!errors.paymentDate}
             />
           </section>
         </section>
@@ -541,7 +291,7 @@ export default function CreateClient() {
               }}
               {...register('cep')}
               errorMessage={errors.cep?.message}
-              validationState={errors.cep && 'invalid'}
+              isInvalid={!!errors.cep}
               placeholder={id && ' '}
               value={cep || (client && client?.cep)}
               onChange={handleCepChange}
@@ -568,8 +318,8 @@ export default function CreateClient() {
               }}
               {...register('country')}
               errorMessage={errors.country?.message}
-              validationState={errors.country && 'invalid'}
-              placeholder={id && ' '}
+              isInvalid={!!errors.country}
+              placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
             <Select
@@ -593,8 +343,8 @@ export default function CreateClient() {
               }}
               {...register('state')}
               errorMessage={errors.state?.message}
-              validationState={errors.state && 'invalid'}
-              defaultSelectedKeys={[client?.state || 'PE']}
+              isInvalid={!!errors.state}
+              defaultSelectedKeys={client && [client.state]}
             >
               {states.map((state) => (
                 <SelectItem key={state.key} value={state.key}>
@@ -614,7 +364,7 @@ export default function CreateClient() {
               }}
               {...register('city')}
               errorMessage={errors.city?.message}
-              validationState={errors.city && 'invalid'}
+              isInvalid={!!errors.city}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -629,7 +379,7 @@ export default function CreateClient() {
               }}
               {...register('neighborhood')}
               errorMessage={errors.neighborhood?.message}
-              validationState={errors.neighborhood && 'invalid'}
+              isInvalid={!!errors.neighborhood}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -644,7 +394,7 @@ export default function CreateClient() {
               }}
               {...register('address')}
               errorMessage={errors.address?.message}
-              validationState={errors.address && 'invalid'}
+              isInvalid={!!errors.address}
               placeholder={id || cep.length === 10 ? ' ' : undefined}
             />
 
@@ -659,7 +409,7 @@ export default function CreateClient() {
               }}
               {...register('number')}
               errorMessage={errors.number?.message}
-              validationState={errors.number && 'invalid'}
+              isInvalid={!!errors.number}
               placeholder={id && ' '}
             />
 

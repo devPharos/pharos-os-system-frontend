@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useReducer } from 'react'
 import { userReducer } from '../../reducers/user/reducer'
 import { authenticateAction, logoutAction } from '@/reducers/user/actions'
 import { toast } from 'sonner'
+import { ProjectProvider } from '../hooks/useProjects'
 
 export const UserContext = createContext<any>({
   authenticated: false,
@@ -99,7 +100,7 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
         logOut,
       }}
     >
-      {children}
+      <ProjectProvider>{children}</ProjectProvider>
     </UserContext.Provider>
   )
 }

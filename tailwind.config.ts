@@ -89,6 +89,9 @@ const config: Config = {
         },
         black: '#000000',
       },
+      autofill: {
+        input: '',
+      },
     },
   },
   darkMode: 'class',

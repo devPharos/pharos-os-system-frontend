@@ -1,122 +1,161 @@
-import { ProjectExpenses } from '@/types/projects'
+import { ExpenseOpened } from '@/app/hooks/useProjects'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Checkbox, Input } from '@nextui-org/react'
-
 import { Save } from 'lucide-react'
-import { Controller, SubmitHandler, useForm } from 'react-hook-form'
+import { Dispatch, SetStateAction } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
+const projectExpensesFormSchema = z.object({
+  description: z.string().min(1, 'Insira a descrição da despesa'),
+  value: z.string().min(1, 'Insira a descrição da despesa'),
+  requireReceipt: z.boolean().default(false),
+})
+
+export type ProjectExpensesFormSchema = z.infer<
+  typeof projectExpensesFormSchema
+>
+
+export interface ProjectExpenses extends ProjectExpensesFormSchema {
+  id?: string
+  deleted?: boolean
+}
+
 interface ProjectExpensesFormProps {
-  handleNewProjectExpense: (expense: Partial<ProjectExpenses>) => void
+  handleCreateProjectExpense: (expense: ProjectExpenses, index?: number) => void
+  expenseOpened: ExpenseOpened | undefined
+  setOpenExpense: Dispatch<SetStateAction<boolean>>
 }
 
 export default function ProjectExpensesForm({
-  handleNewProjectExpense,
+  handleCreateProjectExpense,
+  expenseOpened,
+  setOpenExpense,
 }: ProjectExpensesFormProps) {
-  const projectExpensesFormSchema = z.object({
-    description: z.string().min(1, 'Insira a descrição da despesa'),
-    value: z.string().min(1, 'Insira o valor máximo da despesa'),
-    requireReceipt: z.boolean().default(false),
-  })
-
-  type ProjectExpensesFormSchema = z.infer<typeof projectExpensesFormSchema>
-
   const {
     register,
-    control,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm<ProjectExpensesFormSchema>({
     resolver: zodResolver(projectExpensesFormSchema),
+    values: {
+      requireReceipt: expenseOpened?.requireReceipt ?? false,
+      description: expenseOpened?.description ?? '',
+      value: expenseOpened?.value ?? '',
+    },
   })
 
-  const handleProjectExpensesFormSubmit: SubmitHandler<
-    ProjectExpensesFormSchema
-  > = (data: ProjectExpensesFormSchema) => {
-    if (typeof window !== 'undefined') {
-      handleNewProjectExpense(data)
-      reset()
-    }
+  async function handleProjectExpensesSubmit({
+    description,
+    requireReceipt,
+    value,
+  }: ProjectExpensesFormSchema) {
+    handleCreateProjectExpense(
+      {
+        id: expenseOpened?.id,
+        description,
+        requireReceipt,
+        value,
+      },
+      expenseOpened?.index,
+    )
+
+    toast.success('Despesa criado com sucesso!')
+    handleClearForm()
+  }
+
+  function handleClearForm() {
+    reset({
+      requireReceipt: false,
+      description: '',
+      value: '',
+    })
+
+    setOpenExpense(false)
   }
 
   return (
-    <div className="max-w-7xl flex flex-col items-center gap-14 w-full">
-      <div className="flex flex-col items-center w-full gap-2 pb-6">
-        <section className="flex  px-6 flex-wrap w-full items-center gap-6">
-          <form
-            onSubmit={handleSubmit(handleProjectExpensesFormSubmit)}
-            className="w-full space-y-10"
-          >
-            <header className={'flex items-center w-full justify-between'}>
-              <span className="text-2xl font-bold text-white">
-                Cadastro de Despesa
-              </span>
+    <main className="w-full">
+      <form
+        onSubmit={handleSubmit(handleProjectExpensesSubmit)}
+        className="flex flex-col gap-8"
+      >
+        <header className={'flex items-center justify-between'}>
+          <span className="text-2xl font-bold text-white">
+            Adicionar despesa
+          </span>
 
-              <section className="flex items-center gap-6">
-                <Button
-                  // disabled={loading}
-                  type="submit"
-                  className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 border-2 border-dashed border-yellow-500 text-yellow-500 hover:text-gray-700 bg-transparent font-bold hover:bg-yellow-500"
-                >
-                  <Save size={16} />
-                  Salvar despesa
-                </Button>
-              </section>
-            </header>
+          <section className="flex items-center gap-6">
+            <Button
+              className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+              onClick={handleClearForm}
+            >
+              Cancelar
+            </Button>
 
-            <section className="flex flex-wrap w-full gap-6">
-              <Input
-                id="description"
-                label="Descrição de despesa"
+            <Button
+              type="submit"
+              className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-gray-100 font-bold hover:bg-gray-200"
+            >
+              <Save size={16} />
+              Salvar despesa
+            </Button>
+          </section>
+        </header>
+
+        <section className="flex flex-wrap gap-6">
+          <Input
+            id="description"
+            label="Descrição da despesa"
+            classNames={{
+              label: 'text-gray-300',
+              base: 'max-w-sm',
+              inputWrapper:
+                'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+            }}
+            {...register('description')}
+            errorMessage={errors.description?.message}
+            isInvalid={!!errors.description}
+            placeholder={expenseOpened && ' '}
+          />
+
+          <Input
+            id="value"
+            label="Valor da despesa"
+            classNames={{
+              label: 'text-gray-300',
+              base: 'max-w-sm',
+              inputWrapper:
+                'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+            }}
+            {...register('value')}
+            errorMessage={errors.value?.message}
+            isInvalid={!!errors.value}
+            placeholder={expenseOpened && ' '}
+          />
+
+          <Controller
+            control={control}
+            name="requireReceipt"
+            render={({ field: { onChange, value } }) => (
+              <Checkbox
+                radius="sm"
+                onChange={onChange}
+                isSelected={value}
                 classNames={{
-                  label: 'text-gray-300',
-                  base: 'max-w-sm',
-                  inputWrapper:
-                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                  wrapper: 'data-[selected=true]:bg-yellow-500',
+                  label: 'text-gray-100',
                 }}
-                {...register('description')}
-                errorMessage={errors.description?.message}
-                validationState={errors.description && 'invalid'}
-                // placeholder={id && ' '}
-              />
-
-              <Input
-                id="value"
-                label="Valor"
-                classNames={{
-                  label: 'text-gray-300',
-                  base: 'max-w-sm',
-                  inputWrapper:
-                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
-                }}
-                {...register('value')}
-                errorMessage={errors.value?.message}
-                validationState={errors.value && 'invalid'}
-                // placeholder={id && ' '}
-              />
-
-              <Controller
-                control={control}
-                name="requireReceipt"
-                render={({ field: { onChange, value } }) => (
-                  <Checkbox
-                    radius="sm"
-                    onChange={onChange}
-                    isSelected={value}
-                    classNames={{
-                      wrapper: 'data-[selected=true]:bg-yellow-500',
-                      label: 'text-gray-100',
-                    }}
-                  >
-                    Exige nota fiscal
-                  </Checkbox>
-                )}
-              />
-            </section>
-          </form>
+              >
+                Exige nota fiscal
+              </Checkbox>
+            )}
+          />
         </section>
-      </div>
-    </div>
+      </form>
+    </main>
   )
 }

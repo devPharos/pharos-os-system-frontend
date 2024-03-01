@@ -79,7 +79,7 @@ export default function CreateMonthlyClosing() {
         .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
             Authorization: `Bearer ${auth?.token}`,
-            clientId,
+            clientid: clientId,
           },
         })
         .then((response) => {
