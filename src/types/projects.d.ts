@@ -61,7 +61,7 @@ export interface Project {
   hide?: boolean
   endDate: undefined | string
   deliveryForecast: string
-  hoursForecast: string
+  hoursForecast: string | undefined
   hoursBalance: string | undefined
   hourValue: string
   projectsExpenses: ProjectExpensesFormSchema[]

@@ -19,7 +19,7 @@ export default function ServiceOrders() {
     async function fetchData() {
       if (typeof window !== 'undefined' && auth?.token) {
         const osList = await listServiceOrders(auth?.token)
-        console.log(osList)
+
         setServiceOrders(osList.serviceOrders)
         setServiceOrderData(osList)
       }

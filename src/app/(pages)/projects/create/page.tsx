@@ -39,7 +39,7 @@ const createProjectSchema = z.object({
   startDate: z.string(),
   endDate: z.string().optional().nullable(),
   deliveryForecast: z.string(),
-  hoursForecast: z.string(),
+  hoursForecast: z.string().optional().nullable(),
   hoursBalance: z.string().optional().nullable(),
   hourValue: z.string(),
 })
@@ -56,7 +56,7 @@ export interface Project {
   hide?: boolean
   endDate: undefined | string
   deliveryForecast: string
-  hoursForecast: string
+  hoursForecast: string | undefined
   hoursBalance: string | undefined
   hourValue: string
   projectsExpenses: ProjectExpenses[]
@@ -176,7 +176,8 @@ export default function CreateProject() {
         endDate: data.endDate === null ? undefined : data.endDate,
         hoursBalance:
           data.hoursBalance === null ? undefined : data.hoursBalance,
-        hoursForecast: data.hoursForecast,
+        hoursForecast:
+          data.hoursForecast === null ? undefined : data.hoursForecast,
         hourValue: data.hourValue,
         name: data.name,
         startDate: data.startDate,
