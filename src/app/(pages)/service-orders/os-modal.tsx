@@ -13,10 +13,11 @@ import { ArrowRightCircle, CircleDollarSign } from 'lucide-react'
 
 export interface OsModalProps {
   selectedOs: string
+  isOpen: boolean
+  onOpenChange: () => void
 }
 
-export function OsModal({ selectedOs }: OsModalProps) {
-  const { isOpen, onOpenChange } = useDisclosure()
+export function OsModal({ selectedOs, isOpen, onOpenChange }: OsModalProps) {
   const { auth } = useUser()
 
   const handleChangeOsStatus = (
