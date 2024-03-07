@@ -86,6 +86,7 @@ export async function updateClient(
   token: string,
   data: Partial<Client>,
 ): Promise<AxiosResponse<void, void>> {
+  console.log(data)
   const response = await axios.put(
     `${process.env.NEXT_PUBLIC_API_URL}/update/client`,
     data,

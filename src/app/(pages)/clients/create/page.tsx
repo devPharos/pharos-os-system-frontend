@@ -23,6 +23,16 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+enum DiasDaSemana {
+  SEGUNDA = 'segunda',
+  TERCA = 'terca',
+  QUARTA = 'quarta',
+  QUINTA = 'quinta',
+  SEXTA = 'sexta',
+  SABADO = 'sabado',
+  DOMINGO = 'domingo',
+}
+
 export default function CreateClient() {
   const [cep, setCep] = useState<string>('')
   const searchParams = useSearchParams()
@@ -47,7 +57,9 @@ export default function CreateClient() {
     neighborhood: z.string().min(1, 'Campo obrigatório'),
     number: z.string().min(1, 'Campo obrigatório'),
     phone: z.string().min(1, 'Campo obrigatório'),
-    paymentDate: z.string().max(2, 'Campo obrigatório'),
+    paymentDate: z.string().max(2, 'No máximo 2 dígitos').optional(),
+    paymentWeekDate: z.string().optional(),
+    daysAfterClosing: z.string().optional(),
     state: z.string().min(1, 'Campo obrigatório'),
   })
 
@@ -92,6 +104,25 @@ export default function CreateClient() {
       setError('cnpj', {
         message: errorMessage,
       })
+    }
+
+    if (data.paymentWeekDate !== '' && data.paymentWeekDate) {
+      const normalizedValue = data.paymentWeekDate
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+
+      if (
+        Object.values(DiasDaSemana).includes(normalizedValue as DiasDaSemana)
+      ) {
+        data.paymentWeekDate = normalizedValue
+      } else {
+        setError('paymentWeekDate', {
+          message: 'Digite um dia da semana',
+        })
+
+        return
+      }
     }
 
     if (!id) {
@@ -272,6 +303,36 @@ export default function CreateClient() {
               {...register('paymentDate')}
               errorMessage={errors.paymentDate?.message}
               isInvalid={!!errors.paymentDate}
+            />
+
+            <Input
+              id="paymentWeekDate"
+              label="Dia da semana para o pagamento"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('paymentWeekDate')}
+              errorMessage={errors.paymentWeekDate?.message}
+              isInvalid={!!errors.paymentWeekDate}
+            />
+
+            <Input
+              id="daysAfterClosing"
+              label="Dias após o fechamento para o pagamento"
+              placeholder={id && ' '}
+              classNames={{
+                label: 'text-gray-300',
+                base: 'max-w-sm',
+                inputWrapper:
+                  'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+              }}
+              {...register('daysAfterClosing')}
+              errorMessage={errors.daysAfterClosing?.message}
+              isInvalid={!!errors.daysAfterClosing}
             />
           </section>
         </section>

@@ -276,6 +276,7 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
         value: string
       }[]
     }
+    projectId: string
   }[] = response.data
 
   pdfsPaths.forEach(async (file) => {
@@ -324,6 +325,18 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
             })
         })
       })
+
+    await axios.put(
+      `${process.env.NEXT_PUBLIC_API_URL}/update/client/payment-date`,
+      {
+        projectId: file.projectId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    )
   })
 
   toast.success('Fechamento concluído')
