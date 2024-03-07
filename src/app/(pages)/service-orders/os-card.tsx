@@ -38,7 +38,7 @@ export interface OsCardProps {
 
 export function OsCard({ serviceOrder }: OsCardProps) {
   const [selectedOs, setSelectedOs] = useState('')
-  const { onOpen } = useDisclosure()
+  const { onOpen, isOpen, onOpenChange } = useDisclosure()
   const { auth } = useUser()
   const router = useRouter()
 
@@ -287,7 +287,11 @@ export function OsCard({ serviceOrder }: OsCardProps) {
         </DropdownMenu>
       </Dropdown>
 
-      <OsModal selectedOs={selectedOs} />
+      <OsModal
+        onOpenChange={onOpenChange}
+        selectedOs={selectedOs}
+        isOpen={isOpen}
+      />
     </>
   )
 }
