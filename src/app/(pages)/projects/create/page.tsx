@@ -41,7 +41,7 @@ const createProjectSchema = z.object({
   deliveryForecast: z.string(),
   hoursForecast: z.string().optional().nullable(),
   hoursBalance: z.string().optional().nullable(),
-  hourValue: z.string(),
+  hourValue: z.string().min(1),
 })
 
 type CreateProjectSchema = z.infer<typeof createProjectSchema>
