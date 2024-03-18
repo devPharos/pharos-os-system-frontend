@@ -1,4 +1,5 @@
 import { ExpenseOpened } from '@/app/hooks/useProjects'
+import { handleFormatCurrency } from '@/functions/auxiliar'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Checkbox, Input } from '@nextui-org/react'
 import { Save } from 'lucide-react'
@@ -63,7 +64,7 @@ export default function ProjectExpensesForm({
       expenseOpened?.index,
     )
 
-    toast.success('Despesa criado com sucesso!')
+    toast.success('Despesa criada com sucesso!')
     handleClearForm()
   }
 
@@ -133,6 +134,7 @@ export default function ProjectExpensesForm({
             }}
             {...register('value')}
             errorMessage={errors.value?.message}
+            onChange={handleFormatCurrency}
             isInvalid={!!errors.value}
             placeholder={expenseOpened && ' '}
           />

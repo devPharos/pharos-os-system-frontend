@@ -341,3 +341,15 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
 
   toast.success('Fechamento concluído')
 }
+
+export const handleFormatCurrency = (
+  e: React.ChangeEvent<HTMLInputElement>,
+) => {
+  let { value } = e.target
+
+  value = value.replace(/\D/g, '')
+
+  value = value.replace(/(\d{1,})(\d{2})$/, 'R$ $1,$2')
+
+  e.target.value = value
+}

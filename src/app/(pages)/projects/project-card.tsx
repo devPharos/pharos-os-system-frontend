@@ -20,6 +20,7 @@ import {
   CircleDashed,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Dispatch, Key, SetStateAction } from 'react'
 
 export interface ProjectCardProps {
@@ -29,6 +30,7 @@ export interface ProjectCardProps {
 
 export function ProjectCard({ project, setProjects }: ProjectCardProps) {
   const { auth } = useUser()
+  const router = useRouter()
 
   const handleChangeProjectStatus = async (
     key: Key,
@@ -51,6 +53,10 @@ export function ProjectCard({ project, setProjects }: ProjectCardProps) {
     id: string | undefined,
     status?: 'NaoIniciado' | 'Iniciado' | 'Finalizado' | 'Cancelado',
   ) => {
+    if (key === 'edit' && id) {
+      handleEdit(id)
+    }
+
     if (key === 'status' && id) {
       switch (status) {
         case 'NaoIniciado':
@@ -61,6 +67,10 @@ export function ProjectCard({ project, setProjects }: ProjectCardProps) {
           break
       }
     }
+  }
+
+  const handleEdit = (id: string) => {
+    router.push(`/projects/create?id=${id}`)
   }
 
   return (

@@ -2,7 +2,11 @@ import { CreateUserSchema } from '@/app/(pages)/clients/users/page'
 import { CollaboratorFormSchema } from '@/app/(pages)/company/collaborators/page'
 import { CreateCollaboratorUserSchema } from '@/app/(pages)/company/users/page'
 import { Project } from '@/app/(pages)/projects/create/page'
-import { Projects as ProjectType } from '@/types/projects'
+import {
+  ProjectExpenses,
+  ProjectServices,
+  Projects as ProjectType,
+} from '@/types/projects'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
 import {
@@ -12,6 +16,8 @@ import {
 } from '@/types/service-order'
 import axios, { AxiosResponse } from 'axios'
 import { toast } from 'sonner'
+import { OSDetails } from '@/app/(pages)/service-orders/create/details'
+import { OS } from '@/app/(pages)/service-orders/create/os-form'
 
 // * INTERFACES
 interface CreateCollaboratorType extends CollaboratorFormSchema {
@@ -86,7 +92,6 @@ export async function updateClient(
   token: string,
   data: Partial<Client>,
 ): Promise<AxiosResponse<void, void>> {
-  console.log(data)
   const response = await axios.put(
     `${process.env.NEXT_PUBLIC_API_URL}/update/client`,
     data,
@@ -355,7 +360,6 @@ export async function findProject(token: string, id: string): Promise<Project> {
       },
     })
     .then((response) => {
-      console.log('dentro', response.data)
       project = response.data
     })
     .catch((error) => {
@@ -411,6 +415,47 @@ export async function updateProjectStatus(
     })
 
   return projects
+}
+
+export async function getProjectServices(
+  token: string,
+  projectId: string,
+): Promise<ProjectServices[]> {
+  let projectServices: ProjectServices[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/project-services`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        projectid: projectId,
+      },
+    })
+    .then((response) => {
+      projectServices = response.data.projectsServices
+    })
+
+  return projectServices
+}
+
+export async function getProjectExpenses(
+  token: string,
+  projectId: string,
+): Promise<ProjectExpenses[]> {
+  let projectExpenses: ProjectExpenses[] = []
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/project-expenses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        projectid: projectId,
+      },
+    })
+    .then((response) => {
+      console.log(response.data)
+      projectExpenses = response.data.projectExpenses
+    })
+
+  return projectExpenses
 }
 
 export async function deleteProjectService(
@@ -480,6 +525,35 @@ export async function getServiceOrders(
   return osList
 }
 
+export async function findServiceOrderById(
+  token: string,
+  id: string,
+): Promise<OS> {
+  let os: OS = {
+    clientId: '',
+    date: '',
+    details: [],
+    serviceType: '',
+  }
+
+  await axios
+    .get(`${process.env.NEXT_PUBLIC_API_URL}/find/service-order`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        id,
+      },
+    })
+    .then((response) => {
+      os = response.data
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.error('Erro ao buscar OS')
+    })
+
+  return os
+}
+
 export async function getServiceOrdersFilters(
   token: string,
 ): Promise<ServiceOrderDate[]> {
@@ -494,6 +568,29 @@ export async function getServiceOrdersFilters(
     .then((res) => (filters = res.data))
 
   return filters
+}
+
+export async function createServiceOrder(
+  token: string,
+  body: {
+    status: string
+    details: OSDetails[]
+    date: string
+    clientId: string
+    serviceType: string
+  },
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_API_URL}/service-order`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
 }
 
 export async function listServiceOrders(
