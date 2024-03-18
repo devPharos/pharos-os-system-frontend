@@ -31,6 +31,7 @@ import { ProjectExpensesSection } from './expenses/project-expense-section'
 import { ProjectClient, ProjectCollaborator } from '@/types/projects'
 import { toast } from 'sonner'
 import Loading from '@/components/Loading'
+import { handleFormatCurrency } from '@/functions/auxiliar'
 
 const createProjectSchema = z.object({
   clientId: z.string().uuid(),
@@ -436,6 +437,7 @@ export default function CreateProject() {
             errorMessage={errors.hourValue?.message}
             isInvalid={!!errors.hourValue}
             placeholder={id && ' '}
+            onChange={handleFormatCurrency}
           />
         </section>
       </form>
@@ -447,6 +449,7 @@ export default function CreateProject() {
           handleCreateProjectService={onServiceCreation}
         />
       )}
+
       {services && services.length > 0 && (
         <ProjectServiceSection
           setServices={setServices}

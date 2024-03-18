@@ -1,50 +1,64 @@
 'use client'
 
-import Header from '@/layouts/header'
-import CreateOSForm from './form'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import axios from 'axios'
-import { ServiceOrder } from '@/types/service-order'
-import Loading from '@/components/Loading'
-import { useUser } from '@/app/contexts/useUser'
+import { useState } from 'react'
+import OsForm from './os-form'
+import CreateOSDetails, { OSDetails } from './details'
+import { ServiceOrderDetailsSection } from './details/os-details-section'
 
 export default function CreateOS() {
-  const searchParams = useSearchParams()
-  const params = Array.from(searchParams.values())
-  const [serviceOrder, setServiceOrder] = useState<ServiceOrder>()
-  const id = params[0]
-  const [loading, setLoading] = useState<boolean>(false)
-  const { auth } = useUser()
+  const [selectedClient, setSelectedClient] = useState<string | undefined>()
+  const [openDetails, setOpenDetails] = useState(false)
+  const [details, setDetails] = useState<OSDetails[]>([])
+  const [detailOpened, setDetailOpened] = useState<OSDetails>()
 
-  useEffect(() => {
-    if (typeof window !== undefined && id) {
-      setLoading(true)
+  function onDetailCreation(detail: OSDetails, index?: number) {
+    if (details) {
+      if (index || index === 0) {
+        const newDetailsList = [...details]
+        newDetailsList[index] = detail
 
-      const body = {
-        serviceOrderId: id,
+        setDetails(newDetailsList)
+        setDetailOpened(undefined)
+
+        return
       }
 
-      axios
-        .post(`${process.env.NEXT_PUBLIC_API_URL}/service-order/data`, body, {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-          },
-        })
-        .then((response) => {
-          setLoading(false)
-          setServiceOrder(response.data)
-        })
+      const newDetailsList = [...details]
+      newDetailsList.push(detail)
+
+      setDetails(newDetailsList)
+      setDetailOpened(undefined)
     }
-  }, [id, auth.token])
+  }
 
   return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : (
-        <CreateOSForm id={id} serviceOrder={serviceOrder} />
+    <main className="max-w-7xl w-full space-y-10 px-6 pt-10 mb-10">
+      <OsForm
+        details={details}
+        setOpenDetails={setOpenDetails}
+        setSelectedClient={setSelectedClient}
+        openDetails={openDetails}
+        setDetails={setDetails}
+        selectedClient={selectedClient}
+      />
+
+      {openDetails && (
+        <CreateOSDetails
+          setDetailOpened={setDetailOpened}
+          handleCreateServiceOrderDetail={onDetailCreation}
+          setOpenDetails={setOpenDetails}
+          clientId={selectedClient}
+          detailOpened={detailOpened}
+        />
       )}
-    </>
+
+      {details && details.length > 0 && (
+        <ServiceOrderDetailsSection
+          setDetailOpened={setDetailOpened}
+          setOpenDetails={setOpenDetails}
+          details={details}
+        />
+      )}
+    </main>
   )
 }
