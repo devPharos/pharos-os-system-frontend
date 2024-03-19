@@ -108,7 +108,12 @@ export default function OsForm({
           return
         }
 
-        await createServiceOrder(auth?.token, body)
+        try {
+          await createServiceOrder(auth?.token, body)
+          toast.success('OS criada com sucesso')
+        } catch {
+          toast.error('Já existe uma OS salva nesse horário')
+        }
 
         router.push('/service-orders')
       }

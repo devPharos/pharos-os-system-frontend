@@ -200,6 +200,10 @@ export default function SupportTicket() {
 
   console.log(ticket)
 
+  if (id && !ticket) {
+    return <Loading />
+  }
+
   return (
     <main className="flex flex-col gap-16 max-w-7xl w-full px-6 py-14">
       <header className="w-full flex justify-between items-center">

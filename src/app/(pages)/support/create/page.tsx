@@ -2,6 +2,8 @@
 
 import { useUser } from '@/app/contexts/useUser'
 import TipTap from '@/components/TipTap'
+import { getClients } from '@/functions/requests'
+import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
 import { Project } from '@/types/projects'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,6 +16,8 @@ import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 export default function CreateTicket() {
+  const [clients, setClients] = useState<Client[]>([])
+  const [clientId, setClientId] = useState<string | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [coordinatorId, setCoordinatorId] = useState<string>()
@@ -77,8 +81,8 @@ export default function CreateTicket() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      axios
+    async function fetchData() {
+      await axios
         .get(`${process.env.NEXT_PUBLIC_API_URL}/list/project/collaborators`, {
           headers: {
             Authorization: `Bearer ${auth?.token}`,
@@ -92,23 +96,39 @@ export default function CreateTicket() {
           console.error(error)
         })
 
+      const clientsList = await getClients(auth?.token)
+      setClients(clientsList)
+    }
+
+    fetchData()
+  }, [auth?.token])
+
+  useEffect(() => {
+    if (clientId) {
       axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/list/projects`, {
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/projects`, {
           headers: {
             Authorization: `Bearer ${auth?.token}`,
+            clientid: clientId,
           },
         })
         .then((response) => {
-          setProjects(response.data)
+          setProjects(response.data.projects)
         })
     }
-  }, [auth?.token])
+  }, [clientId, auth?.token])
 
   const handleFindProjectCoordinator = (keys: any) => {
     const selectedProjectId = keys?.currentKey
     const project = projects.find((project) => project.id === selectedProjectId)
 
     setCoordinatorId(project?.coordinatorId)
+  }
+
+  const handleFindClientProjects = (selectedKey: any) => {
+    const selectedClientId = selectedKey.currentKey
+
+    setClientId(selectedClientId)
   }
 
   return (
@@ -124,6 +144,13 @@ export default function CreateTicket() {
 
           <section className="flex items-center gap-6">
             <Button
+              onClick={() => router.push('/support')}
+              className="rounded-full bg-transparent text-gray-100 hover:bg-gray-100 hover:text-gray-700 font-bold"
+            >
+              Cancelar
+            </Button>
+
+            <Button
               type="submit"
               className="disabled:border-none items-center disabled:transparent disabled:hover:bg-gray-600 disabled:text-gray-500 rounded-full px-6 py-4 text-gray-700 bg-yellow-500 font-bold hover:bg-yellow-600"
             >
@@ -135,8 +162,8 @@ export default function CreateTicket() {
 
         <section className="flex flex-wrap gap-6">
           <Select
-            id="projectId"
-            label="Projeto"
+            id="clientId"
+            label="Cliente"
             classNames={{
               trigger: 'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
               listboxWrapper: 'max-h-[400px] rounded-lg',
@@ -148,20 +175,47 @@ export default function CreateTicket() {
                 base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
               },
             }}
-            onSelectionChange={(keys: any) =>
-              handleFindProjectCoordinator(keys)
-            }
-            {...register('projectId')}
-            errorMessage={errors.projectId?.message}
-            validationState={errors.projectId && 'invalid'}
+            onSelectionChange={(keys: any) => handleFindClientProjects(keys)}
           >
-            {projects &&
-              projects.map((project, index) => (
-                <SelectItem key={project?.id || index}>
-                  {project.name}
+            {clients &&
+              clients.map((clients, index) => (
+                <SelectItem key={clients?.id || index}>
+                  {clients.fantasyName}
                 </SelectItem>
               ))}
           </Select>
+
+          {projects.length > 0 && (
+            <Select
+              id="projectId"
+              label="Projeto"
+              classNames={{
+                trigger:
+                  'bg-gray-700  data-[hover=true]:bg-gray-600 rounded-lg',
+                listboxWrapper: 'max-h-[400px] rounded-lg',
+                popover: 'bg-gray-700 rounded-lg ',
+                base: 'max-w-sm',
+              }}
+              listboxProps={{
+                itemClasses: {
+                  base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
+                },
+              }}
+              onSelectionChange={(keys: any) =>
+                handleFindProjectCoordinator(keys)
+              }
+              {...register('projectId')}
+              errorMessage={errors.projectId?.message}
+              validationState={errors.projectId && 'invalid'}
+            >
+              {projects &&
+                projects.map((project, index) => (
+                  <SelectItem key={project?.id || index}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+            </Select>
+          )}
 
           {coordinatorId && (
             <Select

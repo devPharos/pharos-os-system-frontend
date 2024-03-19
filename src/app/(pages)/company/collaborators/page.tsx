@@ -141,6 +141,17 @@ export default function CreateClient() {
   > = async (data: CollaboratorFormSchema) => {
     setLoading(true)
 
+    const supervisorId = !data.supervisorId
+      ? null
+      : data.supervisorId === ''
+      ? null
+      : data.supervisorId
+
+    const body = {
+      ...data,
+      supervisorId,
+    }
+
     const cnpjOrCpf = data.cnpj.replace(/\D/g, '')
     const errorMessage =
       cnpjOrCpf.length === 14 ? 'Insira um CNPJ válido' : 'Insira um CPF válido'
@@ -157,12 +168,6 @@ export default function CreateClient() {
 
     if (typeof window !== 'undefined' && isAValidCNPJOrCPF && auth?.token) {
       if (!id) {
-        setLoading(false)
-        const body = {
-          ...data,
-          supervisorId: data.supervisorId ? data.supervisorId : null,
-        }
-
         try {
           await createCollaborator(auth?.token, body)
           toast.success('Colaborador criado com successo!')
@@ -181,7 +186,7 @@ export default function CreateClient() {
       }
 
       try {
-        await updateCollaborator(auth?.token, data)
+        await updateCollaborator(auth?.token, body)
         toast.success('Colaborador atualizado com successo!')
 
         router.push('/company')

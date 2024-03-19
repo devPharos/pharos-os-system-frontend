@@ -49,8 +49,8 @@ export interface ServiceOrderCard {
   remote: boolean | null
   clientId: string
   date: Date
-  startDate: Date
-  endDate: Date
+  startDate: string
+  endDate: string
   totalHours: string
   status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho'
   clientName?: string
