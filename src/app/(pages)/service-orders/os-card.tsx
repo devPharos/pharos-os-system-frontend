@@ -10,7 +10,7 @@ import {
   DropdownTrigger,
   useDisclosure,
 } from '@nextui-org/react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import {
   AlertCircle,
   ArrowRightCircle,
@@ -143,9 +143,9 @@ export function OsCard({ serviceOrder }: OsCardProps) {
                 <Card.Info
                   icon={Clock}
                   info={`${format(
-                    new Date(serviceOrder.startDate),
+                    parseISO(serviceOrder.startDate),
                     'HH:mm',
-                  )} - ${format(new Date(serviceOrder.endDate), 'HH:mm')}`}
+                  )} - ${format(parseISO(serviceOrder.endDate), 'HH:mm')}`}
                 />
                 <Card.Badge
                   className="text-gray-300/80 rounded-md bg-gray-500/20"
