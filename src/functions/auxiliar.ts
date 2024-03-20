@@ -245,117 +245,115 @@ export const handleCreateClosingPdf = async (
   setLoading: Dispatch<SetStateAction<boolean>>,
 ) => {
   setLoading(true)
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
-    body,
-    {
+  const response = await axios
+    .post(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, body, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    },
-  )
-
-  const pdfsPaths: {
-    path: string
-    pathName: string
-    users: {
-      name: string
-      lastName: string
-      value: string
-      userId?: string | null
-    }[]
-    serviceOrders: {
-      date: Date
-      startDate: Date
-      endDate: Date
-      client: {
-        fantasyName: string
-      }
-      collaborator: {
-        name: string
-        lastName: string
-        value: string
-        userId?: string | null
-      }
-      serviceOrderExpenses: {
-        value: string
-      }[]
-    }
-    projectId: string
-  }[] = response.data
-
-  pdfsPaths.forEach(async (file, index) => {
-    if (!file.path) {
-      toast.error('Existem OS não validadas nesse período')
-
-      return
-    }
-
-    const downloadResponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          fileName: file.pathName,
-        },
-        responseType: 'blob',
-      },
-    )
-
-    const pdfBlob = new Blob([downloadResponse.data], {
-      type: 'application/pdf',
     })
+    .catch((error) => console.log(error))
 
-    saveAs(pdfBlob, `${file.pathName}.pdf`)
+  // const pdfsPaths: {
+  //   path: string
+  //   pathName: string
+  //   users: {
+  //     name: string
+  //     lastName: string
+  //     value: string
+  //     userId?: string | null
+  //   }[]
+  //   serviceOrders: {
+  //     date: Date
+  //     startDate: Date
+  //     endDate: Date
+  //     client: {
+  //       fantasyName: string
+  //     }
+  //     collaborator: {
+  //       name: string
+  //       lastName: string
+  //       value: string
+  //       userId?: string | null
+  //     }
+  //     serviceOrderExpenses: {
+  //       value: string
+  //     }[]
+  //   }
+  //   projectId: string
+  // }[] = response.data
 
-    await axios
-      .delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          fileName: file.pathName,
-        },
-      })
-      .then(() => {
-        file.users.forEach(async (user) => {
-          await axios
-            .post(
-              `${process.env.NEXT_PUBLIC_API_URL}/mail/monthly-closing`,
-              {
-                user,
-                serviceOrders: file.serviceOrders,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-            .catch((err) => {
-              if (err) {
-                toast.error('Um erro inesperado aconteceu!')
-              }
-            })
-        })
-      })
+  // pdfsPaths.forEach(async (file, index) => {
+  //   if (!file.path) {
+  //     toast.error('Existem OS não validadas nesse período')
 
-    await axios.put(
-      `${process.env.NEXT_PUBLIC_API_URL}/update/client/payment-date`,
-      {
-        projectId: file.projectId,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    )
+  //     return
+  //   }
 
-    if (index === pdfsPaths.length) {
-      toast.success('Fechamento concluído')
-    }
+  //   const downloadResponse = await axios.get(
+  //     `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         fileName: file.pathName,
+  //       },
+  //       responseType: 'blob',
+  //     },
+  //   )
 
-    setLoading(false)
-  })
+  //   const pdfBlob = new Blob([downloadResponse.data], {
+  //     type: 'application/pdf',
+  //   })
+
+  //   saveAs(pdfBlob, `${file.pathName}.pdf`)
+
+  //   await axios
+  //     .delete(`${process.env.NEXT_PUBLIC_API_URL}/report/pdf`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //         fileName: file.pathName,
+  //       },
+  //     })
+  //     .then(() => {
+  //       file.users.forEach(async (user) => {
+  //         await axios
+  //           .post(
+  //             `${process.env.NEXT_PUBLIC_API_URL}/mail/monthly-closing`,
+  //             {
+  //               user,
+  //               serviceOrders: file.serviceOrders,
+  //             },
+  //             {
+  //               headers: {
+  //                 Authorization: `Bearer ${token}`,
+  //               },
+  //             },
+  //           )
+  //           .catch((err) => {
+  //             if (err) {
+  //               toast.error('Um erro inesperado aconteceu!')
+  //             }
+  //           })
+  //       })
+  //     })
+
+  //   await axios.put(
+  //     `${process.env.NEXT_PUBLIC_API_URL}/update/client/payment-date`,
+  //     {
+  //       projectId: file.projectId,
+  //     },
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     },
+  //   )
+
+  //   if (index === pdfsPaths.length) {
+  //     toast.success('Fechamento concluído')
+  //   }
+
+  //   setLoading(false)
+  // })
 }
 
 export const handleFormatCurrency = (
