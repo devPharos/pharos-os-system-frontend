@@ -31,6 +31,7 @@ import { PDFProps, handleCreateClosingPdf } from '@/functions/auxiliar'
 import { useUser } from '@/app/contexts/useUser'
 
 export default function Closing() {
+  const [loading, setLoading] = useState(false)
   const [closings, setClosings] = useState<Closing[]>()
   const { auth } = useUser()
 
@@ -80,7 +81,7 @@ export default function Closing() {
     }
   }
 
-  const handlePrintReport = (
+  const handlePrintReport = async (
     startDate: string,
     endDate: string,
     clientId: string,
@@ -94,7 +95,7 @@ export default function Closing() {
     }
 
     if (auth?.token) {
-      handleCreateClosingPdf(body, auth?.token)
+      await handleCreateClosingPdf(body, auth?.token, setLoading)
     }
   }
 
