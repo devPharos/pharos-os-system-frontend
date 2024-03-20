@@ -251,7 +251,7 @@ export const handleCreateClosingPdf = async (
         Authorization: `Bearer ${token}`,
       },
     })
-    .catch((err) => console.log(err))
+    .catch((error) => console.log(error))
 
   // const pdfsPaths: {
   //   path: string
