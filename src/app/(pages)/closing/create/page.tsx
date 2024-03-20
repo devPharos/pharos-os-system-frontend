@@ -103,7 +103,7 @@ export default function CreateMonthlyClosing() {
 
   const handleSubmitNewMonthlyClosing: SubmitHandler<
     CreateMonthlyClosingSchema
-  > = (data: CreateMonthlyClosingSchema) => {
+  > = async (data: CreateMonthlyClosingSchema) => {
     const selectedProjects: string[] = selected.filter(
       (select) => select !== '',
     )
@@ -119,7 +119,8 @@ export default function CreateMonthlyClosing() {
     }
 
     if (auth?.token) {
-      handleCreateClosingPdf(body, auth?.token)
+      await handleCreateClosingPdf(body, auth?.token, setLoading)
+      router.push('/closing')
     }
   }
 
@@ -149,6 +150,7 @@ export default function CreateMonthlyClosing() {
             className="rounded-full px-6 py-4 text-gray-700 font-bold bg-yellow-500 hover:bg-yellow-600"
             type="submit"
             form="closing"
+            disabled={loading}
           >
             <Save size={18} className="text-gray-700" />
             Salvar fechamento

@@ -1,7 +1,7 @@
 import { CreateMonthlyClosingSchema } from '@/app/(pages)/closing/create/page'
 import axios from 'axios'
 import saveAs from 'file-saver'
-import { ChangeEvent } from 'react'
+import { ChangeEvent, Dispatch, SetStateAction } from 'react'
 import { toast } from 'sonner'
 
 export const parseDate = (date: string): Date => {
@@ -239,7 +239,12 @@ export interface PDFProps extends CreateMonthlyClosingSchema {
   selectedProjects: string[]
 }
 
-export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
+export const handleCreateClosingPdf = async (
+  body: PDFProps,
+  token: string,
+  setLoading: Dispatch<SetStateAction<boolean>>,
+) => {
+  setLoading(true)
   const response = await axios.post(
     `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
     body,
@@ -279,7 +284,13 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
     projectId: string
   }[] = response.data
 
-  pdfsPaths.forEach(async (file) => {
+  pdfsPaths.forEach(async (file, index) => {
+    if (!file.path) {
+      toast.error('Existem OS não validadas nesse período')
+
+      return
+    }
+
     const downloadResponse = await axios.get(
       `${process.env.NEXT_PUBLIC_API_URL}/report/pdf`,
       {
@@ -294,6 +305,7 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
     const pdfBlob = new Blob([downloadResponse.data], {
       type: 'application/pdf',
     })
+
     saveAs(pdfBlob, `${file.pathName}.pdf`)
 
     await axios
@@ -337,9 +349,13 @@ export const handleCreateClosingPdf = async (body: PDFProps, token: string) => {
         },
       },
     )
-  })
 
-  toast.success('Fechamento concluído')
+    if (index === pdfsPaths.length) {
+      toast.success('Fechamento concluído')
+    }
+
+    setLoading(false)
+  })
 }
 
 export const handleFormatCurrency = (
