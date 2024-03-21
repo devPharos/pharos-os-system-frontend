@@ -102,6 +102,8 @@ export default function OsForm({
           details,
         }
 
+        console.log(body)
+
         if (details.length === 0) {
           toast.error('Você precisa adicionar um detalhamento')
 
