@@ -120,7 +120,7 @@ export default function CreateMonthlyClosing() {
 
     if (auth?.token) {
       await handleCreateClosingPdf(body, auth?.token, setLoading)
-      router.push('/closing')
+      // router.push('/closing')
     }
   }
 

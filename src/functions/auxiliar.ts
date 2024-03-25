@@ -286,6 +286,8 @@ export const handleCreateClosingPdf = async (
     projectId: string
   }[] = response.data
 
+  console.log(response)
+
   pdfsPaths.forEach(async (file, index) => {
     if (!file.path) {
       toast.error('Existem OS não validadas nesse período')
@@ -303,6 +305,8 @@ export const handleCreateClosingPdf = async (
         responseType: 'blob',
       },
     )
+
+    console.log(downloadResponse)
 
     const pdfBlob = new Blob([downloadResponse.data], {
       type: 'application/pdf',
