@@ -255,6 +255,8 @@ export const handleCreateClosingPdf = async (
     },
   )
 
+  console.log('response', response)
+
   const pdfsPaths: {
     path: string
     pathName: string
@@ -283,6 +285,8 @@ export const handleCreateClosingPdf = async (
     }
     projectId: string
   }[] = response.data
+
+  console.log('pdfPaths', response.data)
 
   pdfsPaths.forEach(async (file, index) => {
     if (!file.path) {
