@@ -255,8 +255,6 @@ export const handleCreateClosingPdf = async (
     },
   )
 
-  console.log('response', response)
-
   const pdfsPaths: {
     path: string
     pathName: string

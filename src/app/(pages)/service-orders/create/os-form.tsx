@@ -78,8 +78,6 @@ export default function OsForm({
     }
   }, [serviceOrder, setDetails])
 
-  console.log(serviceOrder)
-
   const {
     register,
     handleSubmit,
@@ -106,18 +104,16 @@ export default function OsForm({
 
         if (details.length === 0) {
           toast.error('Você precisa adicionar um detalhamento')
-
-          return
         }
 
-        try {
-          await createServiceOrder(auth?.token, body)
-          toast.success('OS criada com sucesso')
-        } catch {
-          toast.error('Já existe uma OS salva nesse horário')
-        }
+        // try {
+        //   await createServiceOrder(auth?.token, body)
+        //   toast.success('OS criada com sucesso')
+        // } catch {
+        //   toast.error('Já existe uma OS salva nesse horário')
+        // }
 
-        router.push('/service-orders')
+        // router.push('/service-orders')
       }
     } catch (error) {
       console.log(error)
