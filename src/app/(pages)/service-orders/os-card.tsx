@@ -164,8 +164,10 @@ export function OsCard({ serviceOrder }: OsCardProps) {
         >
           <DropdownSection
             className={
-              serviceOrder.collaborator?.supervisorId ===
-              auth?.user?.collaboratorId
+              (serviceOrder.collaborator?.supervisorId ===
+                auth?.user?.collaboratorId ||
+                auth?.user?.groupId === 1) &&
+              auth?.user?.collaboratorId !== serviceOrder.collaborator?.id
                 ? ''
                 : 'hidden'
             }
