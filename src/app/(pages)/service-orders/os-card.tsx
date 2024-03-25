@@ -40,15 +40,11 @@ export interface OsCardProps {
 export function OsCard({ serviceOrder }: OsCardProps) {
   const [selectedOs, setSelectedOs] = useState('')
   const { onOpen, isOpen, onOpenChange } = useDisclosure()
-  const [timezone, setTimezone] = useState('')
   const { auth } = useUser()
   const router = useRouter()
 
-  useEffect(() => {
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-    setTimezone(userTimezone)
-  }, [])
 
   const handleChangeOsStatus = async (
     id: string,
@@ -151,17 +147,17 @@ export function OsCard({ serviceOrder }: OsCardProps) {
                 <Card.Info
                   icon={Clock}
                   info={`${format(
-                    utcToZonedTime(serviceOrder.startDate, timezone),
+                    utcToZonedTime(serviceOrder.startDate, userTimezone),
                     'HH:mm',
                   )} - ${format(
-                    utcToZonedTime(serviceOrder.endDate, timezone),
+                    utcToZonedTime(serviceOrder.endDate, userTimezone),
                     'HH:mm',
                   )}`}
                 />
                 <Card.Badge
                   className="text-gray-300/80 rounded-md bg-gray-500/20"
                   status={format(
-                    utcToZonedTime(serviceOrder.date, timezone),
+                    utcToZonedTime(serviceOrder.date, userTimezone),
                     'dd/MM/yyyy',
                   )}
                 />
