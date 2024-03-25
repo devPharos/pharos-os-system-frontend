@@ -10,7 +10,7 @@ import {
   DropdownTrigger,
   useDisclosure,
 } from '@nextui-org/react'
-import { format, parseISO } from 'date-fns'
+import { format, parse, parseISO } from 'date-fns'
 import {
   AlertCircle,
   ArrowRightCircle,
@@ -25,7 +25,8 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Key, useState } from 'react'
+import { Key, useEffect, useState } from 'react'
+import { utcToZonedTime } from 'date-fns-tz'
 import { OsModal } from './os-modal'
 import {
   deleteServiceOrder,
@@ -39,8 +40,15 @@ export interface OsCardProps {
 export function OsCard({ serviceOrder }: OsCardProps) {
   const [selectedOs, setSelectedOs] = useState('')
   const { onOpen, isOpen, onOpenChange } = useDisclosure()
+  const [timezone, setTimezone] = useState('')
   const { auth } = useUser()
   const router = useRouter()
+
+  useEffect(() => {
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+    setTimezone(userTimezone)
+  }, [])
 
   const handleChangeOsStatus = async (
     id: string,
@@ -143,13 +151,19 @@ export function OsCard({ serviceOrder }: OsCardProps) {
                 <Card.Info
                   icon={Clock}
                   info={`${format(
-                    parseISO(serviceOrder.startDate),
+                    utcToZonedTime(serviceOrder.startDate, timezone),
                     'HH:mm',
-                  )} - ${format(parseISO(serviceOrder.endDate), 'HH:mm')}`}
+                  )} - ${format(
+                    utcToZonedTime(serviceOrder.endDate, timezone),
+                    'HH:mm',
+                  )}`}
                 />
                 <Card.Badge
                   className="text-gray-300/80 rounded-md bg-gray-500/20"
-                  status={format(new Date(serviceOrder.date), 'dd/LL/yyyy')}
+                  status={format(
+                    utcToZonedTime(serviceOrder.date, timezone),
+                    'dd/MM/yyyy',
+                  )}
                 />
               </Card.Content>
             </Card.Root>
