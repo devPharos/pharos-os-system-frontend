@@ -286,8 +286,6 @@ export const handleCreateClosingPdf = async (
     projectId: string
   }[] = response.data
 
-  console.log('pdfPaths', response.data)
-
   pdfsPaths.forEach(async (file, index) => {
     if (!file.path) {
       toast.error('Existem OS não validadas nesse período')
