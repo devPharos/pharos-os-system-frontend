@@ -243,7 +243,7 @@ export default function Closing() {
                         <Card.Content>
                           <Card.Info
                             icon={DollarSign}
-                            info={`R$ ${closing.totalValue},00`}
+                            info={`${closing.totalValue}`}
                           />
 
                           <Card.Info
