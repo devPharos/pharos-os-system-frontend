@@ -45,7 +45,6 @@ export function OsCard({ serviceOrder }: OsCardProps) {
 
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-
   const handleChangeOsStatus = async (
     id: string,
     status: 'Aberto' | 'Enviado' | 'Faturado' | 'Validado' | 'Rascunho',

@@ -1,7 +1,8 @@
 import { useUser } from '@/app/contexts/useUser'
-import { getClients, listProjects } from '@/functions/requests'
+import { getClients, getCollaborators, getProjects } from '@/functions/requests'
 import { Client } from '@/types/client'
-import { Projects } from '@/types/projects'
+import { Collaborator } from '@/types/collaborator'
+import { Project } from '@/app/(pages)/projects/create/page'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
@@ -18,6 +19,7 @@ import { useEffect, useState } from 'react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import Loading from '@/components/Loading'
 
 export interface MakeOsReportProps {
   collaborators: {
@@ -36,10 +38,11 @@ const serviceOrderReportSchema = z.object({
 
 export type ServiceOrderReportSchema = z.infer<typeof serviceOrderReportSchema>
 
-export function MakeOsReport({ collaborators }: MakeOsReportProps) {
+export function MakeOsReport() {
   const { auth } = useUser()
   const [clients, setClients] = useState<Client[]>([])
-  const [projects, setProjects] = useState<Projects[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([])
 
   useEffect(() => {
     async function fetchData() {
@@ -47,8 +50,11 @@ export function MakeOsReport({ collaborators }: MakeOsReportProps) {
         const clientsList = await getClients(auth?.token)
         setClients(clientsList)
 
-        const projectsList = await listProjects(auth?.token)
+        const projectsList = await getProjects(auth?.token)
         setProjects(projectsList)
+
+        const collaboratorsList = await getCollaborators(auth?.token)
+        setCollaborators(collaboratorsList)
       }
     }
 
@@ -120,6 +126,16 @@ export function MakeOsReport({ collaborators }: MakeOsReportProps) {
     await MakeReporting(data)
   }
 
+  async function handleGetClientProjects(keys: any) {
+    const clientId = keys.currentKey
+    const projectsList = await getProjects(auth?.token, clientId)
+    setProjects(projectsList)
+  }
+
+  if (!projects) {
+    return <Loading />
+  }
+
   return (
     <Popover
       placement="bottom"
@@ -166,6 +182,7 @@ export function MakeOsReport({ collaborators }: MakeOsReportProps) {
                       base: 'bg-gray-700 data-[hover=true]:bg-gray-500/50 data-[hover=true]:text-gray-200 group-data-[focus=true]:bg-gray-500/50',
                     },
                   }}
+                  onSelectionChange={(keys) => handleGetClientProjects(keys)}
                 >
                   {clients.map((client) => (
                     <SelectItem key={client.id}>
@@ -200,8 +217,8 @@ export function MakeOsReport({ collaborators }: MakeOsReportProps) {
                   }}
                 >
                   {collaborators.map((collaborator) => (
-                    <SelectItem key={collaborator.key}>
-                      {collaborator.label}
+                    <SelectItem key={collaborator.id}>
+                      {collaborator.name + ' ' + collaborator.lastName}
                     </SelectItem>
                   ))}
                 </Select>
@@ -231,8 +248,10 @@ export function MakeOsReport({ collaborators }: MakeOsReportProps) {
                   }}
                 >
                   {projects &&
-                    projects.map((project) => (
-                      <SelectItem key={project.id}>{project.name}</SelectItem>
+                    projects.map((project, index) => (
+                      <SelectItem key={project.id || index}>
+                        {project.name}
+                      </SelectItem>
                     ))}
                 </Select>
               )}
