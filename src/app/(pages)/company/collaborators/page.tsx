@@ -8,6 +8,7 @@ import {
   getBanksData,
   getCEPData,
   handleFormatCPForCNPJ,
+  handleFormatCurrency,
   handleFormatPhone,
   validateCNPJ,
   validateCPF,
@@ -21,7 +22,7 @@ import { Collaborator } from '@/types/collaborator'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, Input, Select, SelectItem } from '@nextui-org/react'
 import axios from 'axios'
-import { Save, Search } from 'lucide-react'
+import { DollarSign, Save, Search } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChangeEvent, useEffect, useState } from 'react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
@@ -48,6 +49,7 @@ const collaboratorFormSchema = z.object({
   phone: z.string().min(1, 'Campo obrigatório'),
   pixKey: z.string(),
   state: z.string().min(1, 'Campo obrigatório'),
+  value: z.string().min(1, 'Campo obrigatório'),
 })
 
 export type CollaboratorFormSchema = z.infer<typeof collaboratorFormSchema>
@@ -340,6 +342,23 @@ export default function CreateClient() {
                 onChange={handleFormatPhone}
                 errorMessage={errors.phone?.message}
                 isInvalid={!!errors.phone}
+              />
+
+              <Input
+                label="Valor hora"
+                id="value"
+                classNames={{
+                  label: 'text-gray-300',
+                  base: 'max-w-sm',
+                  inputWrapper:
+                    'bg-gray-700 data-[hover=true]:bg-gray-800 group-data-[focus=true]:bg-gray-800 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-yellow-500',
+                }}
+                {...register('value')}
+                placeholder={id && ' '}
+                onChange={handleFormatCurrency}
+                errorMessage={errors.value?.message}
+                isInvalid={!!errors.value}
+                endContent={<DollarSign className="text-gray-300" size={20} />}
               />
             </section>
           </section>
