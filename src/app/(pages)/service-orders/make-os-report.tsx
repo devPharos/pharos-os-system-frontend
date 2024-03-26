@@ -1,13 +1,8 @@
 import { useUser } from '@/app/contexts/useUser'
-import {
-  getClients,
-  getCollaborators,
-  getProjects,
-  listProjects,
-} from '@/functions/requests'
+import { getClients, getCollaborators, getProjects } from '@/functions/requests'
 import { Client } from '@/types/client'
 import { Collaborator } from '@/types/collaborator'
-import { Project, Projects } from '@/types/projects'
+import { Project } from '@/app/(pages)/projects/create/page'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
@@ -24,6 +19,7 @@ import { useEffect, useState } from 'react'
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import Loading from '@/components/Loading'
 
 export interface MakeOsReportProps {
   collaborators: {
@@ -134,6 +130,10 @@ export function MakeOsReport() {
     const clientId = keys.currentKey
     const projectsList = await getProjects(auth?.token, clientId)
     setProjects(projectsList)
+  }
+
+  if (!projects) {
+    return <Loading />
   }
 
   return (
@@ -248,8 +248,10 @@ export function MakeOsReport() {
                   }}
                 >
                   {projects &&
-                    projects.map((project) => (
-                      <SelectItem key={project.id}>{project.name}</SelectItem>
+                    projects.map((project, index) => (
+                      <SelectItem key={project.id || index}>
+                        {project.name}
+                      </SelectItem>
                     ))}
                 </Select>
               )}

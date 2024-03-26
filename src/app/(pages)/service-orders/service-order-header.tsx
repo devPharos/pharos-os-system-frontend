@@ -112,7 +112,7 @@ export function ServiceOrderHeader({
             setServiceOrders={setServiceOrders}
           />
 
-          <MakeOsReport collaborators={collaborators} />
+          <MakeOsReport />
         </section>
       </header>
     </>
