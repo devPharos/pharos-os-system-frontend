@@ -3,6 +3,7 @@ import {
   createServiceOrder,
   findServiceOrderById,
   getClients,
+  updateServiceOrder,
 } from '@/functions/requests'
 import { Client } from '@/types/client'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -75,8 +76,9 @@ export default function OsForm({
   useEffect(() => {
     if (serviceOrder) {
       setDetails(serviceOrder.details)
+      setSelectedClient(serviceOrder.clientId)
     }
-  }, [serviceOrder, setDetails])
+  }, [serviceOrder, setDetails, setSelectedClient])
 
   const {
     register,
@@ -104,14 +106,33 @@ export default function OsForm({
           toast.error('Você precisa adicionar um detalhamento')
         }
 
-        try {
-          await createServiceOrder(auth?.token, body)
-          toast.success('OS criada com sucesso')
-        } catch {
-          toast.error('Já existe uma OS salva nesse horário')
+        if (!id) {
+          try {
+            await createServiceOrder(auth?.token, body)
+            toast.success('OS atualizada com sucesso')
+            router.push('/service-orders')
+          } catch {
+            toast.error('Já existe uma OS salva nesse horário')
+            return
+          }
         }
 
-        router.push('/service-orders')
+        if (id) {
+          const body = {
+            id,
+            ...data,
+            status,
+            details,
+          }
+
+          try {
+            await updateServiceOrder(auth?.token, body)
+            toast.success('OS criada com sucesso')
+            router.push('/service-orders')
+          } catch (err) {
+            console.log(err)
+          }
+        }
       }
     } catch (error) {
       console.log(error)

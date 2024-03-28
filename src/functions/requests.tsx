@@ -593,6 +593,29 @@ export async function createServiceOrder(
   return response
 }
 
+export async function updateServiceOrder(
+  token: string,
+  body: {
+    status: string
+    details: OSDetails[]
+    date: string
+    clientId: string
+    serviceType: string
+  },
+): Promise<AxiosResponse<void, void>> {
+  const response = await axios.put(
+    `${process.env.NEXT_PUBLIC_API_URL}/update/service-order`,
+    body,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+
+  return response
+}
+
 export async function listServiceOrders(
   token: string,
   selectedValue?: string,

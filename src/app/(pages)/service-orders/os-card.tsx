@@ -145,13 +145,7 @@ export function OsCard({ serviceOrder }: OsCardProps) {
                 <Card.Info icon={User} info={serviceOrder.collaborator.name} />
                 <Card.Info
                   icon={Clock}
-                  info={`${format(
-                    utcToZonedTime(serviceOrder.startDate, userTimezone),
-                    'HH:mm',
-                  )} - ${format(
-                    utcToZonedTime(serviceOrder.endDate, userTimezone),
-                    'HH:mm',
-                  )}`}
+                  info={`${serviceOrder.startDate} - ${serviceOrder.endDate}`}
                 />
                 <Card.Badge
                   className="text-gray-300/80 rounded-md bg-gray-500/20"
