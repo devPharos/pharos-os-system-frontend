@@ -150,9 +150,11 @@ export default function CreateOSExpenses({
     projectExpenseId,
     value,
   }: TOsExpensesFormData) => {
+    const formmatedValue = parseFloat(value.replace('R$', '').replace(',', '.'))
+
     const isValueCorrect = selectedExpense
-      ? parseInt(value.replace(/\D/g, '')) / 100 <=
-        parseInt(selectedExpense?.value.replace(/\D/g, '')) / 100
+      ? formmatedValue <=
+        parseFloat(selectedExpense?.value.replace('R$', '').replace(',', '.'))
       : false
 
     if (!isValueCorrect) {
@@ -199,12 +201,9 @@ export default function CreateOSExpenses({
     setExpenseOpened(undefined)
   }
 
-  if (id && !expenseOpened) {
+  if (id && expenseOpened && !expenseOpened.value) {
     return <Loading />
   }
-
-  console.log(expenseOpened)
-  console.log(projectExpenses)
 
   return (
     <main className="w-full">

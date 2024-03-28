@@ -121,6 +121,8 @@ export default function CreateOSDetails({
     fetchData()
   }, [detailOpened, handleGetProjectServices])
 
+  console.log(detailOpened)
+
   async function handleServiceOrderDetailsSubmit({
     description,
     endDate,
@@ -156,6 +158,7 @@ export default function CreateOSDetails({
 
     handleCreateServiceOrderDetail(
       {
+        id: detailOpened?.id,
         description,
         endDate,
         projectId,
@@ -194,7 +197,7 @@ export default function CreateOSDetails({
 
         setExpenses(newExpensesList)
         setOpenExpenses(false)
-        setDetailOpened(undefined)
+        setExpenseOpened(undefined)
 
         return
       }
@@ -204,7 +207,7 @@ export default function CreateOSDetails({
 
       setExpenses(newExpensesList)
       setOpenExpenses(false)
-      setDetailOpened(undefined)
+      setExpenseOpened(undefined)
     }
   }
 

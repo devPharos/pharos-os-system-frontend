@@ -13,6 +13,7 @@ export function OsFormHeader({
   clientId,
   setOpenDetails,
 }: OsFormHeaderProps) {
+  console.log(clientId)
   return (
     <section className="flex items-center justify-between">
       <span className="text-gray-200">Informações da ordem de serviço</span>
